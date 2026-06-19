@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Courtside Chaos</title>
+  <style>
+    :root {
+      --navy: #17212f;
+      --cream: #f4ead7;
+      --paper: #fff8e8;
+      --ink: #241f1a;
+      --red: #a64232;
+      --gold: #c59a45;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at top, rgba(255,220,150,.25), transparent 35%),
+        linear-gradient(135deg, #241b18, #17212f 70%);
+      color: var(--paper);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .game {
+      width: min(920px, 100%);
+      min-height: 640px;
+      background: var(--cream);
+      color: var(--ink);
+      border: 8px solid #111;
+      box-shadow: 0 30px 80px rgba(0,0,0,.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .top-strip {
+      background: var(--red);
+      color: var(--paper);
+      padding: 10px 18px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    .screen {
+      padding: 34px;
+      display: none;
+    }
+
+    .screen.active { display: block; }
+
+    h1 {
+      font-size: clamp(42px, 8vw, 86px);
+      line-height: .9;
+      margin: 30px 0 12px;
+      letter-spacing: -3px;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      font-size: 34px;
+      margin: 0 0 18px;
+      text-transform: uppercase;
+      border-bottom: 4px solid var(--ink);
+      padding-bottom: 8px;
+    }
+
+    p {
+      font-size: 21px;
+      line-height: 1.45;
+    }
+
+    .tagline {
+      font-size: 25px;
+      color: var(--red);
+      font-style: italic;
+      max-width: 620px;
+    }
+
+    .panel {
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      padding: 24px;
+      box-shadow: 8px 8px 0 rgba(0,0,0,.18);
+      margin: 18px 0;
+    }
+
+    .sandra {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 22px;
+      align-items: center;
+    }
+
+    .portrait {
+      width: 120px;
+      height: 140px;
+      background: linear-gradient(#f0c46d, #c98238);
+      border: 4px solid var(--ink);
+      display: flex;
+      align-items: end;
+      justify-content: center;
+      font-size: 54px;
+      font-weight: bold;
+      color: var(--navy);
+    }
+
+    .stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+
+    .stat {
+      background: var(--navy);
+      color: var(--paper);
+      padding: 10px 14px;
+      border: 2px solid var(--ink);
+      font-weight: bold;
+    }
+
+    button {
+      appearance: none;
+      border: 3px solid var(--ink);
+      background: var(--gold);
+      color: var(--ink);
+      padding: 14px 18px;
+      font-size: 18px;
+      font-weight: bold;
+      font-family: Georgia, "Times New Roman", serif;
+      cursor: pointer;
+      box-shadow: 5px 5px 0 rgba(0,0,0,.25);
+      margin: 8px 8px 8px 0;
+    }
+
+    button:hover {
+      transform: translate(2px, 2px);
+      box-shadow: 3px 3px 0 rgba(0,0,0,.25);
+    }
+
+    .choices button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: var(--paper);
+      margin-bottom: 14px;
+    }
+
+    .newspaper {
+      background: #f9f1df;
+      color: #111;
+      border: 3px solid #111;
+      padding: 24px;
+      font-family: Georgia, serif;
+    }
+
+    .newspaper .masthead {
+      text-align: center;
+      font-size: 38px;
+      font-weight: bold;
+      border-bottom: 5px double #111;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+    }
+
+    .headline {
+      font-size: 42px;
+      line-height: .95;
+      text-transform: uppercase;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .history-item {
+      border-bottom: 1px solid rgba(0,0,0,.25);
+      padding: 10px 0;
+      font-size: 18px;
+    }
+
+    .footer-note {
+      position: absolute;
+      bottom: 10px;
+      right: 16px;
+      font-size: 13px;
+      opacity: .65;
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 10px; }
+      .screen { padding: 22px; }
+      .sandra { grid-template-columns: 1fr; }
+      .portrait { width: 95px; height: 110px; font-size: 42px; }
+      p { font-size: 18px; }
+      .headline { font-size: 32px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="game">
+    <div class="top-strip">Courtside Chaos · Prototype V0.1</div>
+
+    <section id="title" class="screen active">
+      <h1>Courtside Chaos</h1>
+      <p class="tagline">The road to greatness is paved with bad decisions.</p>
+      <div class="panel">
+        <p>You own a failing 1980s minor-league basketball franchise.</p>
+        <p>The arena leaks. The mascot limps. Ricky Malone refuses the bus.</p>
+        <p><strong>Survive one more week.</strong></p>
+      </div>
+      <button onclick="startGame()">Start Franchise</button>
+    </section>
+
+    <section id="briefing" class="screen">
+      <h2>Monday Morning</h2>
+      <div class="panel sandra">
+        <div class="portrait">S</div>
+        <div>
+          <strong>Sandra S.</strong>
+          <p id="briefingText"></p>
+        </div>
+      </div>
+      <div class="stats" id="statsBriefing"></div>
+      <button onclick="showEvent()">Continue</button>
+    </section>
+
+    <section id="event" class="screen">
+      <h2 id="eventTitle"></h2>
+      <div class="panel">
+        <p id="eventText"></p>
+      </div>
+      <div class="choices" id="choices"></div>
+    </section>
+
+    <section id="outcome" class="screen">
+      <h2>What Happened</h2>
+      <div class="panel">
+        <p id="outcomeText"></p>
+      </div>
+      <div class="stats" id="statsOutcome"></div>
+      <button onclick="showNewspaper()">Read The Paper</button>
+    </section>
+
+    <section id="newspaper" class="screen">
+      <div class="newspaper">
+        <div class="masthead">The Local Gazette</div>
+        <div class="headline" id="headline"></div>
+        <p id="newspaperText"></p>
+      </div>
+      <button onclick="showHistory()">Update Franchise History</button>
+    </section>
+
+    <section id="history" class="screen">
+      <h2>Franchise History</h2>
+      <div class="panel" id="historyList"></div>
+      <button onclick="nextWeek()">One More Week</button>
+    </section>
+
+    <div class="footer-note">Sandra remembers everything.</div>
+  </main>
+
+  <script>
+    const gameState = {
+      week: 1,
+      money: 5000,
+      fans: 50,
+      leagueRep: 50,
+      history: [],
+      currentEvent: null,
+      currentOutcome: null
+    };
+
+    const briefings = [
+      "Boss, the good news is we're only being sued once.",
+      "Boss, Ricky says the bus seats are spiritually aggressive.",
+      "Boss, the mascot is listed as day-to-day.",
+      "Boss, technically we're hosting basketball and indoor rain.",
+      "Boss, Larry from the league called. Twice."
+    ];
+
+    const events = [
+      {
+        title: "Mascot In The Rafters",
+        text: "The team mascot has become stuck above Section 104 during a rehearsal for Flamingo Flight Night. Game starts in 90 minutes.",
+        choices: [
+          {
+            label: "Call the fire department.",
+            outcome: "The fire department rescued the mascot, but billed the franchise for ladder damage and emotional overtime.",
+            money: -650,
+            fans: 3,
+            leagueRep: 0,
+            headline: "MASCOT RESCUED BEFORE TIPOFF",
+            story: "The Flamingo was returned safely to ground level. Witnesses described the rescue as brave, confusing, and bad for the rafters.",
+            history: "Mascot rescued from rafters."
+          },
+          {
+            label: "Ask Tiny McGee to help.",
+            outcome: "Tiny climbed into the rafters, rescued the mascot, and became an instant local hero. Unfortunately, he landed on the shot clock.",
+            money: -850,
+            fans: 8,
+            leagueRep: 1,
+            headline: "TINY SAVES MASCOT",
+            story: "Tiny McGee rescued the Flamingo before tipoff. The shot clock was less fortunate.",
+            history: "Tiny saved the mascot and destroyed the shot clock."
+          },
+          {
+            label: "Play the game and hope nobody notices.",
+            outcome: "Everyone noticed. The mascot waved from the rafters during free throws. Fans loved it. Commissioner Larry did not.",
+            money: 200,
+            fans: 5,
+            leagueRep: -6,
+            headline: "FLAMINGO WATCHES GAME FROM RAFTERS",
+            story: "Fans called it innovative. League officials called it a workplace safety concern.",
+            history: "Mascot remained in rafters during game."
+          }
+        ]
+      },
+      {
+        title: "Ricky Refuses The Bus",
+        text: "Ricky Malone refuses to ride RoadRunner Coach Lines to Boise. He says the upholstery has negative energy.",
+        choices: [
+          {
+            label: "Rent Ricky a private car.",
+            outcome: "Ricky arrived relaxed and scored 38. The rest of the team arrived annoyed and smelled faintly of diesel.",
+            money: -500,
+            fans: 4,
+            leagueRep: 2,
+            headline: "MALONE ARRIVES IN STYLE",
+            story: "Ricky Malone led the team to victory after travelling separately for what he called 'basketball reasons.'",
+            history: "Ricky refused the bus and got a private car."
+          },
+          {
+            label: "Force him onto the bus.",
+            outcome: "Ricky boarded the bus, refused to speak for six hours, then scored 9 points and blamed the suspension.",
+            money: 0,
+            fans: -3,
+            leagueRep: -1,
+            headline: "BUS DRAMA SINKS ROAD TRIP",
+            story: "The franchise confirmed Malone travelled with the team. The scoreboard confirmed he did not enjoy it.",
+            history: "Ricky was forced onto the bus and played terribly."
+          },
+          {
+            label: "Tell the bus to leave without him.",
+            outcome: "Ricky hitchhiked with a bowling team and arrived at halftime. Somehow he still hit the winning shot.",
+            money: 0,
+            fans: 7,
+            leagueRep: -4,
+            headline: "MALONE ARRIVES LATE, WINS GAME",
+            story: "Ricky Malone missed warmups, most of the first half, and all conventional expectations.",
+            history: "Ricky hitchhiked to the game and became a legend."
+          }
+        ]
+      },
+      {
+        title: "Indoor Rain",
+        text: "A roof leak has opened above the free throw line. Sandra has placed a bucket there, but Coach Hank says it affects spacing.",
+        choices: [
+          {
+            label: "Pay for emergency repairs.",
+            outcome: "The leak stopped. The repairman warned that three other leaks are now jealous.",
+            money: -1200,
+            fans: 1,
+            leagueRep: 4,
+            headline: "ARENA ROOF TEMPORARILY DEFEATED",
+            story: "Officials confirmed the court is dry for now, though several buckets remain on standby.",
+            history: "Emergency roof repairs completed."
+          },
+          {
+            label: "Move the bucket and keep playing.",
+            outcome: "The bucket became part of the defensive scheme. Hank called it the best rim protector on the roster.",
+            money: 0,
+            fans: 6,
+            leagueRep: -3,
+            headline: "BUCKET STARS IN HOME WIN",
+            story: "Fans cheered the bucket after it disrupted two drives and one referee.",
+            history: "A bucket became an unofficial sixth man."
+          },
+          {
+            label: "Sell sponsorship rights to the leak.",
+            outcome: "Mel's Plumbing paid for naming rights. The Mel's Plumbing Splash Zone was born.",
+            money: 900,
+            fans: 4,
+            leagueRep: -2,
+            headline: "SPLASH ZONE DEBUTS AT ARENA",
+            story: "The franchise denied reports that fans in Section C were issued towels instead of tickets.",
+            history: "Sold naming rights to the roof leak."
+          }
+        ]
+      },
+      {
+        title: "Scout Sighting",
+        text: "Sandra believes an Association scout is sitting behind the popcorn machine. Hank thinks it's a plumber. Ricky has started warming up shirtless.",
+        choices: [
+          {
+            label: "Tell everyone to act normal.",
+            outcome: "Nobody acted normal. Ricky took 31 shots. Hank wore a tie. Sandra took notes quietly.",
+            money: 0,
+            fans: 2,
+            leagueRep: 3,
+            headline: "POSSIBLE SCOUT SEES POSSIBLE BASKETBALL",
+            story: "The mysterious visitor left before comment. Sandra described the evening as 'not catastrophic.'",
+            history: "Possible Association scout attended game."
+          },
+          {
+            label: "Give the visitor VIP treatment.",
+            outcome: "The visitor enjoyed free nachos, signed nothing, and fixed the popcorn machine on his way out. It may have been the plumber.",
+            money: -250,
+            fans: 1,
+            leagueRep: 0,
+            headline: "VIP GUEST MAY HAVE BEEN PLUMBER",
+            story: "Team officials declined to confirm whether The Association evaluates snack infrastructure.",
+            history: "Possible scout received VIP nachos."
+          },
+          {
+            label: "Ignore it completely.",
+            outcome: "The team played loose and won. The visitor nodded once before disappearing into the parking lot.",
+            money: 0,
+            fans: 5,
+            leagueRep: 5,
+            headline: "MYSTERY MAN WATCHES WIN",
+            story: "No one knows who he was, but everyone agreed the team looked almost professional.",
+            history: "Mystery visitor watched an impressive win."
+          }
+        ]
+      }
+    ];
+
+    function switchScreen(id) {
+      document.querySelectorAll(".screen").forEach(screen => {
+        screen.classList.remove("active");
+      });
+      document.getElementById(id).classList.add("active");
+    }
+
+    function renderStats(targetId) {
+      document.getElementById(targetId).innerHTML = `
+        <div class="stat">Week ${gameState.week}</div>
+        <div class="stat">Money $${gameState.money}</div>
+        <div class="stat">Fans ${gameState.fans}</div>
+        <div class="stat">League Rep ${gameState.leagueRep}</div>
+      `;
+    }
+
+    function startGame() {
+      showBriefing();
+    }
+
+    function showBriefing() {
+      const briefing = briefings[Math.floor(Math.random() * briefings.length)];
+      document.getElementById("briefingText").textContent = briefing;
+      renderStats("statsBriefing");
+      switchScreen("briefing");
+    }
+
+    function showEvent() {
+      const event = events[Math.floor(Math.random() * events.length)];
+      gameState.currentEvent = event;
+
+      document.getElementById("eventTitle").textContent = event.title;
+      document.getElementById("eventText").textContent = event.text;
+
+      const choices = document.getElementById("choices");
+      choices.innerHTML = "";
+
+      event.choices.forEach(choice => {
+        const button = document.createElement("button");
+        button.textContent = choice.label;
+        button.onclick = () => chooseOutcome(choice);
+        choices.appendChild(button);
+      });
+
+      switchScreen("event");
+    }
+
+    function chooseOutcome(choice) {
+      gameState.currentOutcome = choice;
+      gameState.money += choice.money;
+      gameState.fans += choice.fans;
+      gameState.leagueRep += choice.leagueRep;
+
+      gameState.history.unshift({
+        week: gameState.week,
+        text: choice.history,
+        headline: choice.headline
+      });
+
+      document.getElementById("outcomeText").textContent = choice.outcome;
+      renderStats("statsOutcome");
+      switchScreen("outcome");
+    }
+
+    function showNewspaper() {
+      const outcome = gameState.currentOutcome;
+      document.getElementById("headline").textContent = outcome.headline;
+      document.getElementById("newspaperText").textContent = outcome.story;
+      switchScreen("newspaper");
+    }
+
+    function showHistory() {
+      const list = document.getElementById("historyList");
+      list.innerHTML = "";
+
+      gameState.history.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = `<strong>Week ${item.week}</strong><br>${item.text}<br><em>${item.headline}</em>`;
+        list.appendChild(div);
+      });
+
+      switchScreen("history");
+    }
+
+    function nextWeek() {
+      gameState.week += 1;
+      showBriefing();
+    }
+  </script>
+</body>
+</html>
