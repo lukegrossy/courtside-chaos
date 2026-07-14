@@ -64,11 +64,9 @@
   #quote.on .q{opacity:1;}
 
   /* ---- DASHBOARD (v5) ---- */
-  #dash .window{position:absolute; left:40px; top:318px; width:773px; height:478px; overflow:hidden; z-index:1;}
-  #dash .window img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 18%;
-    object-fit:cover; object-position:center bottom;}
+  #dash .window{position:absolute; left:40px; top:318px; width:773px; height:478px; overflow:hidden; z-index:3;}
+  #dash .window img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 18%;}
   #dash .frame{position:absolute; left:0; top:0; width:853px; height:1844px; z-index:2; pointer-events:none;}
-  #dash
   #dash .ui{position:absolute; left:0; top:0; width:853px; height:1844px; z-index:4;}
   #dash .ui > *{position:absolute;}
 
@@ -238,7 +236,7 @@
     <!-- CUTSCENE -->
     <div class="screen" id="cut">
       <div class="art">
-        <img alt="" src="assets/cutscenes/shack.gif">
+        <img alt="" src="assets/cutscenes/shack.gif" onerror="this.style.visibility='hidden'" onload="this.style.visibility='visible'">
         <div class="glow" style="left:504px; top:352px;"></div>
         <canvas id="snowc" width="853" height="1844"></canvas>
       </div>
