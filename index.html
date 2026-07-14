@@ -6,7 +6,7 @@
 <title>Courtside Chaos</title>
 <style>
   :root{
-    --green:#2f7a38; --blue:#345f82; --amber:#8a5e1e;
+    --green:#1c5424; --blue:#27506e; --amber:#7a4210;
     --red:#9a3826; --ink:#18140f; --label:#2c2820; --sub:#3f382e;
     --rule:rgba(96,120,148,.33); --margin:#b18164; --cream:#efe6d2;
   }
@@ -71,9 +71,9 @@
   #dash .ui > *{position:absolute;}
 
   .blk{font-family:"Arial Black","Helvetica Neue",Impact,sans-serif; font-weight:900; color:var(--ink); line-height:1;}
-  .lab{font-weight:800; color:var(--label); letter-spacing:1px; font-size:18px; line-height:1;}
+  .lab{font-weight:800; color:#4a4234; letter-spacing:1px; font-size:19px; line-height:1;}
   .cell{display:flex; flex-direction:column; align-items:center; gap:10px; top:56px;}
-  .cell .v{font-size:32px;}
+  .cell .v{font-size:36px; text-shadow:0 1px 0 rgba(255,250,235,.35);}
   .s1{left:40px;width:200px;} .s2{left:250px;width:185px;}
   .s3{left:455px;width:165px;} .s4{left:640px;width:170px;}
   .team{left:56px; top:196px; width:440px; text-align:left;}
@@ -120,23 +120,23 @@
   .card:active{filter:brightness(.92);}
   .nextcard{left:264px; width:336px; transform:rotate(-0.4deg); top:1701px; height:110px; padding:0 8px;
     justify-content:center; background:none; box-shadow:none;}
-  .nextcard .txt{font-size:34px; line-height:40px; text-align:center;}
-  .nextcard .sub{font-size:21px;}
+  .nextcard .txt{font-size:37px; line-height:43px; text-align:center;}
+  .nextcard .sub{font-size:24px;}
   .nextcard .txt{color:var(--red);}
   .callcard{left:264px; width:336px; top:1701px; height:110px; transform:rotate(-0.4deg); padding:0 8px;
     justify-content:center; background:none; box-shadow:none;}
-  .callcard .txt{font-size:34px; line-height:40px; text-align:center;}
-  .callcard .sub{font-size:22px;}
+  .callcard .txt{font-size:37px; line-height:43px; text-align:center;}
+  .callcard .sub{font-size:24px;}
   .slot{position:absolute; width:176px; top:1701px; height:110px; display:flex; flex-direction:column;
     align-items:center; justify-content:center; text-align:center; gap:6px; padding:0 2px;}
   .slotL{left:45px; transform:rotate(-1.6deg);}
   .slotR{left:640px; transform:rotate(1.2deg);}
-  .slot .slab{font-family:"Arial Black",sans-serif; font-size:18px; letter-spacing:1px;
+  .slot .slab{font-family:"Arial Black",sans-serif; font-size:19px; letter-spacing:1px;
     color:var(--red); border-bottom:2px solid var(--red); padding-bottom:3px;}
   .slot .sv1{font-family:"Courier New",monospace; font-weight:700; color:var(--ink);
-    font-size:27px; line-height:30px;}
+    font-size:31px; line-height:34px; white-space:nowrap;}
   .slot .sv2{font-family:"Courier New",monospace; font-style:italic; font-weight:700;
-    color:var(--sub); font-size:20px;}
+    color:#5c4a32; font-size:22px;}
   .ticker{position:absolute; left:80px; right:80px; top:1821px; text-align:center;
     font-family:"Courier New",monospace; font-weight:700; color:#a3937a;
     font-size:17px; letter-spacing:2px;}
@@ -154,8 +154,8 @@
     font-family:"Courier New",monospace; font-weight:700;}
   .dcard:active{filter:brightness(.92);}
   .dcard .L{color:var(--red);}
-  .dcard .txt{color:#241c12; font-size:36px; line-height:48px;}
-  .dcard .sub{color:#6b5236; font-size:25px; line-height:32px; font-style:italic;}
+  .dcard .txt{color:#241c12; font-size:45px; line-height:58px;}
+  .dcard .sub{color:#5c4a32; font-size:30px; line-height:38px; font-style:italic;}
   .d1{top:508px; transform:rotate(-1.91deg);}
   .d2{top:962px; transform:rotate(2.47deg);}
   .d3{top:1430px; transform:rotate(-2.02deg);}
@@ -171,8 +171,8 @@
     display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
     text-align:left; gap:12px; font-family:"Courier New",monospace; font-weight:700;}
   .mcard:active{filter:brightness(.92);}
-  .mcard .txt{color:#241c12; font-size:33px; line-height:44px;}
-  .mcard .sub{color:#6b5236; font-style:italic; font-size:24px; line-height:30px;}
+  .mcard .txt{color:#241c12; font-size:41px; line-height:53px;}
+  .mcard .sub{color:#5c4a32; font-style:italic; font-size:28px; line-height:35px;}
   .m1{top:965px; transform:rotate(1.46deg);}
   .m2{top:1432px; transform:rotate(-3.03deg);}
   /* ---- cutaway screens ---- */
@@ -195,21 +195,21 @@
   /* ---- gazette front page ---- */
   .gazpage{position:absolute; left:0; top:281px; width:853px; height:1282px;}
   .gart{position:absolute; left:0; top:0; width:853px; height:1282px;}
-  .gazmast{position:absolute; left:98px; right:82px; top:32px; height:150px;
+  .gazmast{position:absolute; left:100px; right:88px; top:98px; height:166px; white-space:nowrap;
     display:flex; align-items:center; justify-content:center;
     font-family:"Playfair Display",Georgia,serif; font-weight:900; color:#1c1a17;
-    font-size:64px; letter-spacing:1px;}
-  .gazsub{position:absolute; left:110px; right:95px; top:192px;
+    font-size:46px; letter-spacing:1px;}
+  .gazsub{position:absolute; left:122px; right:126px; top:274px;
     display:flex; justify-content:space-between;
     font-family:"Courier New",monospace; font-weight:700; color:#33302b; font-size:19px;}
-  .gazhead{position:absolute; left:105px; right:90px; top:255px; height:320px;
+  .gazhead{position:absolute; left:108px; right:96px; top:322px; height:266px;
     display:flex; align-items:center; justify-content:center;
     font-family:"Arial Black","Arial Narrow",sans-serif; font-weight:900; color:#171512;
-    font-size:60px; line-height:70px; text-align:center; text-transform:uppercase;}
-  .gazbyline{position:absolute; left:110px; right:95px; top:612px; text-align:center;
+    font-size:56px; line-height:66px; text-align:center; text-transform:uppercase;}
+  .gazbyline{position:absolute; left:122px; right:110px; top:628px; text-align:center;
     font-family:"Courier New",monospace; font-weight:700; color:#4a453d;
     font-size:17px; letter-spacing:3px;}
-  .gazstory{position:absolute; left:118px; right:100px; top:660px; height:540px;
+  .gazstory{position:absolute; left:132px; right:120px; top:672px; height:470px;
     font-family:Georgia,"Times New Roman",serif; color:#26231e;
     font-size:24px; line-height:33px; text-align:justify;
     column-count:2; column-gap:36px; column-rule:1px solid rgba(40,36,30,.45);
@@ -703,7 +703,7 @@
        out:"Doris departs to a standing ovation, ham aloft. On her way past the visitors' bench she tells their coach to sit up straight. He does. He looks better for it."}},
    {stamp:'2ND QUARTER \u2022 THE PIGEON',
     sit:"A pigeon is loose in the rafters. It has strong opinions about the shot clock. The refs want it handled; the crowd has named it Gordy; Gordy has just received a louder ovation than our starting five.",
-    a:{t:"Gordy stays. Play on.", sub:"The barn provides.", mod:0.07, buzz:3,
+    a:{t:"Gordy stays. Play on.", sub:"The Shack provides.", mod:0.07, buzz:3,
        out:"Gordy conducts the fourth quarter from the north beam like a tiny feathered coach. Every home basket, he laps the scoreboard once, which cannot be coincidence. The refs give up. Gordy is in the box score under 'attendance.'"},
     b:{t:"Bring in the net guy.", sub:"There's a guy. There's always a guy.", mod:-0.02, buzz:1,
        out:"The net guy \u2014 who arrives suspiciously fast, like he waits for this \u2014 pursues Gordy through two media timeouts. Gordy is never caught. The net guy receives a partial standing ovation for effort. The building's heart wasn't in the basketball for a while there."}},
@@ -765,6 +765,23 @@
     b:{t:"Ignore him. He's not even ours to worry about.", sub:"Maybe he scouts everyone.", mod:0.02,
        out:"You project indifference. The team, taking the cue, plays through the dread. In the fourth he writes one line and underlines it, and our bench pretends not to count how many words. (Four. It was four words.)"}}
   ];
+
+  /* ---------- MOMENT DEALER: shuffle bag, no repeats ---------- */
+  var momentBags={HOME:[],ROAD:[]}, lastMomentIdx={HOME:-1,ROAD:-1};
+  function drawMoment(venue){
+    var pool = venue==='HOME'?HOME_MOMENTS:ROAD_MOMENTS;
+    var bag = momentBags[venue];
+    if(!bag.length){
+      bag = pool.map(function(_,i){ return i; });
+      for(var i=bag.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=bag[i]; bag[i]=bag[j]; bag[j]=t; }
+      if(bag.length>1 && bag[bag.length-1]===lastMomentIdx[venue]){
+        var t2=bag[0]; bag[0]=bag[bag.length-1]; bag[bag.length-1]=t2;
+      }
+      momentBags[venue]=bag;
+    }
+    var idx=bag.pop(); lastMomentIdx[venue]=idx;
+    return pool[idx];
+  }
 
   /* ---------- STORYLINES (locked canon) ----------
      Grammar: id, title (noteh), mood, setup[] (Sandra voice),
@@ -1242,7 +1259,7 @@
              "The inspector attends a game in a personal capacity. He's seen watching the rafters the whole night. On the way out he tells the usher: 'She's got one more winter in her. Maybe two.' He sounds like he's talking about a relative. Around here, he is."],
         desk:"Status: provisional, like everything here. The sound has taken sides and it's ours. I've noted the inspector's estimate: one winter, maybe two. The asterisk holds. For now.",
         gaz:"BUILDING GRANTED ONE MORE WINTER; RAFTERS DEFIANT", mood:'grim', flag:'asteriskSeason' },
-      { t:"Launch a Save the Barn fund drive.", sub:"Make the town pay for its church.",
+      { t:"Launch a Save the Shack fund drive.", sub:"Make the town pay for its church.",
         fx:{cash:7000, buzz:10, morale:7, cred:3},
         out:["The fund drive begins with a coffee tin at the concession stand and gets out of hand immediately, in the good way. The 1961 blazers make appearances. Tiny does a benefit set. Ernie Kowalski personally guilt-trips three business owners by name from row F. A child donates a jar of nickels and the Gazette runs the jar on the front page, above the fold, where it belongs.",
              "The drive clears seven thousand in two weeks. The repairs get scheduled. The tin stays out afterward, permanently, unlabeled, and people keep putting money in it, because the building isn't done needing things and the town isn't done either."],
@@ -1338,7 +1355,12 @@
     return ordinal(place)+' IN THE NORTHERN DIVISION \u2022 '+S.wins+'-'+S.losses;
   }
   function updateBlotter(){
-    document.getElementById('slFoe').textContent = (S.venue==='HOME'?'vs ':'at ')+S.foe;
+    var FOE_SHORT={'SAULT STE. MARIE':'S.S. MARIE','THUNDER BAY':'T. BAY'};
+    var foeEl=document.getElementById('slFoe');
+    var nm=FOE_SHORT[S.foe]||S.foe;
+    foeEl.textContent = (S.venue==='HOME'?'vs ':'at ')+nm;
+    foeEl.style.transform = (nm.length>9)?'scaleX(.82)':'';
+    foeEl.style.transformOrigin='center';
     document.getElementById('slVenue').textContent = S.venue==='HOME'?'HOME NIGHT':'ROAD TRIP';
     var st=document.getElementById('slStreak'), la=document.getElementById('slLast');
     st.textContent = S.streak===0?'\u2014':(S.streak>0?'W'+S.streak:'L'+(-S.streak));
@@ -1392,8 +1414,7 @@
     S.buzz   = clamp(S.buzz   + (fx.buzz||0));
     S.cred   = clamp(S.cred   + (fx.cred||0));
 
-    var pool = (S.venue==='HOME')?HOME_MOMENTS:ROAD_MOMENTS;
-    var moment = pool[Math.floor(Math.random()*pool.length)];
+    var moment = drawMoment(S.venue);
     var sc, won;
     var foe=S.foe, home=(S.venue==='HOME');
 
@@ -1401,7 +1422,7 @@
        storylines (when:'game') unfold AFTER the tip-off card. */
     var when = ch.when || current.when || 'week';
     var tip = {kind:'text', text: home
-      ? 'GAME NIGHT.\nLUMBERJACKS vs '+foe+'.\nThe barn fills. The lights hum. Tip-off.'
+      ? 'GAME NIGHT.\nLUMBERJACKS vs '+foe+'.\nThe Shack fills. The lights hum. Tip-off.'
       : 'ROAD TRIP.\nLUMBERJACKS at '+foe+'.\nSix hours of highway. One bus. No survivors of the card game. Tip-off.', scene:null};
     var outs = ch.out.map(function(par,idx){
       return {kind:'text', text:par, scene: idx===0?(ch.scene||current.scene):null};
@@ -1435,7 +1456,11 @@
             : foe+' '+sc.them+'\nLUMBERJACKS '+sc.us)
             +'\n\n'+(won?'W':'L')+'  \u2022  '+S.wins+'-'+S.losses+(home?'':'  \u2022  ROAD')},
           {kind:'gazette', head: ch.gaz,
-           story: (ch.out.join(' ').split('. ').slice(0,3).join('. ')+'.').replace(/\.\.$/,'.')}
+           story: (function(){ var t=ch.out.join(' ');
+             if(t.length>430){ t=t.slice(0,430);
+               var cut=Math.max(t.lastIndexOf('. '),t.lastIndexOf('! '),t.lastIndexOf('? '));
+               if(cut>120) t=t.slice(0,cut+1); }
+             return t; })()}
         ];
         runSequence(steps2, dash, function(){
           phase='outcome';
