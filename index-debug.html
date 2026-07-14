@@ -236,7 +236,10 @@
     <!-- CUTSCENE -->
     <div class="screen" id="cut">
       <div class="art">
-        <img alt="" src="assets/cutscenes/shack.gif" onerror="this.style.visibility='hidden'" onload="this.style.visibility='visible'">
+        <video id="cutvid" muted autoplay loop playsinline preload="auto"
+          onerror="this.style.display='none'"
+          oncanplay="var c=document.getElementById('snowc'); if(c)c.style.display='none'; var g=this.parentElement.querySelector('.glow'); if(g)g.style.display='none';">
+          <source src="assets/cutscenes/shack.mp4" type="video/mp4"></video>
         <div class="glow" style="left:504px; top:352px;"></div>
         <canvas id="snowc" width="853" height="1844"></canvas>
       </div>
@@ -263,9 +266,9 @@
       <div class="gazpage" id="gazPage">
         <img class="gart" alt="" src="assets/ui/gazette.webp">
         <div class="gazmast">The Frostbite Gazette</div>
-        <div class="gazsub"><span>DULUTH, MINN.</span><span id="gazDate">WEEK 1</span><span>15&cent;</span></div>
+        <div class="gazsub"><span>NORTH COUNTRY</span><span id="gazDate">WEEK 1</span><span>15&cent;</span></div>
         <div class="gazhead" id="gazHead">HEADLINE</div>
-        <div class="gazbyline">BY GAZETTE STAFF &mdash; DULUTH</div>
+        <div class="gazbyline">BY GAZETTE STAFF</div>
         <div class="gazstory" id="gazStory"></div>
       </div>
       <div class="tap" style="z-index:3;">TAP TO CONTINUE</div>
@@ -299,7 +302,7 @@
         <div class="cell s2"><span class="lab">MORALE</span><span class="v blk green" id="stMorale">72%</span></div>
         <div class="cell s3"><span class="lab">BUZZ</span><span class="v blk amber" id="stBuzz">48%</span></div>
         <div class="cell s4"><span class="lab">CRED</span><span class="v blk blue" id="stCred">36%</span></div>
-        <div class="team blk"><span class="t">DULUTH</span><span class="t">LUMBERJACKS</span></div>
+        <div class="team blk"><span class="t">THE</span><span class="t">LUMBERJACKS</span></div>
         <div class="hcell hs1"><span class="lab">SEASON</span><span class="v blk">1</span></div>
         <div class="hcell hs2"><span class="lab">WEEK</span><span class="v blk" id="stWeek">01</span></div>
         <div class="hcell hs3"><span class="lab">RECORD</span><span class="v blk" id="stRec">0-0</span></div>
@@ -526,6 +529,7 @@
   document.getElementById('startbtn').addEventListener('click',function(ev){
     ev.stopPropagation();
     startMusic();               // user gesture unlocks audio
+    var _v=document.getElementById('cutvid'); if(_v){ _v.play().catch(function(){}); }
     go(splash,cutS,startSnow);
   });
   cutS.addEventListener('click',function(){
@@ -688,7 +692,7 @@
    {stamp:'4TH QUARTER \u2022 THE BOILER',
     sit:"The boiler's quit. You can see breath at courtside. The visitors are wearing their warmups IN the game, which can't be legal, but the ref won't take his hands out of his pockets to signal anything.",
     a:{t:"Embrace it. Kill the backup heat too.", sub:"This is our weather.", mod:0.11, buzz:2,
-       out:"Duluth plays like the cold is a sixth man, because it is. The visitors call a timeout to huddle around a space heater. The crowd chants a temperature. It works. Everything works."},
+       out:"The Jacks play like the cold is a sixth man, because it is. The visitors call a timeout to huddle around a space heater. The crowd chants a temperature. It works. Everything works."},
     b:{t:"Fix it. $400 and common decency.", sub:"We host, we heat.", mod:0.02, cash:-400,
        out:"Heat returns by the fourth. The visitors thaw, but the damage \u2014 psychological, meteorological \u2014 was done in the third."}},
    {stamp:'3RD QUARTER \u2022 THE RAFFLE',
@@ -700,7 +704,7 @@
    {stamp:'2ND QUARTER \u2022 THE PIGEON',
     sit:"A pigeon is loose in the rafters. It has strong opinions about the shot clock. The refs want it handled; the crowd has named it Gordy; Gordy has just received a louder ovation than our starting five.",
     a:{t:"Gordy stays. Play on.", sub:"The barn provides.", mod:0.07, buzz:3,
-       out:"Gordy conducts the fourth quarter from the north beam like a tiny feathered coach. Every Duluth basket, he laps the scoreboard once, which cannot be coincidence. The refs give up. Gordy is in the box score under 'attendance.'"},
+       out:"Gordy conducts the fourth quarter from the north beam like a tiny feathered coach. Every home basket, he laps the scoreboard once, which cannot be coincidence. The refs give up. Gordy is in the box score under 'attendance.'"},
     b:{t:"Bring in the net guy.", sub:"There's a guy. There's always a guy.", mod:-0.02, buzz:1,
        out:"The net guy \u2014 who arrives suspiciously fast, like he waits for this \u2014 pursues Gordy through two media timeouts. Gordy is never caught. The net guy receives a partial standing ovation for effort. The building's heart wasn't in the basketball for a while there."}},
    {stamp:'HALFTIME \u2022 THE BIRTHDAY',
@@ -726,7 +730,7 @@
        out:"The overflow crew crosses the highway to a motel with a functioning ice machine, a fact they mention to the others at breakfast approximately forty times. Rested, divided by ice-machine privilege, we play fine."}},
    {stamp:'PREGAME \u2022 THE LOCKER ROOM',
     sit:"The visiting locker room is the boiler room. Not next to it. IS it. There's a bench, twelve nails for hangers, and a boiler that gurgles in a way Tiny has started answering.",
-    a:{t:"Embrace the boiler room.", sub:"Duluth has slept colder.", mod:0.08, morale:2,
+    a:{t:"Embrace the boiler room.", sub:"The North has slept colder.", mod:0.08, morale:2,
        out:"The team adopts the boiler as a mascot-in-exile, names it Steamin' Jean, and touches it once each for luck on the way out. They play like men with nothing to lose and nowhere to hang their coats. Steamin' Jean gurgles approval."},
     b:{t:"Demand the auxiliary room.", sub:"We have a contract. Probably.", mod:0.0, cred:1,
        out:"After negotiation, we're moved to the auxiliary room, which is the boiler room's hallway. It's drier. The principle was won, technically, and the team dresses in single file, technically indoors."}},
@@ -803,7 +807,7 @@
     choices:[
       { t:"Full send. Real chainsaws.", sub:"Chains removed. Dale swears.",
         fx:{cash:4000, buzz:14, cred:-8, morale:3},
-        out:["The novelty chainsaws are not as novelty as advertised. The crowd revs them in unison during the anthem. It's the loudest thing Duluth has heard since the mill.",
+        out:["The novelty chainsaws are not as novelty as advertised. The crowd revs them in unison during the anthem. It's the loudest thing this town has heard since the mill.",
              "Sam gets two chainsaws up, loses the third to the rafters, and the stilts find a patch of melted Zamboni ice. He does not fall so much as travel. Nobody is hurt except Sam, who is always hurt, so it doesn't count as new information. The Commissioner sends a letter using the word 'spectacle' twice."],
         desk:"Sam is fine. I have started a folder labeled SAM. It is the thickest folder.",
         gaz:"MASCOT JUGGLES THREE CHAINSAWS, KEEPS TWO", mood:'alarmed', flag:'samFolder' },
@@ -840,7 +844,7 @@
         gaz:"WATER RETURNS TO ARENA; COACH TAKES NAMES", mood:'pleased' },
       { t:"Compromise: sports drink sponsorship.", sub:"Monetize the controversy.",
         fx:{cash:6000, cred:-6, buzz:6},
-        out:["A regional electrolyte brand pays real money to be 'The Official Earned Sip of the Duluth Lumberjacks.' Hank approves the slogan personally. It's the only sponsorship copy he has ever read.",
+        out:["A regional electrolyte brand pays real money to be 'The Official Earned Sip of the Lumberjacks.' Hank approves the slogan personally. It's the only sponsorship copy he has ever read.",
              "The team is now contractually required to look refreshed. Two players are fined by Hank for looking too refreshed."],
         desk:"Sponsorship: $6,000. Hank's fines: collected in a coffee tin labeled COMFORT TAX. I am not administering the tin.",
         gaz:"THIRST OFFICIALLY SPONSORED; COACH DECLARES PARTIAL VICTORY", mood:'dry' } ] },
@@ -878,7 +882,7 @@
     choices:[
       { t:"Sign it. Free cheese.", sub:"$5,000 and a full building.", when:'game',
         fx:{cash:5000, buzz:11, cred:-9},
-        out:["The building sells out. The cheese is distributed. And then, in the third quarter, a call goes against us and Duluth discovers as one organism that a wedge of gouda has excellent aerodynamics.",
+        out:["The building sells out. The cheese is distributed. And then, in the third quarter, a call goes against us and the building discovers as one organism that a wedge of gouda has excellent aerodynamics.",
              "The referee goes down. He's fine \u2014 it's cheese \u2014 but he goes DOWN, and the league office wants answers, and the dairy cooperative wants to renew for three years. Their lawyer called it 'proof of engagement.'"],
         desk:"Ref: down on gouda, recovered. Lawsuit: pending. I have opened a folder labeled DAIRY and I resent every page of it.",
         gaz:"REFEREE FELLED BY GOUDA; COOPERATIVE THRILLED", mood:'alarmed', flag:'dairy' },
@@ -1098,10 +1102,10 @@
   { id:'blizzard_game', venue:'home',  title:'THE BLIZZARD GAME', mood:'alarmed', scene:'blizzard',
     setup:[
       "The forecast says fourteen inches by tip-off and the forecast has been underselling all winter. The visiting team is already here \u2014 their bus made it in this morning and their coach has been standing in our parking lot letting the snow accumulate on him, which their players say 'means yes.'",
-      "The league says the game's our call. Half the staff can't get in. The other half is already here and refuses to leave because Duluth. The concession stand has soup enough for two hundred, tops.",
+      "The league says the game's our call. Half the staff can't get in. The other half is already here and refuses to leave, because of course they are. The concession stand has soup enough for two hundred, tops.",
       "Say the word and we play the strangest home game in franchise history. Or postpone and be sensible, a word with no history in this building."],
     choices:[
-      { t:"Play it.", sub:"This is Duluth. This is the weather.", when:'game',
+      { t:"Play it.", sub:"This is the North. This is the weather.", when:'game',
         fx:{buzz:14, cash:-1000, morale:9, cred:-2},
         out:["Two hundred and eleven souls make it through the storm, and they are the two hundred and eleven most committed human beings in North America. The soup runs out in the second quarter, at which point people begin SHARING soup, and the game achieves a mood that veterans will describe only as 'church.'",
              "The wind howls through the rafters all night like a section of its own. The visiting coach, snow still in his eyebrows, calls it 'the only real game left in the sport' before it's even over. Win or lose, everyone is staying after to dig out everyone else's car. That part was decided around the second soup."],
@@ -1109,7 +1113,7 @@
         gaz:"211 ATTEND GAME; 30,000 WILL CLAIM THEY DID", mood:'pleased', flag:'blizzardGame' },
       { t:"Postpone. Safety first.", sub:"Sensible. There's a first time.",
         fx:{cred:5, buzz:-7},
-        out:["You postpone to tomorrow night. It's the right call and it feels like surrender, which in Duluth are frequently the same weather event. The visiting coach, informed, nods once and stands in the parking lot another twenty minutes 'to be sure.'",
+        out:["You postpone to tomorrow night. It's the right call and it feels like surrender, which up here are frequently the same weather event. The visiting coach, informed, nods once and stands in the parking lot another twenty minutes 'to be sure.'",
              "The storm blows through by morning. The makeup game goes ahead the next evening in a scraped-clean, slightly sheepish arena where everyone is very well rested and nobody has a story yet."],
         desk:"Postponement: correct, joyless. The visiting coach's parking lot vigil: 20 additional minutes. Their equipment manager tells me he does this. There's no folder for that.",
         gaz:"GAME POSTPONED; SENSIBLE DECISION HAUNTS TOWN", mood:'dry' },
@@ -1161,7 +1165,7 @@
         fx:{morale:5, cred:-2},
         out:["You burn the card in the parking lot in a coffee tin, which felt proportionate at the time. The team keeps its flaw and its soul, and plays like a band that refuses to learn the popular songs.",
              "Row A stays occupied. The legal pad continues. But at one point \u2014 witnesses vary on when \u2014 the Scout is observed almost smiling, and one usher swears he heard the words 'so be it' arrive without the Scout's mouth moving."],
-        desk:"Card: ashes, tin, filed (the tin, not the ashes). We kept our flaw on purpose. There's a word for that and it's 'Duluth.'",
+        desk:"Card: ashes, tin, filed (the tin, not the ashes). We kept our flaw on purpose. There's a word for that and it's 'home.'",
         gaz:"AREA TEAM DECLINES SELF-IMPROVEMENT ON PRINCIPLE", mood:'base' },
       { t:"Show the card to the team.", sub:"Sunlight. All of it.",
         fx:{morale:-5, buzz:5, cred:3},
@@ -1397,8 +1401,8 @@
        storylines (when:'game') unfold AFTER the tip-off card. */
     var when = ch.when || current.when || 'week';
     var tip = {kind:'text', text: home
-      ? 'GAME NIGHT.\nDULUTH vs '+foe+'.\nThe barn fills. The lights hum. Tip-off.'
-      : 'ROAD TRIP.\nDULUTH at '+foe+'.\nSix hours of highway. One bus. No survivors of the card game. Tip-off.', scene:null};
+      ? 'GAME NIGHT.\nLUMBERJACKS vs '+foe+'.\nThe barn fills. The lights hum. Tip-off.'
+      : 'ROAD TRIP.\nLUMBERJACKS at '+foe+'.\nSix hours of highway. One bus. No survivors of the card game. Tip-off.', scene:null};
     var outs = ch.out.map(function(par,idx){
       return {kind:'text', text:par, scene: idx===0?(ch.scene||current.scene):null};
     });
@@ -1427,8 +1431,8 @@
         var steps2=[
           {kind:'text', text:m.out, scene:null},
           {kind:'score', line: (home
-            ? 'DULUTH '+sc.us+'\n'+foe+' '+sc.them
-            : foe+' '+sc.them+'\nDULUTH '+sc.us)
+            ? 'LUMBERJACKS '+sc.us+'\n'+foe+' '+sc.them
+            : foe+' '+sc.them+'\nLUMBERJACKS '+sc.us)
             +'\n\n'+(won?'W':'L')+'  \u2022  '+S.wins+'-'+S.losses+(home?'':'  \u2022  ROAD')},
           {kind:'gazette', head: ch.gaz,
            story: (ch.out.join(' ').split('. ').slice(0,3).join('. ')+'.').replace(/\.\.$/,'.')}
@@ -1460,7 +1464,7 @@
     el.meta.innerHTML='Secretary<br>Former Beat Reporter';
     setPortrait('sandra', S.wins>=S.losses?'pleased':'tired');
     var verdict = S.wins>S.losses
-      ? "A winning season. In Duluth. I've dated the page and underlined it twice, and I don't underline."
+      ? "A winning season. Up here. I've dated the page and underlined it twice, and I don't underline."
       : (S.wins===S.losses
         ? "Dead even. The most honest record a team can post. The ledger respects it."
         : "A losing season, but the building's still standing, the folders are current, and nobody was traded to Bismarck. Around here that's called momentum.");
