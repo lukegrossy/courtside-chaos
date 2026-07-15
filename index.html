@@ -179,6 +179,7 @@
   .caw{background:#000;}
   .caw .cawart{position:absolute; left:0; top:0; width:853px; height:1844px;
     object-fit:cover; opacity:0; transition:opacity .5s;}
+  .caw video.cawart{background:#000;}
   .caw .cawart.show{opacity:1;}
   .caw .cawshade{position:absolute; inset:0;
     background:radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 30%, rgba(0,0,0,.82) 78%, #000 100%);}
@@ -265,6 +266,7 @@
     <!-- CUTAWAY (outcome narration / scoreboard) -->
     <div class="screen caw" id="caw">
       <img class="cawart" id="cawArt" alt="">
+      <video class="cawart" id="cawVid" muted autoplay loop playsinline preload="auto"></video>
       <div class="cawshade"></div>
       <div class="cawlabel">FINAL</div>
       <div class="cawtxt" id="cawTxt"></div>
@@ -599,9 +601,22 @@
 
   function probeArt(scene, cb){
     if(!scene){ cb(null); return; }
-    var url='assets/cutscenes/'+scene+'.gif', p=new Image();
-    p.onload=function(){ cb(url); }; p.onerror=function(){ cb(null); };
-    p.src=url;
+    var vurl='assets/cutscenes/'+scene+'.mp4';
+    var v=document.createElement('video');
+    v.muted=true; v.preload='auto';
+    var settled=false;
+    function tryImage(){
+      var iurl='assets/cutscenes/'+scene+'.gif', p=new Image();
+      p.onload=function(){ if(!settled){ settled=true; cb({type:'image',url:iurl}); } };
+      p.onerror=function(){ if(!settled){ settled=true; cb(null); } };
+      p.src=iurl;
+    }
+    v.oncanplaythrough=function(){ if(!settled){ settled=true; cb({type:'video',url:vurl}); } };
+    v.onerror=tryImage;
+    v.src=vurl;
+    v.load();
+    /* some browsers never fire canplaythrough for file:// video; give it a beat then fall back */
+    setTimeout(function(){ if(!settled && v.readyState<3) tryImage(); }, 350);
   }
   function fadeScreens(from,to,cb){
     from.classList.remove('on');
@@ -628,9 +643,18 @@
       caw.classList.toggle('scoremode', step.kind==='score');
       cawTxt.textContent=step.text||step.line;
       cawArt.classList.remove('show');
+      cawVid.classList.remove('show');
+      cawVid.pause();
       if(step.kind==='text'){
-        probeArt(step.scene,function(url){
-          if(url){ cawArt.src=url; cawArt.classList.add('show'); }
+        probeArt(step.scene,function(res){
+          if(!res) return;
+          if(res.type==='video'){
+            cawVid.src=res.url; cawVid.currentTime=0;
+            cawVid.play().catch(function(){});
+            cawVid.classList.add('show');
+          } else {
+            cawArt.src=res.url; cawArt.classList.add('show');
+          }
         });
       }
     }
@@ -1599,7 +1623,8 @@
         ? 'GAME NIGHT.\nLUMBERJACKS vs '+FOELIST[0]+'.\nThe Shack fills. The lights hum. Tip-off.'
         : 'ROAD TRIP.\nLUMBERJACKS at '+FOELIST[0]+'.\nSix hours of highway. One bus. No survivors of the card game. Tip-off.';
     }
-    var tip = {kind:'text', text: tipText, scene:null};
+    var tip = {kind:'text', text: tipText,
+      scene: GAMES>1 ? null : (home ? 'tipoff_home' : 'tipoff_road')};
     var outs = ch.out.map(function(par,idx){
       return {kind:'text', text:par, scene: idx===0?(ch.scene||current.scene):null};
     });
