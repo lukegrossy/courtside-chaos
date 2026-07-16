@@ -155,20 +155,28 @@
     font-family:Georgia,serif; font-style:italic; color:#9a927f; font-size:26px;}
   .dcard{position:absolute; left:146px; width:568px; height:266px; cursor:pointer;
     display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
-    text-align:left; gap:14px; padding-top:6px;
+    text-align:left; gap:12px; padding-top:6px;
     font-family:"Courier New",monospace; font-weight:700;}
   .dcard:active{filter:brightness(.92);}
   .dcard .L{color:var(--red);}
-  .dcard .txt{color:#241c12; font-size:45px; line-height:58px;}
-  .dcard .sub{color:#5c4a32; font-size:30px; line-height:38px; font-style:italic;}
+  .dcard .txt{color:#241c12; font-size:45px; line-height:56px;}
+  .dcard .sub{color:#54432c; font-size:33px; line-height:40px; font-style:italic;}
+  /* A few canon titles run long enough to wrap to four lines, which spills
+     past the card painted into the art. Those drop a notch automatically. */
+  .dcard.long .txt{font-size:39px; line-height:49px;}
+  .dcard.long .sub{font-size:30px; line-height:37px;}
   .d1{top:420px; transform:rotate(-1.91deg);}
   .d2{top:874px; transform:rotate(2.47deg);}
   .d3{top:1342px; transform:rotate(-2.02deg);}
   /* ---- in-game moment screen ---- */
-  .mstamp{position:absolute; left:0; right:0; top:130px; text-align:center;
-    font-family:"Courier New",monospace; color:#ffb02e; font-size:28px; letter-spacing:10px;
-    text-shadow:0 0 18px rgba(255,176,46,.5);}
-  .msit{position:absolute; left:95px; right:95px; top:290px;
+  .mstamp{position:absolute; left:40px; right:40px; top:112px; text-align:center;}
+  .mstamp .mper{display:block; font-family:"Courier New",monospace; color:#c9862b;
+    font-size:23px; letter-spacing:9px; text-shadow:0 0 14px rgba(255,176,46,.4);}
+  .mstamp .mttl{display:block; margin-top:16px;
+    font-family:"Arial Black",sans-serif; color:#ffb02e;
+    font-size:52px; line-height:58px; letter-spacing:2px;
+    text-shadow:0 0 22px rgba(255,176,46,.45), 0 3px 14px #000;}
+  .msit{position:absolute; left:95px; right:95px; top:308px;
     font-family:Georgia,serif; font-style:italic; color:#e8e2d4; font-size:34px; line-height:52px;
     text-align:center; text-shadow:0 3px 18px #000;}
   .mart{position:absolute; left:0; top:0; width:853px; height:1844px;}
@@ -177,7 +185,7 @@
     text-align:left; gap:12px; font-family:"Courier New",monospace; font-weight:700;}
   .mcard:active{filter:brightness(.92);}
   .mcard .txt{color:#241c12; font-size:41px; line-height:53px;}
-  .mcard .sub{color:#5c4a32; font-style:italic; font-size:28px; line-height:35px;}
+  .mcard .sub{color:#54432c; font-style:italic; font-size:33px; line-height:41px;}
   .m1{top:965px; transform:rotate(1.46deg);}
   .m2{top:1432px; transform:rotate(-3.03deg);}
   /* ---- cutaway screens ---- */
@@ -266,18 +274,23 @@
     color:var(--cream); font-family:"Arial Black",sans-serif; font-weight:900;
     font-size:26px; letter-spacing:6px;}
   .filestab{position:absolute; left:50%; transform:translateX(-50%);
-    bottom:0; padding:5px 20px 7px; border-radius:8px 8px 0 0;
-    background:rgba(12,10,8,.72); border:2px solid rgba(214,192,150,.34);
-    border-bottom:none; color:rgba(238,230,210,.6);
+    bottom:0; padding:7px 26px 9px; border-radius:9px 9px 0 0;
+    background:rgba(14,11,8,.88); border:2px solid rgba(214,192,150,.55);
+    border-bottom:none; color:rgba(245,238,220,.88);
     font-family:"Courier New",monospace; font-weight:700;
-    font-size:17px; letter-spacing:3px; z-index:4;}
+    font-size:20px; letter-spacing:3px; z-index:4;
+    box-shadow:0 -3px 14px rgba(0,0,0,.5);}
   /* ---- gazette front page ---- */
   .gazpage{position:absolute; left:0; top:281px; width:853px; height:1282px;}
   .gart{position:absolute; left:0; top:0; width:853px; height:1282px;}
-  .gazmast{position:absolute; left:100px; right:88px; top:98px; height:166px; white-space:nowrap;
+  /* The paper is drawn tilted inside the art file; the text layer matches it.
+     Angle measured off the rendered page: the left edge leans 1.4deg.       */
+  .gaztext{position:absolute; inset:0; transform:rotate(-1.4deg);
+    transform-origin:50% 47%;}
+  .gazmast{position:absolute; left:94px; right:82px; top:98px; height:166px; white-space:nowrap;
     display:flex; align-items:center; justify-content:center;
     font-family:"Playfair Display",Georgia,serif; font-weight:900; font-style:normal; color:#1c1a17;
-    font-size:46px; letter-spacing:1px;}
+    font-size:60px; letter-spacing:0px;}
   .gazsub{position:absolute; left:122px; right:126px; top:274px;
     display:flex; justify-content:space-between;
     font-family:"Courier New",monospace; font-weight:700; color:#33302b; font-size:19px;}
@@ -363,6 +376,7 @@
     <div class="screen caw" id="gazS">
       <div class="gazpage" id="gazPage">
         <img class="gart" alt="" src="assets/ui/gazette.webp">
+        <div class="gaztext">
         <div class="gazmast">The Frostbite Gazette</div>
         <div class="gazsub"><span>NORTH COUNTRY</span><span id="gazDate">WEEK 1</span><span>15&cent;</span></div>
         <div class="gazhead" id="gazHead">HEADLINE</div>
@@ -371,6 +385,7 @@
         <div class="gazrule2"></div>
         <div class="gazalsohd">ALSO IN THIS ISSUE</div>
         <div class="gazalso" id="gazAlso"></div>
+        </div>
       </div>
       <div class="tap" style="z-index:3;">TAP TO CONTINUE</div>
     </div>
@@ -411,7 +426,7 @@
 
     <!-- DASHBOARD -->
     <div class="screen" id="dash">
-      <div class="window" id="portwin"><img alt="" id="portrait" src="assets/ui/sandra-base.webp"><div class="filestab" id="filesTab">&#9654; THE FILES</div></div>
+      <div class="window" id="portwin"><img alt="" id="portrait" src="assets/ui/sandra-base.webp"><div class="filestab" id="filesTab">&#9654; WHO'S WHO</div></div>
       <img class="frame" alt="" src="assets/ui/frame.webp">
       <div class="ui">
         <div class="cell s1"><span class="lab">CASH</span><span class="v blk green" id="stCash">$55,000</span></div>
@@ -1808,6 +1823,8 @@
       var safe=ch.t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
       c.querySelector('.txt').innerHTML = '<span class="L">'+LETTERS[i]+'</span> '+safe;
       c.querySelector('.sub').textContent = ch.sub;
+      /* long titles wrap to four lines and spill off the painted card */
+      c.classList.toggle('long', (ch.t.length + 3) > 42);
     }
   }
 
@@ -1907,6 +1924,8 @@
     {who:'hank', q:"Coach Hank Willis, asked to account for his whereabouts during the third quarter, said the fourth quarter had taken care of it."},
     {who:'ricky', q:"Ricky Malone assessed his own contribution as \u201Cthe story here, if anybody\u2019s writing one.\u201D"},
     {who:'tiny', q:"Tiny McGee delivered a nine-minute review in the concourse afterward. A crowd formed. Very little of it concerned basketball."},
+    {who:'leo', q:"Leo James, asked whether the minutes were catching up with him, said he felt fine. He is understood to be forty-nine. This newspaper has agreed not to pursue it."},
+    {who:'import', q:"The club's import was made available to reporters. The session ran four minutes and produced no words. Both parties later described it as productive."},
     {who:'sam', q:"Mascot Sawdust Sam was unavailable for comment, being in the trainer\u2019s room, as is customary."},
     {who:'ernie', q:"Ernie Kowalski, of Row F, offered an evaluation of the officiating that this newspaper has elected to summarize as unfavourable."},
     {who:'stokes', q:"The league office confirmed it was aware the game had occurred and had no comment at this time, a phrase Commissioner Larry Stokes used four times."},
@@ -2188,7 +2207,15 @@
 
     runSequence(steps, null, function(){
       /* Mid-game: owner call from courtside */
-      mStamp.textContent = moment.stamp;
+      /* 'HALFTIME \u2022 THE ORGAN' renders as two lines: period over title.
+         Split at display time so the moment data stays untouched.        */
+      var _sp = String(moment.stamp).split('\u2022');
+      if(_sp.length === 2){
+        mStamp.innerHTML = '<span class="mper">'+_sp[0].trim()+'</span>'
+                         + '<span class="mttl">'+_sp[1].trim()+'</span>';
+      } else {
+        mStamp.innerHTML = '<span class="mttl">'+String(moment.stamp).trim()+'</span>';
+      }
       mSit.textContent = moment.sit;
       mCards[0].querySelector('.txt').textContent=moment.a.t;
       mCards[0].querySelector('.sub').textContent=moment.a.sub;
@@ -2410,28 +2437,44 @@
         "There's no more to the file. I wrote it."
       ]},
     { who:'hank', tab:'HANK', thick:'\u25AE\u25AE', name:'HANK WILLIS', meta:'Head Coach',
-      intro:"\u201CCoach Willis. Wins basketball games \u2014 I've stopped asking how. Every third quarter he disappears into the men's room and comes back holding the fourth.\n\nHe's also banned water. Says comfort is the enemy. I write it down. I don't ratify it.\u201D",
+      intro:"\u201CCoach Willis. Wins basketball games. I've stopped asking how.\n\nEvery third quarter he goes into the men's room and comes back holding the fourth. I've timed it. The number doesn't help.\n\nHe's also banned water. Says comfort is the enemy. I write it down. I don't ratify it.\u201D",
       file:[
         "WILLIS, HANK. Head coach. Hired 1979. Record: better than this roster has any business posting.",
         "Method: unestablished. Every third quarter he leaves for the men's room and returns with the plan that wins the fourth. I have never seen him write it down. I have checked. Twice.",
         "Standing note: has banned water. \u201CComfort is the enemy.\u201D I filed an objection. The objection was read, understood, and ignored, which is the whole relationship in one sentence."
       ]},
     { who:'ricky', tab:'RICKY', thick:'\u25AE\u25AE', name:'RICKY MALONE', meta:'Guard \u2014 The Star',
-      intro:"\u201CRicky Malone. Our best player, and he'll tell ya, and then he'll tell ya again in case the first one didn't take.\n\nCurrently not speaking to the bus driver. The bus driver is currently not speaking to Ricky. Two seasons now. Nobody remembers why. Including them.\u201D",
+      intro:"\u201CRicky Malone. Our best player. He'll tell you. Then he'll tell you again, in case the first one didn't take.\n\nNot speaking to the bus driver. The bus driver's not speaking to him. Two seasons now. Neither of 'em remembers why.\n\nI do. I'm not saying. They've built something.\u201D",
       file:[
         "MALONE, RICKY. Guard. The best player on this roster, a fact he has never once allowed to go unmentioned in my presence.",
         "Active grievance: the bus driver. Duration: two seasons. Cause: unrecorded \u2014 nobody wrote it down at the time, and I write everything down. That should tell you how small it was.",
         "Responds to praise adequately. Responds to spite magnificently. Plan accordingly, and don't let him catch you planning."
       ]},
     { who:'tiny', tab:'TINY', thick:'\u25AE\u25AE', name:'TINY McGEE', meta:'Forward \u2014 The Mouth',
-      intro:"\u201CTiny McGee. Funniest man in this league on purpose, which is worse than by accident.\n\nDid forty minutes downtown last night. Thirty were about you. You haven't met him yet. He's already got your walk.\u201D",
+      intro:"\u201CTiny McGee. Funniest man in this league on purpose, which is worse than by accident.\n\nForty minutes downtown last night. Thirty were about you. You haven't met him yet \u2014 he's already got your walk.\n\nI don't know how either. I've thought about it more than I'd like.\u201D",
       file:[
         "McGEE, TINY. Forward. The funniest man in this league on purpose, which is the part people miss.",
         "Performs downtown most weeks. Material is largely us. Material is largely accurate. That's the problem and also the ticket sales.",
         "Note for the new owner: there is no dialing Tiny back. There is only aiming him. Four owners have learned this. Three learned it late."
       ]},
+    { who:'leo', tab:'LEO', thick:'\u25AE\u25AE\u25AE', name:'LEO JAMES', meta:'Forward \u2014 Age Contested',
+      intro:"\u201CLeo James. Forty-nine years old. Still starts. Still finishes.\n\nThere are three birth certificates in that folder. They disagree by eleven years. He's signed all three, in the same hand, with the same pen. I've thought about that more than the situation calls for.\n\nThirty minutes a night. I have never seen the man breathe hard.\u201D",
+      file:[
+        "JAMES, LEO. Forward. Signed 1979. Or 1977. Or earlier, depending which document you hold and how generous you're feeling that morning.",
+        "Three birth certificates on file. Eleven years between the earliest and the latest. All three signed in the same hand, with the same pen, which is the part I would like somebody to sit down and explain to me. Nobody has offered. I've stopped asking, which I want on the record as a decision and not a defeat.",
+        "Plays thirty minutes a night and has never asked to come out. The young fellas go to him before they go to Hank. Hank knows. Hank has never once mentioned it. That's the arrangement, and it works, and I've filed it under HOME where I can find it."
+      ]},
+    { who:'import', tab:'IMPORT', thick:'\u25AE', name:'THE IMPORT', meta:'Forward \u2014 The Prodigy',
+      intro:"\u201CAnd that's the Import. Eighteen years old. Professional since he was thirteen, apparently.\n\nThe paperwork names a country. I've looked it up twice \u2014 once with the office atlas, once with a better atlas I bought with my own money.\n\nSpeaks no English. Not a word. Not hello. Fourteen months here, and he has never once been confused about anything that was happening.\u201D",
+      file:[
+        "THE IMPORT. Forward. Eighteen years old. Professional since thirteen, according to a document I have now read four times and do not fully accept.",
+        "His name is on the contract. It is fourteen letters and nobody in this organization has attempted it out loud, including me, and I type for a living.",
+        "Country of origin: stated on three documents, spelled three ways. I have consulted the office atlas and then a second atlas, purchased at my own expense, on a Saturday. The place may exist. I am not currently prepared to go further than that.",
+        "Speaks no English. Understands every single thing that happens in this building. I know this because I said something unkind about the coffee within earshot and he laughed. He has never let on since. Neither have I. We're square.",
+        "Filed next to Leo James, which I did not plan and cannot now undo. One of them may be sixty. One of them may be twelve. The paperwork is equally confident about both. I have stopped opening these two folders on the same day."
+      ]},
     { who:'sam', tab:'SAM', thick:'\u25AE\u25AE\u25AE\u25AE\u25AE\u25AE', name:'SAWDUST SAM', meta:'Mascot \u2014 Injured',
-      intro:"\u201CSawdust Sam. The mascot. Perpetually injured, permanently magnificent, and the reason that folder's load-bearing.\n\nHe has never once been cleared to perform. He has never once not performed.\u201D",
+      intro:"\u201CSawdust Sam. The mascot. Perpetually injured, permanently magnificent, and the reason that folder's load-bearing.\n\nHe has never once been cleared to perform.\n\nHe has never once not performed.\u201D",
       file:[
         "SAM (SAWDUST). Mascot. Legal name is on file. I have never once needed it.",
         "Medical status: continuous. Cleared to perform: never. Performed: always. The doctors have stopped writing \u201Crest\u201D and started writing \u201CSam,\u201D which I've accepted as a diagnosis.",
@@ -2493,21 +2536,23 @@
   /* ---------- WEEK ZERO: ARRIVAL ---------- */
   var INTRO_STEPS=[
     {kind:'text', scene:'intro_arrival',
-     text:"THE NORTH COUNTRY.\nJANUARY, 1984.\n\nYou own a basketball team now.\n\nNobody in town is entirely sure why. Least of all you."},
+     text:"WINTER, 1984.\n\nYou bought a basketball team.\n\nNobody up here has asked why. Not the bank, not the league, not the fella who sold it to you \u2014 who shook your hand with both of his, which you have since had time to think about."},
     {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
-     text:"She's waiting at the office door with a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CSandra. I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those.\u201D"},
+     text:"She's at the door before you are, holding a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CSandra. I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those. I'll let you pick which.\u201D"},
     {kind:'text', scene:'intro_files',
-     text:"The tour takes eleven minutes. The filing cabinet gets four of them.\n\nDAIRY. VANITY. SCOUT. MIRACLES. HOME.\n\nAnd one folder thicker than all the rest, labeled simply: SAM.\n\n\u201CDon't ask. It's load-bearing.\u201D"},
+     text:"The tour takes eleven minutes. Four of them are the filing cabinet.\n\nDAIRY. VANITY. SCOUT. MIRACLES. HOME.\n\nAnd one folder thicker than the other five stacked together, labeled simply: SAM.\n\n\u201CDon't ask. It's load-bearing.\u201D"},
     {kind:'text',
-     text:"\u201CRight. The people. You'll meet 'em all whether you plan to or not, so let's do it here where nobody's bleeding.\u201D\n\nShe opens the first folder."},
+     text:"\u201CRight. The people. You'll meet all of 'em whether you plan to or not \u2014 better we do it here, where nobody's bleeding and I control the order.\n\nCabinet's by my desk. You're welcome in it any time.\u201D\n\nShe says the second part in a tone that does not fully support the offer."},
     castCard('hank'),
     castCard('ricky'),
     castCard('tiny'),
+    castCard('leo'),
+    castCard('import'),
     castCard('sam'),
     {kind:'text', scene:'intro_numbers',
-     text:"\u201CFour numbers run this franchise. You'll see 'em every Monday, top of the desk.\n\nCASH is cash. Gate money in, payroll out, and payroll does not care how the week felt.\n\nMORALE is the fellas. BUZZ is how many folks turn up to watch 'em.\u201D"},
+     text:"\u201CFour numbers run this franchise. You'll see 'em every Monday, top of the desk.\n\nCASH is cash. Gate money in, payroll out. Payroll does not care how the week felt.\n\nMORALE is the fellas. BUZZ is how many folks turn up to watch the fellas.\u201D"},
     {kind:'text', scene:'intro_cred',
-     text:"\u201CAnd CRED. That's what the league thinks of you. Stokes. The refs. The other owners. The man in the grey suit.\n\nBuzz fills the building tonight. Cred is whether anybody takes your call in five years.\n\nChase one, you'll lose the other. That's the job. That's the whole job.\u201D"},
+     text:"\u201CAnd CRED. That's what the league thinks of you. Stokes. The refs. The other owners. The man in the grey suit \u2014 I'll get to him when I've had more coffee.\n\nBuzz fills the building tonight. Cred is whether anybody returns your call in five years.\n\nChase one, you lose the other. That's the whole job.\u201D"},
     {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
      text:"\u201CYour first briefing is Monday morning. Don't be late.\n\nThe last owner was late.\u201D\n\nShe does not elaborate."}
   ];
@@ -2603,6 +2648,17 @@
   });
 
   /* ---------- BOOT ---------- */
+  /* Cards fetch portraits the instant they appear, which during the intro
+     means five cold requests back to back. Warm them while the splash is
+     still up; by the time a card needs one it's already in cache.      */
+  function preloadCast(){
+    for(var i=0;i<CAST.length;i++){
+      var im=new Image();
+      im.src='assets/portraits/'+CAST[i].who+'/base.png';
+    }
+  }
+  setTimeout(preloadCast, 600);
+
   buildDeck();
   current = STORY[0]; phase='setup';
   S.venue='HOME'; S.foe=FOES[Math.floor(Math.random()*FOES.length)];
@@ -2622,7 +2678,7 @@
   window.__enterGame=function(fromScreen){
     /* Sandra does these four herself at Week Zero; the rest of the cast
        introduce themselves the first time they turn up. */
-    S.met={ sandra:true, hank:true, ricky:true, tiny:true, sam:true };
+    S.met={ sandra:true, hank:true, ricky:true, tiny:true, leo:true, import:true, sam:true };
     runSequence(INTRO_STEPS, dash, null, fromScreen);
   };
 })();
