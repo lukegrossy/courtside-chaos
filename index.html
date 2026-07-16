@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Courtside Chaos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <style>
   :root{
     --green:#1c5424; --blue:#27506e; --amber:#7a4210;
@@ -144,11 +147,11 @@
   .callcard .txt{color:var(--red);}
   /* ---- decision screen ---- */
   .dart{position:absolute; left:0; top:0; width:853px; height:1844px;}
-  .dtitle{position:absolute; left:56px; right:56px; top:150px; height:158px;
+  .dtitle{position:absolute; left:48px; right:48px; top:146px; height:158px;
     display:flex; align-items:center; justify-content:center; text-align:center;
-    font-family:"Arial Black",sans-serif; color:#e8e2d4; font-size:50px; line-height:56px;
-    letter-spacing:2px; text-shadow:0 3px 16px #000;}
-  .dsub{position:absolute; left:80px; right:80px; top:326px; text-align:center;
+    font-family:"Arial Black",sans-serif; color:#e8e2d4; font-size:64px; line-height:70px;
+    letter-spacing:1px; text-shadow:0 3px 16px #000;}
+  .dsub{position:absolute; left:80px; right:80px; top:318px; text-align:center;
     font-family:Georgia,serif; font-style:italic; color:#9a927f; font-size:26px;}
   .dcard{position:absolute; left:146px; width:568px; height:266px; cursor:pointer;
     display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
@@ -158,9 +161,9 @@
   .dcard .L{color:var(--red);}
   .dcard .txt{color:#241c12; font-size:45px; line-height:58px;}
   .dcard .sub{color:#5c4a32; font-size:30px; line-height:38px; font-style:italic;}
-  .d1{top:508px; transform:rotate(-1.91deg);}
-  .d2{top:962px; transform:rotate(2.47deg);}
-  .d3{top:1430px; transform:rotate(-2.02deg);}
+  .d1{top:420px; transform:rotate(-1.91deg);}
+  .d2{top:874px; transform:rotate(2.47deg);}
+  .d3{top:1342px; transform:rotate(-2.02deg);}
   /* ---- in-game moment screen ---- */
   .mstamp{position:absolute; left:0; right:0; top:130px; text-align:center;
     font-family:"Courier New",monospace; color:#ffb02e; font-size:28px; letter-spacing:10px;
@@ -185,6 +188,11 @@
   .caw .cawart.show{opacity:1;}
   .caw .cawshade{position:absolute; inset:0;
     background:radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 30%, rgba(0,0,0,.82) 78%, #000 100%);}
+  .caw .cawreadband{position:absolute; left:0; right:0; top:50%; transform:translateY(-50%);
+    height:640px;
+    background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.6) 22%, rgba(0,0,0,.72) 50%, rgba(0,0,0,.6) 78%, rgba(0,0,0,0) 100%);
+    opacity:0; transition:opacity .25s;}
+  .caw.textmode .cawreadband{opacity:1;}
   .caw .cawtxt{position:absolute; left:90px; right:90px; top:50%; transform:translateY(-50%);
     font-family:Georgia,'Times New Roman',serif; font-style:italic; color:#e8e2d4;
     font-size:40px; line-height:58px; text-align:center; text-shadow:0 3px 18px #000, 0 0 60px rgba(0,0,0,.9);
@@ -221,7 +229,7 @@
   .caw .cawname{top:826px; opacity:0; transition:opacity .3s; z-index:2;}
   .caw .cawmeta{top:884px; opacity:0; transition:opacity .3s; z-index:2;}
   .caw.cardmode .cawcard, .caw.cardmode .cawname, .caw.cardmode .cawmeta{opacity:1;}
-  .caw.cardmode .cawtxt{top:auto; bottom:196px; transform:none;
+  .caw.cardmode .cawtxt{top:978px; bottom:auto; transform:none;
     font-size:34px; line-height:52px;}
   .caw.cardmode .cawshade{background:linear-gradient(180deg,
     rgba(0,0,0,.62) 0%, rgba(0,0,0,.25) 26%, rgba(0,0,0,.8) 68%, #000 100%);}
@@ -268,7 +276,7 @@
   .gart{position:absolute; left:0; top:0; width:853px; height:1282px;}
   .gazmast{position:absolute; left:100px; right:88px; top:98px; height:166px; white-space:nowrap;
     display:flex; align-items:center; justify-content:center;
-    font-family:"Playfair Display",Georgia,serif; font-weight:900; color:#1c1a17;
+    font-family:"Playfair Display",Georgia,serif; font-weight:900; font-style:normal; color:#1c1a17;
     font-size:46px; letter-spacing:1px;}
   .gazsub{position:absolute; left:122px; right:126px; top:274px;
     display:flex; justify-content:space-between;
@@ -339,6 +347,7 @@
       <img class="cawart" id="cawArt" alt="">
       <video class="cawart" id="cawVid" muted autoplay loop playsinline preload="auto"></video>
       <div class="cawshade"></div>
+      <div class="cawreadband"></div>
       <div class="cawlabel">FINAL</div>
       <div class="pcard cawcard" id="cawCard">
         <img class="pimg" id="cawPort" alt="">
@@ -417,7 +426,7 @@
         <div class="nmeta" id="nmMeta">Secretary<br>Former Beat Reporter</div>
         <div class="noteh" id="noteh">DAY ONE</div>
         <div class="notewrap" id="notewrap">
-          <div class="notescroll" id="notescroll"><p>Well, would ya look at that — Monday morning, and here ya are. On time, too, which already puts you one up on the last fella. I'm Sandra. I keep the books, the schedule, and most of the chaos under control. Or at least I try to.</p><p>Quick lay of the land, then. Coach Willis is around here somewhere — if the men's room door is closed, that's him. Don't knock. Ricky's not speaking to the bus driver again, which works out, because the bus driver isn't speaking to Ricky either.</p><p>Tiny did forty minutes at the Open Mic downtown last night, and about thirty of 'em were an impression of you. I'd call it unflattering, but the crowd disagreed. Loudly.</p><p>The mascot's on the injured list. Don't ask. There's a folder.</p><p>Anyhow. The arena's still standing, the coffee's on, and you've got fifty-five grand and a whole season ahead of ya.</p><p>So... what's the first order of business?</p></div>
+          <div class="notescroll" id="notescroll"><p>Monday morning. The actual first day, if we're not counting yesterday — which I'm not, since most of it was you meeting people through a folder.</p><p>Straight to business, then. Tiny worked the Open Mic downtown last night, and about thirty of his forty minutes were an impression of you. I'd call it unflattering. The room disagreed. Loudly.</p><p>So... what's the first order of business?</p></div>
           <div class="notefade"></div>
           <div class="notearrow">&#9660;</div>
         </div>
@@ -776,6 +785,7 @@
       }
       caw.classList.toggle('scoremode', step.kind==='score');
       caw.classList.toggle('cardmode', step.kind==='card');
+      caw.classList.toggle('textmode', step.kind==='text');
       cawTxt.textContent=step.text||step.line;
       cawArt.classList.remove('show');
       cawVid.classList.remove('show');
@@ -1009,7 +1019,7 @@
     "MAN FIXES OWN FURNACE, TELLS EVERYONE","LIBRARY EXTENDS HOURS BY 20 MINUTES"
   ];
   /* The sidebar is where a living town leaks through. Base pool is
-     evergreen Duluth; the rest gets earned by things you did.     */
+     evergreen local colour; the rest gets earned by things you did.     */
   function fillerPool(){
     var p=FILLERS.slice(), f=S.flags;
     if(f.blob) p.push("BLOB VANDALIZED; BLOB FINE","TOURISTS PHOTOGRAPH BLOB, ASK NOTHING","SCULPTOR DECLINES TO EXPLAIN, AGAIN");
@@ -1074,11 +1084,8 @@
 
   { id:'tiny_openmic', venue:'home',  title:'DAY ONE', mood:'base',
     setup:[
-      "Well, would ya look at that \u2014 Monday morning, and here ya are. On time, too, which already puts you one up on the last fella. I'm Sandra. I keep the books, the schedule, and most of the chaos under control. Or at least I try to.",
-      "Quick lay of the land, then. Coach Willis is around here somewhere \u2014 if the men's room door is closed, that's him. Don't knock. Ricky's not speaking to the bus driver again, which works out, because the bus driver isn't speaking to Ricky either.",
-      "Tiny did forty minutes at the Open Mic downtown last night, and about thirty of 'em were an impression of you. I'd call it unflattering, but the crowd disagreed. Loudly.",
-      "The mascot's on the injured list. Don't ask. There's a folder.",
-      "Anyhow. The arena's still standing, the coffee's on, and you've got fifty-five grand and a whole season ahead of ya.",
+      "Monday morning. The actual first day, if we're not counting yesterday \u2014 which I'm not, since most of it was you meeting people through a folder.",
+      "Straight to business, then. Tiny worked the Open Mic downtown last night, and about thirty of his forty minutes were an impression of you. I'd call it unflattering. The room disagreed. Loudly.",
       "So... what's the first order of business?"],
     choices:[
       { t:"Put Tiny on the jumbotron pregame.", sub:"Lean into the legend.", when:'game',
@@ -1698,7 +1705,7 @@
   { id:'the_crate', venue:'home', when:'game', title:'THE CRATE', mood:'base', scene:'crate',
     setup:[
       "The laundry service froze. Not figuratively \u2014 the truck, the pipes, and one employee's mustache, all of it, solid, outside Two Harbors. Our uniforms are inside that truck and will remain there until what the driver is calling 'a thaw event.'",
-      "The game is Friday. However. In clearing the equipment room \u2014 for reasons, or possibly because of reasons, I've agreed not to reopen \u2014 somebody found a crate. Stenciled: DULUTH LUMBERJACKS, 1961. Inside: a full set of wool uniforms from the year this team won everything. Ernie Kowalski's number is in there. His actual jersey.",
+      "The game is Friday. However. In clearing the equipment room \u2014 for reasons, or possibly because of reasons, I've agreed not to reopen \u2014 somebody found a crate. Stenciled: LUMBERJACKS, 1961. Inside: a full set of wool uniforms from the year this team won everything. Ernie Kowalski's number is in there. His actual jersey.",
       "The wool has opinions. The moths have made contributions. And Ernie, informed by means nobody will admit to, is already in the parking lot."],
     choices:[
       { t:'The Jacks wear 1961.', sub:'Ernie hands his own number to the rookie.', when:'game',
@@ -1993,7 +2000,7 @@
     var deskW="We won the Timber Cup. I typed that sentence with two fingers because my hands were shaking, and I'm leaving that in the record, because the record should know. The Cup is on my desk. Ernie polished it with his sleeve for an hour and told it things, and I stepped out, because some conversations you leave the room for.";
     var deskL="The Cup went home with them. The building stood and clapped for four straight minutes anyway \u2014 for the year, for the whole improbable thing. I've started a folder for next season. It's labeled NEXT, and it's already got a page in it.";
     var gazW='TIMBER CUP COMES HOME';
-    var newsW="The Duluth Lumberjacks are Timber Cup champions, defeating "+pf+" in the final. The Cup was handed over at center court by Ernie Kowalski, to whom the league's presentation official simply gave way. The Gazette has printed a souvenir edition. It is this one. Keep it somewhere dry.";
+    var newsW="The Lumberjacks are Timber Cup champions, defeating "+pf+" in the final. The Cup was handed over at center court by Ernie Kowalski, to whom the league's presentation official simply gave way. The Gazette has printed a souvenir edition. It is this one. Keep it somewhere dry.";
     var gazL='CUP SLIPS AWAY AT THE LAST; FOUR-MINUTE OVATION FOLLOWS';
     var newsL="The Lumberjacks fell to "+pf+" in the Timber Cup final. The Cup will winter elsewhere. The crowd remained standing for four minutes following the final horn, an ovation directed, by general consensus, at the season itself.";
     var st={ playoff:'final', title:'THE TIMBER CUP FINAL', mood:'alarmed',
@@ -2225,7 +2232,7 @@
         var steps2=[{kind:'text', text:m.out, scene:null}].concat(scoreSteps);
         if(isPO && current.playoff==='final' && won){
           steps2.push({kind:'text', scene:'cup',
-            text:'THE TIMBER CUP.\n\nForty pounds of brass and lake-country history, handed over at center court by Ernie Kowalski, because it was never going to be anyone else.\n\nDuluth, Minnesota: champions.'});
+            text:'THE TIMBER CUP.\n\nForty pounds of brass and lake-country history, handed over at center court by Ernie Kowalski, because it was never going to be anyone else.\n\nUp here: champions.'});
         }
         steps2.push({kind:'gazette', head:gazHeadTxt, story:gazNewsTxt, date:gazDateTxt,
           extra: gazResultLine(won, home, FOELIST, swingW, swingL, GAMES, gsc)
@@ -2355,7 +2362,7 @@
       {kind:'text', scene:'boxes',
        text:"By noon the locks are new and the letterhead is theirs.\n\nSandra packs the office the way she does everything: in order, with dates.\n\nThe SAM folder takes its own box."},
       {kind:'gazette', date:'SPECIAL EDITION', head:'FIRST FEDERAL ASSUMES CONTROL OF LUMBERJACKS',
-       story:"The First Federal Bank of Duluth has assumed control of the basketball club following three consecutive weeks of insolvency. The transfer was executed at nine in the morning and completed by noon. Bank officers described the club's files as 'immaculate,' a compliment the outgoing secretary is understood to have accepted on the franchise's behalf, as its final asset."}
+       story:"The First Federal Bank has assumed control of the basketball club following three consecutive weeks of insolvency. The transfer was executed at nine in the morning and completed by noon. Bank officers described the club's files as 'immaculate,' a compliment the outgoing secretary is understood to have accepted on the franchise's behalf, as its final asset."}
     ];
     runSequence(steps, dash, function(){
       terminalPage([
@@ -2486,7 +2493,7 @@
   /* ---------- WEEK ZERO: ARRIVAL ---------- */
   var INTRO_STEPS=[
     {kind:'text', scene:'intro_arrival',
-     text:"DULUTH, MINNESOTA.\nJANUARY, 1984.\n\nYou own a basketball team now.\n\nNobody in town is entirely sure why. Least of all you."},
+     text:"THE NORTH COUNTRY.\nJANUARY, 1984.\n\nYou own a basketball team now.\n\nNobody in town is entirely sure why. Least of all you."},
     {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
      text:"She's waiting at the office door with a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CSandra. I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those.\u201D"},
     {kind:'text', scene:'intro_files',
