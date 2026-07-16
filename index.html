@@ -43,6 +43,8 @@
     background:radial-gradient(circle at 34% 30%, #ff9d4d, #d95f13 62%, #8a3806);
     box-shadow:0 0 12px rgba(255,140,50,.8); animation:pulse 1.9s ease-in-out infinite;}
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(.78)}}
+  .contbtn{bottom:262px; padding:16px 50px; font-size:24px; letter-spacing:7px;
+    display:none; opacity:.92;}
 
   /* CUTSCENE */
   #cut .art{position:absolute; inset:0; overflow:hidden;}
@@ -186,13 +188,81 @@
   .caw .cawtxt{position:absolute; left:90px; right:90px; top:50%; transform:translateY(-50%);
     font-family:Georgia,'Times New Roman',serif; font-style:italic; color:#e8e2d4;
     font-size:40px; line-height:58px; text-align:center; text-shadow:0 3px 18px #000, 0 0 60px rgba(0,0,0,.9);
-    transition:opacity .25s;}
+    white-space:pre-line; transition:opacity .25s;}
   .caw.scoremode .cawtxt{font-style:normal; font-family:"Courier New",monospace; color:#ffb02e;
     text-shadow:0 0 22px rgba(255,176,46,.55), 0 3px 14px #000; letter-spacing:4px;}
   .caw .cawlabel{position:absolute; left:0; right:0; top:26%; text-align:center;
     font-family:"Courier New",monospace; color:#ffb02e; font-size:30px; letter-spacing:14px;
     text-shadow:0 0 18px rgba(255,176,46,.5); opacity:0; transition:opacity .25s;}
   .caw.scoremode .cawlabel{opacity:1;}
+
+  /* ---- character card cutscene (intro + first appearances) ---- */
+  .pcard{position:absolute; left:50%; transform:translateX(-50%);
+    width:384px; height:448px;}
+  .pcard .pimg{position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; image-rendering:pixelated; display:none;
+    border:3px solid rgba(214,192,150,.5);
+    box-shadow:0 0 44px rgba(0,0,0,.9), inset 0 0 30px rgba(0,0,0,.5);}
+  .pcard .pimg.show{display:block;}
+  .pcard .pplac{position:absolute; inset:0;
+    border:3px dashed rgba(214,192,150,.32); background:rgba(10,14,22,.72);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    font-family:"Courier New",monospace; color:rgba(238,230,210,.4);
+    font-size:22px; letter-spacing:6px; text-align:center;}
+  .pcard .pplac.hide{display:none;}
+  .pname{position:absolute; left:0; right:0; text-align:center;
+    font-family:"Arial Black",sans-serif; font-weight:900; color:#e8e2d4;
+    font-size:40px; letter-spacing:7px; text-shadow:0 3px 18px #000;}
+  .pmeta{position:absolute; left:0; right:0; text-align:center;
+    font-family:"Courier New",monospace; color:#c9a05a;
+    font-size:23px; letter-spacing:5px;}
+
+  .caw .cawcard{top:352px; opacity:0; transition:opacity .3s; z-index:2;}
+  .caw .cawname{top:826px; opacity:0; transition:opacity .3s; z-index:2;}
+  .caw .cawmeta{top:884px; opacity:0; transition:opacity .3s; z-index:2;}
+  .caw.cardmode .cawcard, .caw.cardmode .cawname, .caw.cardmode .cawmeta{opacity:1;}
+  .caw.cardmode .cawtxt{top:auto; bottom:196px; transform:none;
+    font-size:34px; line-height:52px;}
+  .caw.cardmode .cawshade{background:linear-gradient(180deg,
+    rgba(0,0,0,.62) 0%, rgba(0,0,0,.25) 26%, rgba(0,0,0,.8) 68%, #000 100%);}
+
+  /* ---- Sandra's filing cabinet (cast codex) ---- */
+  #files{background:#0a0e14;}
+  .fhd{position:absolute; left:0; right:0; top:96px; text-align:center;
+    font-family:"Arial Black",sans-serif; font-weight:900; color:#e8e2d4;
+    font-size:34px; letter-spacing:6px;}
+  .fsub{position:absolute; left:0; right:0; top:150px; text-align:center;
+    font-family:"Courier New",monospace; color:rgba(238,230,210,.42);
+    font-size:21px; letter-spacing:3px;}
+  .ftabs{position:absolute; left:70px; right:70px; top:212px;
+    display:flex; flex-wrap:wrap; gap:12px; justify-content:center;}
+  .ftab{flex:0 0 auto; padding:14px 22px; border-radius:4px 4px 0 0;
+    background:rgba(201,160,90,.16); border:2px solid rgba(214,192,150,.3);
+    border-bottom:none; color:rgba(238,230,210,.62);
+    font-family:"Courier New",monospace; font-weight:700;
+    font-size:22px; letter-spacing:3px;}
+  .ftab.on{background:rgba(201,160,90,.42); color:#fff8e6;
+    border-color:rgba(214,192,150,.75);}
+  .ftab .thick{color:#c9a05a; font-size:17px;}
+  #files .fcard{top:470px;}
+  #files .fname{top:944px;}
+  #files .fmeta{top:1002px;}
+  .ftxt{position:absolute; left:96px; right:96px; top:1074px; bottom:190px;
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
+    font-family:Georgia,'Times New Roman',serif; color:#ded6c6;
+    font-size:29px; line-height:46px;}
+  .ftxt p{margin:0 0 22px;}
+  .fback{position:absolute; left:50%; bottom:88px; transform:translateX(-50%);
+    padding:18px 54px; border-radius:12px;
+    background:rgba(12,10,8,.85); border:2px solid rgba(214,192,150,.5);
+    color:var(--cream); font-family:"Arial Black",sans-serif; font-weight:900;
+    font-size:26px; letter-spacing:6px;}
+  .filestab{position:absolute; left:50%; transform:translateX(-50%);
+    bottom:0; padding:5px 20px 7px; border-radius:8px 8px 0 0;
+    background:rgba(12,10,8,.72); border:2px solid rgba(214,192,150,.34);
+    border-bottom:none; color:rgba(238,230,210,.6);
+    font-family:"Courier New",monospace; font-weight:700;
+    font-size:17px; letter-spacing:3px; z-index:4;}
   /* ---- gazette front page ---- */
   .gazpage{position:absolute; left:0; top:281px; width:853px; height:1282px;}
   .gart{position:absolute; left:0; top:0; width:853px; height:1282px;}
@@ -241,6 +311,7 @@
     <!-- SPLASH -->
     <div class="screen on" id="splash">
       <img alt="" src="assets/ui/cover.webp">
+      <div class="startbtn contbtn" id="contbtn">CONTINUE</div>
       <div class="startbtn" id="startbtn"><span class="ball"></span>START</div>
     </div>
 
@@ -269,6 +340,12 @@
       <video class="cawart" id="cawVid" muted autoplay loop playsinline preload="auto"></video>
       <div class="cawshade"></div>
       <div class="cawlabel">FINAL</div>
+      <div class="pcard cawcard" id="cawCard">
+        <img class="pimg" id="cawPort" alt="">
+        <div class="pplac" id="cawPlac"><span>FILE PHOTO</span><span>PENDING</span></div>
+      </div>
+      <div class="pname cawname" id="cawName"></div>
+      <div class="pmeta cawmeta" id="cawMeta"></div>
       <div class="cawtxt" id="cawTxt"></div>
       <div class="tap" style="z-index:3;">TAP TO CONTINUE</div>
     </div>
@@ -287,6 +364,21 @@
         <div class="gazalso" id="gazAlso"></div>
       </div>
       <div class="tap" style="z-index:3;">TAP TO CONTINUE</div>
+    </div>
+
+    <!-- SANDRA'S FILING CABINET (cast codex) -->
+    <div class="screen caw" id="files">
+      <div class="fhd">THE FILING CABINET</div>
+      <div class="fsub">Tap a folder. Put it back where you found it.</div>
+      <div class="ftabs" id="ftabs"></div>
+      <div class="pcard fcard" id="foCard">
+        <img class="pimg" id="foPort" alt="">
+        <div class="pplac" id="foPlac"><span>FILE PHOTO</span><span>PENDING</span></div>
+      </div>
+      <div class="pname fname" id="foName"></div>
+      <div class="pmeta fmeta" id="foMeta"></div>
+      <div class="ftxt" id="foTxt"></div>
+      <div class="fback" id="fileBack">&#9664; BACK</div>
     </div>
 
     <!-- DECISION SCREEN -->
@@ -310,7 +402,7 @@
 
     <!-- DASHBOARD -->
     <div class="screen" id="dash">
-      <div class="window"><img alt="" id="portrait" src="assets/ui/sandra-base.webp"></div>
+      <div class="window" id="portwin"><img alt="" id="portrait" src="assets/ui/sandra-base.webp"><div class="filestab" id="filesTab">&#9654; THE FILES</div></div>
       <img class="frame" alt="" src="assets/ui/frame.webp">
       <div class="ui">
         <div class="cell s1"><span class="lab">CASH</span><span class="v blk green" id="stCash">$55,000</span></div>
@@ -318,14 +410,14 @@
         <div class="cell s3"><span class="lab">BUZZ</span><span class="v blk amber" id="stBuzz">48%</span></div>
         <div class="cell s4"><span class="lab">CRED</span><span class="v blk blue" id="stCred">36%</span></div>
         <div class="team blk"><span class="t">THE</span><span class="t">LUMBERJACKS</span></div>
-        <div class="hcell hs1"><span class="lab">SEASON</span><span class="v blk">1</span></div>
+        <div class="hcell hs1"><span class="lab">SEASON</span><span class="v blk" id="stSeason">1</span></div>
         <div class="hcell hs2"><span class="lab">WEEK</span><span class="v blk" id="stWeek">01</span></div>
         <div class="hcell hs3"><span class="lab">RECORD</span><span class="v blk" id="stRec">0-0</span></div>
         <div class="nm blk" id="nmName">SANDRA</div>
         <div class="nmeta" id="nmMeta">Secretary<br>Former Beat Reporter</div>
         <div class="noteh" id="noteh">DAY ONE</div>
         <div class="notewrap" id="notewrap">
-          <div class="notescroll" id="notescroll"><p>Well, would ya look at that — the new owner, in the flesh. Pleasure to meetcha. I'm Sandra. I keep the books, the schedule, and most of the chaos under control. Or at least I try to.</p><p>Quick lay of the land, then. Coach Willis is around here somewhere — if the men's room door is closed, that's him. Don't knock. Ricky's not speaking to the bus driver again, which works out, because the bus driver isn't speaking to Ricky either.</p><p>Tiny did forty minutes at the Open Mic downtown last night, and about thirty of 'em were an impression of you. I'd call it unflattering, but the crowd disagreed. Loudly.</p><p>The mascot's on the injured list. Don't ask. There's a folder.</p><p>Anyhow. The arena's still standing, the coffee's on, and you've got fifty-five grand and a whole season ahead of ya.</p><p>So... what's the first order of business?</p></div>
+          <div class="notescroll" id="notescroll"><p>Well, would ya look at that — Monday morning, and here ya are. On time, too, which already puts you one up on the last fella. I'm Sandra. I keep the books, the schedule, and most of the chaos under control. Or at least I try to.</p><p>Quick lay of the land, then. Coach Willis is around here somewhere — if the men's room door is closed, that's him. Don't knock. Ricky's not speaking to the bus driver again, which works out, because the bus driver isn't speaking to Ricky either.</p><p>Tiny did forty minutes at the Open Mic downtown last night, and about thirty of 'em were an impression of you. I'd call it unflattering, but the crowd disagreed. Loudly.</p><p>The mascot's on the injured list. Don't ask. There's a folder.</p><p>Anyhow. The arena's still standing, the coffee's on, and you've got fifty-five grand and a whole season ahead of ya.</p><p>So... what's the first order of business?</p></div>
           <div class="notefade"></div>
           <div class="notearrow">&#9660;</div>
         </div>
@@ -543,14 +635,25 @@
 
   document.getElementById('startbtn').addEventListener('click',function(ev){
     ev.stopPropagation();
+    if(window.__newGame) window.__newGame();   // fresh franchise: clear any save
     startMusic();               // user gesture unlocks audio
     var _v=document.getElementById('cutvid'); if(_v){ _v.play().catch(function(){}); }
     go(splash,cutS,startSnow);
   });
+  var contbtn=document.getElementById('contbtn');
+  if(contbtn){
+    contbtn.addEventListener('click',function(ev){
+      ev.stopPropagation();
+      if(window.__continueGame) window.__continueGame(splash);
+    });
+  }
   cutS.addEventListener('click',function(){
     go(cutS,quote,function(){ stopMusic(2.2); stopSnow(); });   // theme fades into the black
   });
-  quote.addEventListener('click',function(){ go(quote,dash); });
+  quote.addEventListener('click',function(){
+    if(window.__enterGame) window.__enterGame(quote);
+    else go(quote,dash);
+  });
 
   /* dashboard notebook scroll indicator */
   var wrap=document.getElementById('notewrap'), sc=document.getElementById('notescroll');
@@ -572,7 +675,15 @@
   /* ---------- STATE ---------- */
   var S = { cash:55000, morale:72, buzz:48, cred:36,
             week:1, wins:0, losses:0, streak:0, last:null,
-            venue:'HOME', foe:'FARGO', flags:{} };
+            venue:'HOME', foe:'FARGO', flags:{}, done:{}, met:{},
+            season:1, stage:'regular', debtWeeks:0, champs:0,
+            playoffResult:null, po:null };
+
+  /* ---------- ECONOMY (tune here, not in the ledger logic) ----------
+     Home gate = HOME_BASE + buzz*BUZZ_K + cred*CRED_K + (win?WIN_K:0).
+     Road = a flat share minus travel. Playoffs multiply the take.     */
+  var ECON = { PAYROLL:3050, HOME_BASE:760, BUZZ_K:17.5, CRED_K:10, WIN_K:290,
+               ROAD_SHARE:1480, TRAVEL:800, PO_HOME:1.6, PO_ROAD:1.4 };
 
   /* ---------- SANDRA MOODS (placeholder swap) ----------
      Drop PNGs at assets/portraits/sandra/{mood}.png and they
@@ -596,8 +707,30 @@
      the text automatically.                                    */
   var caw=document.getElementById('caw'), cawArt=document.getElementById('cawArt'),
       cawTxt=document.getElementById('cawTxt'),
+      cawCard=document.getElementById('cawCard'), cawPort=document.getElementById('cawPort'),
+      cawPlac=document.getElementById('cawPlac'), cawName=document.getElementById('cawName'),
+      cawMeta=document.getElementById('cawMeta'),
       gazS=document.getElementById('gazS'), gazHead=document.getElementById('gazHead'),
       gazDate=document.getElementById('gazDate'), gazPage=document.getElementById('gazPage');
+
+  /* Cast portraits: assets/portraits/{who}/base.png. Missing files show
+     the FILE PHOTO PENDING placard, except Sandra, who falls back to the
+     painted master already on the dashboard.                          */
+  var portToken=0;
+  function probePortrait(who, cb){
+    if(!who){ cb(null); return; }
+    var url='assets/portraits/'+who+'/base.png', p=new Image();
+    p.onload=function(){ cb(url); };
+    p.onerror=function(){ cb(who==='sandra'?BASE_SRC:null); };
+    p.src=url;
+  }
+  function paintCard(who, imgEl, placEl, tokenCheck){
+    imgEl.classList.remove('show'); placEl.classList.remove('hide');
+    probePortrait(who,function(url){
+      if(!tokenCheck() || !url) return;
+      imgEl.src=url; imgEl.classList.add('show'); placEl.classList.add('hide');
+    });
+  }
 
   function probeArt(scene, cb){
     if(!scene){ cb(null); return; }
@@ -632,19 +765,28 @@
     function show(step){
       if(step.kind==='gazette'){
         gazHead.textContent=step.head;
-        gazDate.textContent='WEEK '+(S.week<10?'0':'')+S.week;
+        gazDate.textContent=step.date || ('WEEK '+(S.week<10?'0':'')+S.week);
         document.getElementById('gazStory').innerHTML =
-          (step.story||'') + ' <span class="cont">(Continued on Page B7, presses willing.)</span>';
+          (step.story||'') + (step.extra ? ' '+step.extra : '')
+          + ' <span class="cont">(Continued on Page B7, presses willing.)</span>';
         var f=fillerPair();
         document.getElementById('gazAlso').innerHTML =
           f.map(function(h){ return '<span class="ah">'+h+'</span>'; }).join('');
         return;
       }
       caw.classList.toggle('scoremode', step.kind==='score');
+      caw.classList.toggle('cardmode', step.kind==='card');
       cawTxt.textContent=step.text||step.line;
       cawArt.classList.remove('show');
       cawVid.classList.remove('show');
       cawVid.pause();
+      if(step.kind==='card'){
+        cawName.textContent=step.name||'';
+        cawMeta.textContent=step.meta||'';
+        var tok=++portToken;
+        paintCard(step.who, cawPort, cawPlac, function(){ return tok===portToken; });
+        return;
+      }
       if(step.kind==='text'){
         probeArt(step.scene,function(res){
           if(!res) return;
@@ -679,9 +821,10 @@
         var prev=screenFor(steps[i-1]), next=screenFor(step);
         prev.removeEventListener('click',advance);
         if(prev===next){
-          var t = (next===gazS)?gazPage:cawTxt;
-          t.style.opacity=0;
-          setTimeout(function(){ show(step); t.style.opacity=1;
+          var els = (next===gazS) ? [gazPage] : [cawTxt, cawCard, cawName, cawMeta];
+          els.forEach(function(e){ e.style.opacity=0; });
+          setTimeout(function(){ show(step);
+            els.forEach(function(e){ e.style.opacity=''; });
             next.addEventListener('click',advance); },260);
         } else {
           show(step);
@@ -865,11 +1008,41 @@
     "SNOW FORECAST; RESIDENTS UNMOVED","CHURCH ROOF FUND REACHES $40",
     "MAN FIXES OWN FURNACE, TELLS EVERYONE","LIBRARY EXTENDS HOURS BY 20 MINUTES"
   ];
+  /* The sidebar is where a living town leaks through. Base pool is
+     evergreen Duluth; the rest gets earned by things you did.     */
+  function fillerPool(){
+    var p=FILLERS.slice(), f=S.flags;
+    if(f.blob) p.push("BLOB VANDALIZED; BLOB FINE","TOURISTS PHOTOGRAPH BLOB, ASK NOTHING","SCULPTOR DECLINES TO EXPLAIN, AGAIN");
+    if(f.samFolder) p.push("MASCOT INSURANCE PREMIUM 'UNDER REVIEW'");
+    if(f.waltOnAir) p.push("RADIO HOUR OUTDRAWS POLKA HOUR; STATION SILENT");
+    if(f.waltGone) p.push("RESIDENTS STILL TUNING TO STATIC, PROUDLY");
+    if(f.arenaShaky) p.push("RAFTERS MAKE SOUND; NOBODY LOOKS UP");
+    if(f.arenaFixed) p.push("ROOF HOLDS; TOWN SUSPICIOUS");
+    if(f.asteriskSeason) p.push("INSPECTOR'S CAR SEEN IDLING OUTSIDE ARENA");
+    if(f.dairy) p.push("DAIRY BOARD 'MONITORING SITUATION'","CHEESE INVENTORY UNACCOUNTED FOR");
+    if(f.lutefisk) p.push("LUTEFISK SUPPLY SECURED THROUGH MARCH");
+    if(f.scoutSeen) p.push("MAN IN GREY SUIT SEEN AT DINER, PAID CASH");
+    if(f.scoutApproved) p.push("OUT-OF-TOWN INTEREST REPORTED, DENIED");
+    if(f.graceGrudge) p.push("FORMER SECRETARY SPOTTED AT BANK, SMILING");
+    if(f.graceRespected) p.push("RETIRED SECRETARY SENDS CASSEROLE, NOTE");
+    if(f.stokesFavor) p.push("COMMISSIONER'S NEPHEW 'JUST VISITING'");
+    if(f.busCrew) p.push("BUS DRIVER WAVES AT CROWD; CROWD WAVES BACK");
+    if(f.brendaLives) p.push("WATERBED SHOWROOM REPORTS FOOT TRAFFIC");
+    if(f.doorOpened) p.push("MEN'S ROOM DOOR PROPPED OPEN; NOBODY COMMENTS");
+    if(f.vernBack) p.push("VERN SEEN. VERN FINE. VERN NOT SAYING.");
+    if(f.ernieWaiting) p.push("ROW F UNOCCUPIED FOR ONE GAME; TOWN NOTICED");
+    if(f.blizzardGame) p.push("PLOW DRIVER NAMED CITIZEN OF THE MONTH");
+    if(f.rosterEdge) p.push("HIBBING MAN SAID ELEVEN WORDS, ALL GOOD");
+    if(S.champs>0) p.push("CUP STILL ON DESK; DUSTED AROUND","TROPHY CASE ORDERED; TROPHY CASE BACKORDERED");
+    if(S.season>1) p.push("SECOND-YEAR OWNER STILL HERE, LOCALS NOTE");
+    return p;
+  }
   function fillerPair(){
-    var a=Math.floor(Math.random()*FILLERS.length), b;
-    do{ b=Math.floor(Math.random()*FILLERS.length); }while(b===a);
-    var c; do{ c=Math.floor(Math.random()*FILLERS.length); }while(c===a||c===b);
-    return [FILLERS[a],FILLERS[b],FILLERS[c]];
+    var P=fillerPool();
+    var a=Math.floor(Math.random()*P.length), b;
+    do{ b=Math.floor(Math.random()*P.length); }while(b===a);
+    var c; do{ c=Math.floor(Math.random()*P.length); }while(c===a||c===b);
+    return [P[a],P[b],P[c]];
   }
 
   /* ---------- MOMENT DEALER: shuffle bag, no repeats ---------- */
@@ -901,7 +1074,7 @@
 
   { id:'tiny_openmic', venue:'home',  title:'DAY ONE', mood:'base',
     setup:[
-      "Well, would ya look at that \u2014 the new owner, in the flesh. Pleasure to meetcha. I'm Sandra. I keep the books, the schedule, and most of the chaos under control. Or at least I try to.",
+      "Well, would ya look at that \u2014 Monday morning, and here ya are. On time, too, which already puts you one up on the last fella. I'm Sandra. I keep the books, the schedule, and most of the chaos under control. Or at least I try to.",
       "Quick lay of the land, then. Coach Willis is around here somewhere \u2014 if the men's room door is closed, that's him. Don't knock. Ricky's not speaking to the bus driver again, which works out, because the bus driver isn't speaking to Ricky either.",
       "Tiny did forty minutes at the Open Mic downtown last night, and about thirty of 'em were an impression of you. I'd call it unflattering, but the crowd disagreed. Loudly.",
       "The mascot's on the injured list. Don't ask. There's a folder.",
@@ -1276,7 +1449,7 @@
         desk:"Trade: attempted, punished, withdrawn. The vigil's candle count: 74. Sam lit his own. I let this happen to you on purpose and I'd do it again.",
         gaz:"VIGIL HELD FOR LIVING MASCOT; MANAGEMENT ATTENDS BRIEFLY", news:"The club explored trading Sawdust Sam to Bismarck for a t-shirt cannon. The town learned of it within the hour. By evening, seventy-four candles had appeared on the pavement outside the arena. Sam attended the vigil in costume and lit one for himself. The trade has collapsed.", mood:'grim' } ] },
 
-  { id:'scout_speaks', title:'THE SCOUT SPEAKS', mood:'grim', needs:'scoutSeen',
+  { id:'scout_speaks', title:'THE SCOUT SPEAKS', mood:'grim', needs:'scoutSeen', once:true,
     setup:[
       "He asked for a meeting. The man from Row A. He asked through the usher, by name, at the exact moment I was thinking about him, which I've decided is a coincidence because the alternative is unacceptable.",
       "He sat across from your desk, set down one index card, and left. No pitch. No terms. No name. The card is in front of me now. On it, typed \u2014 typed, on a card \u2014 is a list of five weaknesses. Ours. Four of them we knew. The fifth one we didn't, and it's the true one, and I've been staring at it for an hour.",
@@ -1301,7 +1474,7 @@
         desk:"The fifth weakness now has a nickname and a hand gesture. This is either the healthiest thing this team has ever done or the opposite. The folder stays open either way.",
         gaz:"LOCKER ROOM ADOPTS FLAW, NAMES IT", news:"Club ownership read the contents of an anonymous index card aloud to the locker room. Four of the five listed deficiencies drew nods. The fifth drew a silence in which the building was audible. Tiny McGee then observed that the author 'sounds fun,' and the room broke. The flaw now has a nickname and a hand gesture.", mood:'dry' } ] },
 
-  { id:'grace_2', title:'THE RETURN OF GRACE', mood:'alarmed', needs:'graceGrudge', grace:true,
+  { id:'grace_2', title:'THE RETURN OF GRACE', mood:'alarmed', needs:'graceGrudge', grace:true, once:true,
     setup:[
       "This is Grace. Sandra is at a regional records-keeping conference, which is real, and which she attends for pleasure, which should tell you what caliber of woman you lost this week.",
       "You'll recall my last visit. I recall it too. I recall being told to answer the phones. I have, since then, kept my own ledger of this franchise's decisions. It's here. On the desk. The ribbon still marks your page, and the page has grown crowded.",
@@ -1422,7 +1595,7 @@
         news:"The club signed a replacement for Vern Aho, missing eleven days following a blizzard. Aho returned on the twelfth, having been at a cousin's residence in Ely with the telephone out, and found the new man at his locker. Aho told him to keep it. The pair have since started together. Team-mates decline to discuss the arrangement.",
         mood:'dry', flag:'vernBack' } ] },
 
-  { id:'arena_condemned', title:'THE ARENA IS CONDEMNED', mood:'grim', scene:'arena',
+  { id:'arena_condemned', title:'THE ARENA IS CONDEMNED', mood:'grim', scene:'arena', once:true,
     setup:[
       "The city inspector came Tuesday. He was here four hours, tapped many things with a small hammer, and left without making eye contact, which in inspector is a full sentence.",
       "The letter arrived today. The word is 'condemned,' with an asterisk, and the asterisk is doing incredible work: we can finish the season under a 'provisional occupancy variance' if we address the northeast roof, the wiring in sections 110 through 114, and \u2014 quote \u2014 'the sound.' He didn't specify which sound. He wrote 'the sound' and we all knew.",
@@ -1445,7 +1618,132 @@
         out:["The fund drive begins with a coffee tin at the concession stand and gets out of hand immediately, in the good way. The 1961 blazers make appearances. Tiny does a benefit set. Ernie Kowalski personally guilt-trips three business owners by name from row F. A child donates a jar of nickels and the Gazette runs the jar on the front page, above the fold, where it belongs.",
              "The drive clears seven thousand in two weeks. The repairs get scheduled. The tin stays out afterward, permanently, unlabeled, and people keep putting money in it, because the building isn't done needing things and the town isn't done either."],
         desk:"Raised: $7,000, one jar of nickels (counted: $4.35, value: infinite). The tin stays out. Some ledgers keep themselves. Filed under HOME, MIRACLES, and \u2014 unofficially \u2014 US.",
-        gaz:"JAR OF NICKELS LEADS ARENA FUNDING SURGE", news:"A coffee tin at the concession stand has raised $7,000 toward arena repairs in two weeks. Contributions include appearances by the 1961 roster, a benefit set by Tiny McGee, and the personal guilt-tripping of three business owners by Ernie Kowalski from Row F. A child's jar of nickels appears above the fold, where it belongs.", mood:'pleased', flag:'arenaFixed' } ] }
+        gaz:"JAR OF NICKELS LEADS ARENA FUNDING SURGE", news:"A coffee tin at the concession stand has raised $7,000 toward arena repairs in two weeks. Contributions include appearances by the 1961 roster, a benefit set by Tiny McGee, and the personal guilt-tripping of three business owners by Ernie Kowalski from Row F. A child's jar of nickels appears above the fold, where it belongs.", mood:'pleased', flag:'arenaFixed' } ] },
+
+  { id:'halftime_wedding', venue:'home', when:'game', title:'THE HALFTIME WEDDING', mood:'base', scene:'wedding',
+    setup:[
+      "A couple would like to be married at half time. At center court. Randy drives the plow on County 7; Diane runs the till at the bait shop. They met in section 119, row four, during the Fargo game two winters back, when he offered her half a bratwurst and she took the whole thing.",
+      "They're not asking for much. A minister's lined up \u2014 he does the anthem sometimes, apparently that's the same fella. They'd like the organ. And Diane would like, quote, 'the lights to do the thing,' and she is confident we know which thing.",
+      "I've costed it at roughly nothing. The complications are not financial. The complications are that this is a basketball game and there will be nine hundred guests who did not RSVP."],
+    choices:[
+      { t:'Full ceremony. The lights do the thing.', sub:'Whatever the thing is.', when:'game',
+        fx:{buzz:10, morale:5, cash:800, cred:2},
+        out:["The lights do the thing. Nobody briefed the lighting man; he simply knew. Randy cries first, which costs him twenty dollars to somebody in the plow department. The organist plays the forbidden one AS A PROCESSIONAL, softened into something nearly holy, and half the building doesn't recognize it and the half that does keeps beautifully quiet.",
+             "Diane throws the bouquet into 119. It is caught by the bus driver, who looks at Ricky, and for one dangerous second the whole arena holds its breath. Concessions post a wedding-reception number in the third quarter. The visitors never recover the mood."],
+        desk:"Ceremony: performed. Lights: did the thing. I asked the lighting man about the thing and he said 'she knows,' which closes the matter. Filed under HOME and, against my better judgment, MIRACLES.",
+        gaz:"COUPLE WED AT HALF TIME; BOUQUET LANDS BADLY", news:"Randy Pekkala and Diane Ruotsala were married at center court during half time of Friday's fixture. The arena lighting performed what the bride described only as 'the thing.' The bouquet was caught by the team's bus driver. Concession receipts for the third quarter are described as 'reception-grade.' The visiting side declined comment on the mood.", mood:'pleased' },
+      { t:'Pregame, not half time.', sub:"There's a schedule. Somewhere.", when:'game',
+        fx:{buzz:4, cred:3},
+        out:["The ceremony runs at 6:40 in front of the early crowd, both teams stretching, and the visitors' center \u2014 seven feet of him \u2014 pressed into service as an usher, a duty he performs with enormous gravity and a warmup jacket over his arm like a sommelier.",
+             "It's lovely. It's brief. The minister segues directly into the anthem, which he was doing anyway, and nobody can point to the exact second the wedding became a basketball game, which Diane says was the whole idea."],
+        desk:"Ceremony: 6:40 sharp, concluded by anthem. The visiting center ushered. He caught the garter, which I am told travels differently than the bouquet, and looked briefly terrified. Filed under HOME.",
+        gaz:"WEDDING SEGUES INTO ANTHEM; SEAM UNDETECTABLE", news:"A pregame wedding at the arena concluded when the officiating minister proceeded directly into the national anthem, a transition witnesses could not precisely locate. The visiting team's center served as an usher. He is reported to have caught the garter and to have played the first quarter unsettled.", mood:'dry' },
+      { t:"Decline. It's a basketball game.", sub:'Somebody has to say it.', when:'game',
+        fx:{buzz:-6, morale:-2, cred:1},
+        out:["They marry in the parking lot before doors, between the plow and a borrowed arch, and six hundred people attend anyway because the town heard. The organist plays through a window somebody opened, which nobody authorized, and which you are not going to find out who.",
+             "The reception is the game. The wedding party sits in 119 in full dress. Every time Randy's row scores \u2014 his words \u2014 the section throws rice, which takes the crew forty minutes to sweep and the town forty years to forget you said no to."],
+        desk:"Ceremony: parking lot, unauthorized arch, one open window (investigation concluded: no). Rice swept: four pounds. The word 'no' has been entered in the town's ledger, which unlike mine has no eraser.",
+        gaz:"PARKING LOT WEDDING OUTDRAWS DOORS; RICE DELAYS SWEEP", news:"A couple declined half-time accommodation by the club were married in the arena parking lot before six hundred attendees. Organ accompaniment reached the ceremony through a window that opened by no known agency. The wedding party attended the game in full dress and threw rice at intervals. The club's decision has been widely noted.", mood:'grim' } ] },
+
+  { id:'radio_deal', title:'THE VOICE OF THE JACKS', mood:'base', scene:'radio',
+    setup:[
+      "KDLH is dropping us. The station manager says basketball 'doesn't move product like the polka hour,' and he has charts, and I'll be honest with ya, the charts are compelling.",
+      "Which orphans Walt Sikma, who has called every Lumberjacks game since 1966 from a card table at center court, into a microphone that \u2014 and I learned this Tuesday \u2014 has not been plugged into anything since 1981.",
+      "Walt doesn't know that last part. Walt prepares four hours for every broadcast. The question on the desk is our radio situation. The question under the question is Walt."],
+    choices:[
+      { t:'Buy the airtime ourselves. Walt broadcasts.', sub:'$2,400. The games deserve a voice.',
+        fx:{cash:-2400, cred:6, buzz:5, morale:3},
+        out:["You buy the Friday slot outright. Walt is told his microphone has been 'upgraded,' which is technically the truth. His first legal broadcast in five years opens with a forty-second silence and then: 'Folks. Where were we.'",
+             "Half the county tunes in out of loyalty and stays out of astonishment: Walt is magnificent. He has been magnificent, alone, into a dead microphone, for five years, out of professionalism. The Gazette calls it the comeback of the year and not one player disputes it."],
+        desk:"Airtime: $2,400. Walt's preparation binder: four inches, alphabetized, current through Tuesday. He has been ready since 1981. Some expenses are just debts coming due.",
+        gaz:"MAN BROADCASTS FIVE YEARS INTO DEAD MICROPHONE; RESUMES", news:"Walt Sikma, voice of the Lumberjacks since 1966, returned to the air Friday on time purchased directly by the club. It has emerged that Sikma's microphone had been disconnected since 1981, a period through which he continued to prepare and call every game to broadcast standard. His first audible words in five years were 'Folks. Where were we.'", mood:'pleased', flag:'waltOnAir' },
+      { t:'Put Walt on the arena PA between plays.', sub:'A compromise with a volume knob.',
+        fx:{buzz:6, cred:-2, cash:600},
+        out:["Walt calls the game to the people watching the game, which shouldn't work and immediately does. He narrates like the crowd might lose the thread, and the crowd, who could, is grateful. His card table gets a velvet rope from somewhere.",
+             "The visiting coach files a complaint that his timeouts are 'being narrated,' which Walt reads aloud, over the PA, in his timeout-narrating voice. The building has never loved anything more."],
+        desk:"Walt's new post: the PA, between plays. Complaints received: one, from the visiting bench, narrated. The velvet rope's provenance remains open. I have my suspicions and my suspicions have season tickets.",
+        gaz:"PLAY-BY-PLAY MAN NARRATES GAME TO ITS OWN AUDIENCE", news:"Walt Sikma has moved from radio to the arena public address system, where he describes the game to spectators presently watching it. The arrangement has proven unaccountably popular. The visiting coach's formal complaint that his timeouts were being narrated was itself narrated, to sustained applause.", mood:'dry' },
+      { t:'Thank Walt for his service. Fold the card table.', sub:"Say it quick. Don't look at him.",
+        fx:{cash:1000, morale:-6, cred:-5, buzz:-3},
+        out:["Walt takes it the way men of his generation take everything, which is to say you will never know. He shakes your hand, folds the card table himself, and leaves the binder \u2014 four inches, alphabetized \u2014 on your desk, 'in case whoever's next wants the history.'",
+             "Row after row of the regulars now bring portable radios to home games, tuned to static, out of protest. It should not work as a gesture. It absolutely works as a gesture."],
+        desk:"The binder is on my shelf. I catalogued it: 1966 to present, every game, including the five years nobody heard. I want it noted that the microphone was dead and the record is perfect anyway. That's the whole obituary for this decision.",
+        gaz:"CARD TABLE FOLDED; STATIC RATINGS SURGE", news:"The club has ended its association with Walt Sikma, voice of the Lumberjacks since 1966. Sikma folded the card table personally and departed. Supporters have since taken to attending home games with portable radios tuned to static, a protest the station manager concedes is 'moving product.'", mood:'grim', flag:'waltGone' } ] },
+
+  { id:'picture_day', title:'PICTURE DAY', mood:'dry', scene:'photo',
+    setup:[
+      "The team photo is Thursday. The Gazette is sending their man \u2014 one camera, one flash he describes as 'temperamental,' and a ladder he has already fallen off once this year in a manner he insists was intentional.",
+      "The complications, in the order I received them: Sam intends to appear in the big head, which does not fit in the frame or, strictly, the room. Ricky has requested to be seated 'centrally, but also slightly forward.' And Hank has not been seen since the schedule went up, though the men's room door is closed, which is either an answer or a coincidence.",
+      "The photo goes in the program, the Gazette, and the bank calendar. Whatever happens Thursday is what this team looks like for a year."],
+    choices:[
+      { t:"Everybody in. Big head, Ricky's chair, wait for Hank.", sub:'The full portrait. However long it takes.',
+        fx:{morale:6, buzz:7, cash:-300, cred:-2},
+        out:["The session runs four hours. The big head requires Sam to stand in the second row on a folding chair, steadied at the hips by two teammates, an arrangement everyone eventually stops discussing. Ricky's chair is centrally, slightly forward. Hank emerges at hour three, stands at the exact edge of frame, and regards the lens the way a man regards weather.",
+             "The flash behaves once. Once is enough. The photo is perfect, the whole county agrees it's perfect, nobody can say why it's perfect, and the bank orders a second printing of the calendar."],
+        desk:"Session: four hours. Injuries: none, which around here is a statistic worth framing on its own. The print is on my desk. Sam is smiling in there someplace. You can just tell.",
+        gaz:"TEAM PHOTO ACHIEVED; BANK ORDERS SECOND PRINTING", news:"The club's annual photograph was completed Thursday in a single usable frame following a four-hour session. The mascot appeared in the oversized head, elevated and steadied by teammates. Coach Hank Willis joined at hour three and stood at the extreme edge of frame. The bank has ordered a second printing of its calendar, citing demand.", mood:'pleased' },
+      { t:'Regular head. Regular rows. One team.', sub:'One photo. One size of head.',
+        fx:{cred:5, morale:-4, buzz:-2},
+        out:["Ricky complies with the posture of a man being photographed for a crime. Sam wears the regular head and holds the big head IN frame beside him, upright, like a fallen comrade, and no instruction anyone issues can get him to put it down.",
+             "The effect is quietly funereal. The Gazette runs it enormous. Three readers send condolence cards to the arena addressed to 'the big fella,' and Sam has answered all three, in character, which is a sentence I've now typed."],
+        desk:"Photo: achieved, one take, two heads (one worn, one mourned). Condolence cards: three, answered. I have opened a correspondence file for the big head. I want it known I resisted for a full day.",
+        gaz:"TEAM PHOTO STRIKES FUNEREAL NOTE; CARDS ARRIVE", news:"The club's annual photograph shows the mascot in regulation costume holding the oversized head upright beside him, an arrangement readers have interpreted as memorial in character. Three condolence cards have been received. All three have been answered, reportedly in character. The team's star is seated in the second row, ordinarily.", mood:'dry' },
+      { t:'Skip the photographer. Sandra takes it.', sub:"She was a beat reporter. She's held a camera.",
+        fx:{cash:400, morale:3, cred:2},
+        out:["Sandra takes one photograph. One. Nobody is warned. It catches the entire roster mid-laugh at something Tiny said off-frame that nobody will repeat and everyone remembers.",
+             "The Gazette man calls it the best sports photograph ever taken in this county and offers money for the negative. She declines without looking up. It hangs in the office now, uncaptioned, where certain things belong."],
+        desk:"Photographs taken: one. Photographs required: one. The Gazette's offer for the negative has been filed where offers go. What Tiny said is not in the ledger and never will be.",
+        gaz:"SECRETARY OUTSHOOTS PRESS CORPS ON FIRST FRAME", news:"The club's annual photograph was taken this year by its secretary, a former beat reporter, in a single unannounced frame that captures the full roster mid-laughter. The Gazette's staff photographer has called it the finest sports photograph in county history and confirms his offer for the negative was declined. The cause of the laughter has not been disclosed.", mood:'pleased' } ] },
+
+  { id:'the_crate', venue:'home', when:'game', title:'THE CRATE', mood:'base', scene:'crate',
+    setup:[
+      "The laundry service froze. Not figuratively \u2014 the truck, the pipes, and one employee's mustache, all of it, solid, outside Two Harbors. Our uniforms are inside that truck and will remain there until what the driver is calling 'a thaw event.'",
+      "The game is Friday. However. In clearing the equipment room \u2014 for reasons, or possibly because of reasons, I've agreed not to reopen \u2014 somebody found a crate. Stenciled: DULUTH LUMBERJACKS, 1961. Inside: a full set of wool uniforms from the year this team won everything. Ernie Kowalski's number is in there. His actual jersey.",
+      "The wool has opinions. The moths have made contributions. And Ernie, informed by means nobody will admit to, is already in the parking lot."],
+    choices:[
+      { t:'The Jacks wear 1961.', sub:'Ernie hands his own number to the rookie.', when:'game',
+        fx:{buzz:12, morale:8, cred:4},
+        out:["The wool itches like history. The team takes the floor looking like a photograph, and the building makes a sound it has been saving since 1961. Ernie presents his jersey to the rookie at center court with two sentences nobody caught on tape, and the rookie plays the night of his life in it, sneezing.",
+             "The visitors spend the whole game vaguely unsettled, the way you would be if you looked up and the past was running a fast break at you."],
+        desk:"Uniforms: 1961, wool, moth-annotated. The rookie has asked to keep the jersey and Ernie has ruled \u2014 his word \u2014 'custody.' Weekends and holidays. I am not drafting the schedule. Filed under MIRACLES.",
+        gaz:"1961 RETURNS FOR ONE NIGHT; PRESENT DAY OUTSCORED", news:"A frozen laundry truck obliged the Lumberjacks to compete in wool uniforms recovered from a crate stenciled 1961, the club's championship year. Ernie Kowalski presented his own jersey to the team's rookie at center court. The exchange was brief and has not been repeated by either party. The rookie's performance is being described as historic and congested.", mood:'pleased', flag:'crate61' },
+      { t:'Buy plain grays off the rack in town.', sub:'$700. Dignity optional.',
+        fx:{cash:-700, buzz:-3, morale:1}, when:'game',
+        out:["The team plays in practice grays with numbers in electrical tape, applied by Sandra, straight-edged, level, correct. The tape starts peeling in the second quarter and the scorer's table begins identifying players by 'vibe,' their word, entered in an official league document.",
+             "It looks like a scrimmage that broke into a building. The Jacks play loose because nothing about the night can be taken seriously, which turns out to be a strategy nobody planned and Hank declines to take credit for, twice, which means he's taking credit for it."],
+        desk:"Grays: $700. Tape: applied level, peeled anyway; I've noted the betrayal. The scorer's table logged our center as 'tall vibe.' The league accepted the sheet. I've requested a copy for the files, for the day we need proof of any of this.",
+        gaz:"SCORER'S TABLE RESORTS TO 'VIBE'; LEAGUE ACCEPTS SHEET", news:"With uniforms frozen inside a stranded laundry truck, the Lumberjacks competed in store-bought grays numbered in electrical tape. The tape did not survive the half. The official scorer identified players by other means, and the resulting scoresheet, which includes the notation 'tall vibe,' has been accepted by the league as filed.", mood:'dry' },
+      { t:'Postpone. Wait for the thaw event.', sub:'The league will love this.',
+        fx:{cred:-7, buzz:-4, cash:-1500},
+        out:["The league does not love this. The fine arrives faster than any correspondence the league has ever produced, hand-delivered, possibly pre-written. Commissioner Stokes appends a personal note that reads, in full: 'A laundry truck.'",
+             "The makeup date lands, through no scheduling malice anyone can prove, on the anniversary of Lutefisk Night. The equipment room has been notified. The equipment room, per Sandra, 'remembers.'"],
+        desk:"Fine: $1,500, hand-delivered, suspiciously ready. Stokes's note is three words and I've filed it under correspondence I intend to outlive. The makeup date is what it is. The equipment room remembers.",
+        gaz:"GAME POSTPONED PENDING 'THAW EVENT'; LEAGUE UNAMUSED", news:"Friday's fixture was postponed after the club's uniforms were stranded in a frozen laundry vehicle outside Two Harbors, pending what the driver termed a thaw event. A league fine arrived by hand within the day. Commissioner Stokes attached a personal note reading, in its entirety, 'A laundry truck.'", mood:'grim' } ] },
+
+  { id:'arena_reckoning', title:'THE ASTERISK COMES DUE', mood:'grim', scene:'arena', needs:'asteriskSeason', once:true,
+    setup:[
+      "The inspector came back. No hammer this time. That's how I knew.",
+      "The variance is up for renewal, and he stood a long while in section 112, listening. The wiring in 114 has started doing the flicker when nothing's plugged in. And the sound has moved. It used to live in the northeast roof. It's in the walls now. He wrote that down \u2014 'in the walls now' \u2014 and looked at me, and I gave him nothing, because that is the job.",
+      "His terms. The full repair, fifteen thousand, before he'll renew. Or a patch on the worst of it, five, and he'll 'think about it.' Or we sign the waiver saying we were told. He brought the waiver with him. It's one page. It's very quiet, for a page."],
+    choices:[
+      { t:'The full repair. Fifteen thousand.', sub:'The building is the team. Still.',
+        fx:{cash:-15000, cred:9, morale:5}, flag:'arenaFixed',
+        out:["The crews come back \u2014 the same crews, who greet the building like a difficult relative \u2014 and this time they do all of it. The roof. The wiring. They open the wall in 112 and find, where the sound lived, nothing anyone will describe. They close it back up. The sound stops.",
+             "The inspector passes the building with his hand flat on the brick a moment longer than the paperwork requires. 'Long life,' he says. To it. Not to you."],
+        desk:"Repairs: $15,000, complete. The wall in 112 was opened, and I asked the foreman what was in there, and he said 'insulation' in the voice of a man choosing a word. The matter is closed. The folder is not.",
+        gaz:"ARENA PASSES; WALL CONTENTS 'INSULATION,' SAYS MAN CHOOSING WORD", news:"The club has completed the full slate of repairs ordered by the city inspector, ending the arena's provisional occupancy. The wall of section 112 was opened during the work. Crew members describe its contents as insulation, uniformly, after a pause. The inspector renewed the certificate and was observed resting a hand on the brickwork on departure.", mood:'pleased' },
+      { t:'The patch job. Five thousand.', sub:'Enough to pass. Barely.',
+        fx:{cash:-5000, cred:2}, flag:'arenaShaky',
+        out:["The patch holds the way patches hold: visibly, and with commentary. The variance renews with more asterisks \u2014 the letter now has a footnote, and the footnote has a footnote. The flicker in 114 slows but does not stop, and on windy nights the sound in the walls keeps its own attendance.",
+             "The inspector signs it without looking up. 'One more winter,' he says. He has stopped saying maybe two."],
+        desk:"Patch: $5,000. Renewal: granted, footnoted. He's stopped saying 'maybe two,' and I've noted the subtraction, because subtraction is how buildings talk.",
+        gaz:"VARIANCE RENEWED; FOOTNOTE ACQUIRES FOOTNOTE", news:"The arena's provisional occupancy has been renewed following partial repairs. The renewal letter is reported to contain a footnote which itself contains a footnote. The city inspector, asked for the building's outlook, said 'one more winter' and did not supply the customary second estimate.", mood:'grim' },
+      { t:'Sign the waiver.', sub:"She's held since 1948. She'll hold.",
+        fx:{buzz:2}, flag:'arenaDoomed',
+        out:["You sign the quiet page. The inspector takes it, files it in a folder he did not bring for any other purpose, and leaves without tapping anything, which lands worse than any report could have.",
+             "That night the wind comes up off the lake and the building talks the whole game, and the crowd \u2014 who know her voice better than anyone \u2014 gets quieter and quieter. Sandra stays late. She doesn't say why. She checks the extinguishers, all of them, personally, and writes one word in the ledger. The word is 'noted.'"],
+        desk:"Waiver: signed. Extinguishers: checked, by me, personally, at eleven at night. I am not an alarmist. I am a woman who has read every page of this building. I have filed the waiver where I can reach it fast.",
+        gaz:"OWNERSHIP SIGNS 'THE QUIET PAGE'; BUILDING DECLINES COMMENT", news:"Ownership has signed a waiver acknowledging the city inspector's findings in lieu of repairs, ending the renewal question. The inspector departed without conducting his customary percussive survey. The building was audible throughout the evening's fixture. The club secretary was observed checking fire extinguishers at a late hour and has declined to characterize the activity.", mood:'grim' } ] }
   ];
 
   /* ---------- DOM ---------- */
@@ -1478,6 +1776,8 @@
     el.cred.className = 'v blk ' + (S.cred>=60?'green':'blue');
     el.week.textContent = (S.week<10?'0':'')+S.week;
     el.rec.textContent = S.wins+'-'+S.losses;
+    var seasonEl=document.getElementById('stSeason');
+    if(seasonEl) seasonEl.textContent = S.season;
     updateBlotter();   /* keep STREAK in lockstep with RECORD */
   }
   function setNote(paras){
@@ -1505,38 +1805,48 @@
   }
 
   /* ---------- SEASON DECK ---------- */
-  var deck=[], deckPos=0, current=null, phase='setup', momentChoice=null;
+  var deck=[], deckPos=0, current=null, phase='setup', momentChoice=null, pendingRoute=null;
   function buildDeck(){
-    deck=[STORY[0]]; // Day One always first
-    var mains = STORY.filter(function(st){ return st.id!=='tiny_openmic' && !st.needs; });
-    // shuffle mains lightly but keep arena_condemned toward the back half
+    deck=[]; deckPos=0;
+    var mains = STORY.filter(function(st){
+      return st.id!=='tiny_openmic' && !st.needs && !(st.once && S.flags['done_'+st.id]);
+    });
     var arena = mains.filter(function(st){return st.id==='arena_condemned';});
-    var rest = mains.filter(function(st){return st.id!=='arena_condemned';});
+    var rest  = mains.filter(function(st){return st.id!=='arena_condemned';});
     for(var i=rest.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=rest[i]; rest[i]=rest[j]; rest[j]=t; }
-    deck = deck.concat(rest.slice(0, Math.ceil(rest.length/2)), arena, rest.slice(Math.ceil(rest.length/2)));
+    var head = (S.season===1) ? [STORY[0]] : [];
+    deck = head.concat(rest.slice(0, Math.ceil(rest.length/2)), arena, rest.slice(Math.ceil(rest.length/2)));
   }
   function nextStory(){
-    // conditional inserts: scout_speaks after scoutSeen; grace_2 after graceGrudge (with gap)
+    // conditional inserts: scout_speaks after scoutSeen; grace_2 after graceGrudge;
+    // arena_reckoning the season after the asterisk. Sequels can cross seasons.
     var pool=STORY.filter(function(st){
-      return st.needs && S.flags[st.needs] && !S.flags['done_'+st.id];
+      return st.needs && S.flags[st.needs] && !S.done[st.id] && !(st.once && S.flags['done_'+st.id]);
     });
     if(pool.length && Math.random()<0.6){ return pool[0]; }
     while(deckPos<deck.length){
       var st=deck[deckPos++];
-      if(!S.flags['done_'+st.id]) return st;
+      if(!S.done[st.id]) return st;
     }
+    if(pool.length) return pool[0];
     return null;
   }
 
   function ordinal(n){ return n+(n===1?'ST':n===2?'ND':n===3?'RD':'TH'); }
+  function seasonYear(){ return 1983 + S.season; }
+  function placeNow(){
+    var g=S.wins+S.losses;
+    if(!g) return 7;
+    var pct=S.wins/g;
+    return pct>=0.72?1 : pct>=0.60?2 : pct>=0.50?3 : pct>=0.42?4 : pct>=0.33?5 : pct>=0.22?6 : 7;
+  }
   function divisionPlace(){
     var g=S.wins+S.losses;
     if(!g) return 'SEASON OPENS';
-    var pct=S.wins/g;
-    var place = pct>=0.72?1 : pct>=0.60?2 : pct>=0.50?3 : pct>=0.42?4 : pct>=0.33?5 : pct>=0.22?6 : 7;
-    return ordinal(place)+' IN THE NORTHERN DIVISION \u2022 '+S.wins+'-'+S.losses;
+    return ordinal(placeNow())+' IN THE NORTHERN DIVISION \u2022 '+S.wins+'-'+S.losses;
   }
   function updateBlotter(){
+    if(phase==='recap'||phase==='over') return; /* terminal screens own the ticker */
     var FOE_SHORT={'SAULT STE. MARIE':'SAULT','THUNDER BAY':'T. BAY',
                    'RAPID CITY':'RAPID','GREEN BAY':'GRN BAY'};
     var nm=FOE_SHORT[S.foe]||S.foe;
@@ -1552,37 +1862,255 @@
     st.textContent = S.streak===0?'\u2014':(S.streak>0?'W'+S.streak:'L'+(-S.streak));
     document.getElementById('slLast').textContent='';
     /* venue + standing move to the ticker, where there's actual room */
-    document.getElementById('ticker').textContent =
-      (S.venue==='HOME'?'HOME NIGHT':'ON THE ROAD')+'  \u2022  '+divisionPlace();
+    var tick;
+    if(current && current.playoff){
+      tick='NORTH COUNTRY PLAYOFFS \u2022 '+(current.playoff==='semi'?'SEMIFINAL':'TIMBER CUP FINAL');
+    } else {
+      tick=(S.venue==='HOME'?'HOME NIGHT':'ON THE ROAD')+'  \u2022  '+divisionPlace();
+    }
+    document.getElementById('ticker').textContent=tick;
+  }
+
+  function setNextBtn(label, sub){
+    el.next.querySelector('.txt').textContent=label;
+    el.nextSub.textContent=sub||'';
+  }
+  function properFoe(f){
+    return f.split(' ').map(function(w){ return w.charAt(0)+w.slice(1).toLowerCase(); }).join(' ');
+  }
+
+  /* ---------- THE PAPER ACTUALLY REPORTS THE GAME ----------
+     Storyline copy can't name the result (it's written before the
+     ball goes up). The Gazette runs after the scoreboard, so it can,
+     and a town paper that didn't print the score would be a strange
+     town paper. Then somebody who wasn't in this week's story gets
+     a word in, because that's what a front page is for.        */
+  function gazResultLine(won, home, foes, sw, sl, games, sc){
+    if(games>1){
+      return sw===games ? 'The club swept the swing, '+sw+'\u2013'+sl+', and came home on the same bus it left on.'
+           : sl===games ? 'The club returned from the swing '+sw+'\u2013'+sl+'.'
+           : 'The club split the swing, '+sw+'\u2013'+sl+'.';
+    }
+    var foe=properFoe(foes[0]);
+    return won
+      ? 'The Lumberjacks defeated '+foe+', '+sc.us+'\u2013'+sc.them+', '+(home?'at home.':'on the road.')
+      : 'The Lumberjacks fell to '+foe+', '+sc.them+'\u2013'+sc.us+', '+(home?'at home.':'on the road.');
+  }
+  var GAZ_VOICES=[
+    {who:'hank', q:"Coach Hank Willis, asked to account for his whereabouts during the third quarter, said the fourth quarter had taken care of it."},
+    {who:'ricky', q:"Ricky Malone assessed his own contribution as \u201Cthe story here, if anybody\u2019s writing one.\u201D"},
+    {who:'tiny', q:"Tiny McGee delivered a nine-minute review in the concourse afterward. A crowd formed. Very little of it concerned basketball."},
+    {who:'sam', q:"Mascot Sawdust Sam was unavailable for comment, being in the trainer\u2019s room, as is customary."},
+    {who:'ernie', q:"Ernie Kowalski, of Row F, offered an evaluation of the officiating that this newspaper has elected to summarize as unfavourable."},
+    {who:'stokes', q:"The league office confirmed it was aware the game had occurred and had no comment at this time, a phrase Commissioner Larry Stokes used four times."},
+    {who:'walt', q:"Walt Sikma called the game from a card table at center court, as he has since 1966.", not:'waltGone'},
+    {who:'sandra', q:"The club\u2019s secretary confirmed the result, the attendance, and the date, in that order, and offered nothing further."}
+  ];
+  function gazQuote(exclude){
+    var pool=GAZ_VOICES.filter(function(v){
+      if(v.who===exclude) return false;
+      if(v.not && S.flags[v.not]) return false;
+      return true;
+    });
+    if(!pool.length) return '';
+    return pool[Math.floor(Math.random()*pool.length)].q;
+  }
+
+  /* ---------- WEEKLY BOOKS ----------
+     Every week has a gate and a payroll. Buzz sells tickets,
+     cred sells season tickets, winning sells the rest. Run the
+     numbers into the ground and Gerald from First Federal will
+     run them for you.                                          */
+  function applyLedger(games, home, won, po){
+    var gate=0, costs=ECON.PAYROLL;
+    if(home){
+      for(var g=0; g<games; g++){
+        var take = ECON.HOME_BASE + S.buzz*ECON.BUZZ_K + S.cred*ECON.CRED_K + (won?ECON.WIN_K:0);
+        if(po) take = take*ECON.PO_HOME;
+        gate += take;
+      }
+    } else {
+      gate = ECON.ROAD_SHARE*games;
+      if(po) gate = gate*ECON.PO_ROAD;
+      costs += ECON.TRAVEL*games;
+    }
+    gate=Math.round(gate);
+    var net=gate-costs;
+    S.cash+=net;
+    var line = "The week's books: gate "+fmtCash(gate)+", costs "+fmtCash(costs)+". "
+      + (net>=0 ? "We cleared "+fmtCash(net)+". Entered in pen."
+                : "We're down "+fmtCash(-net)+" on the week. Entered in pencil, optimistically.");
+    return {gate:gate, costs:costs, net:net, line:line};
+  }
+
+  /* ---------- PLAYOFFS: THE NORTH COUNTRY BRACKET ---------- */
+  function pickFoes(){
+    var a=FOES[Math.floor(Math.random()*FOES.length)], b;
+    do{ b=FOES[Math.floor(Math.random()*FOES.length)]; }while(b===a);
+    return [a,b];
+  }
+  function setupPlayoffs(){
+    var pl=placeNow(), fs=pickFoes();
+    S.po={ semiFoe:fs[0], finalFoe:fs[1],
+           homeSemi: pl<=2,
+           homeFinal: (pl===1) || (pl===2 && Math.random()<0.5) };
+  }
+  function makeSemi(){
+    var foe=S.po.semiFoe, home=S.po.homeSemi, pf=properFoe(foe);
+    var deskW="Semifinal: won. The blouse held, the building held, and I'm noting the score in pen. One more, boss \u2014 the Cup final. I've already pulled the folder. It's been waiting since 1961. Somebody labeled it HOPE, which wasn't me, but I've decided to allow it.";
+    var deskL="Semifinal: lost. I've dated the page and closed the book gently, the way you close it on a good year that came up one night short. The town will be supportive at you in the grocery store for a while. Endure it. They mean it.";
+    var gazW='JACKS ONE WIN FROM THE TIMBER CUP';
+    var newsW="The Lumberjacks advanced to the Timber Cup final with a semifinal victory over "+pf+". The margin has already been revised upward twice in local retelling. The club secretary declined to characterize the mood of the office beyond the word 'noted.'";
+    var gazL='SEASON ENDS ONE GAME SHORT; GROCERY STORE BRACES';
+    var newsL="The Lumberjacks' season ended in the North Country semifinal against "+pf+". Supporters have begun preparing expressions of sympathy for deployment at the grocery store, the bank, and the gas station. The team is understood to prefer that they wouldn't.";
+    var st={ playoff:'semi', title:'THE SEMIFINAL', mood:'alarmed',
+      venue: home?'home':'road', foes:[foe], when:'game', scene:'playoff',
+      setup:[
+        "Well. We're in. The North Country Playoffs \u2014 single elimination, winner plays for the Timber Cup \u2014 and I have ironed my good blouse, which I'd like entered in the record as the only public display of emotion I intend to make.",
+        (home ? pf+" in the semifinal, at the Shack. So the building gets a say. Lately the building has had plenty to say."
+              : pf+" in the semifinal, at their barn. Their crowd, our bus. The driver gassed it up and checked the oil twice, which for him is a war dance."),
+        "One game. Win, and it's the Cup final. Lose, and it's a long winter of people being supportive at you in the grocery store.",
+        "Your call on how we play the night, boss."],
+      choices:[
+        { t:'Playoff pricing. Double the gate.', sub:'Champagne costs money. So does everything.', when:'game',
+          fx:{cash:3200, buzz:-5, cred:-4},
+          out:["The town pays it, because it's the playoffs, and files the receipt away in the place this town files things, which is forever. The building fills late and starts the night with its arms crossed."] },
+        { t:'Freeze prices. Doors open an hour early.', sub:"The town built this. Let 'em in.", when:'game',
+          fx:{cash:800, buzz:8, morale:4, cred:4},
+          out:["The line starts forming at four in the afternoon, in weather that should legally forbid lines. By tip-off the building has been full for an hour and has already sung twice. Whatever happens now happens in front of everyone who ever cared."] },
+        { t:"Free admission for the mill's night shift.", sub:'Loud beats solvent.', when:'game',
+          fx:{cash:-1200, buzz:12, morale:6},
+          out:["Two hundred men and women come straight off shift in their work clothes and take the standing room like a garrison. Someone smuggles in the mill whistle. Nobody checks. Some laws sleep on playoff night."] } ] };
+    for(var i=0;i<st.choices.length;i++){
+      st.choices[i].deskW=deskW; st.choices[i].deskL=deskL;
+      st.choices[i].gazW=gazW; st.choices[i].newsW=newsW;
+      st.choices[i].gazL=gazL; st.choices[i].newsL=newsL;
+    }
+    return st;
+  }
+  function makeFinal(){
+    var foe=S.po.finalFoe, home=S.po.homeFinal, pf=properFoe(foe);
+    var deskW="We won the Timber Cup. I typed that sentence with two fingers because my hands were shaking, and I'm leaving that in the record, because the record should know. The Cup is on my desk. Ernie polished it with his sleeve for an hour and told it things, and I stepped out, because some conversations you leave the room for.";
+    var deskL="The Cup went home with them. The building stood and clapped for four straight minutes anyway \u2014 for the year, for the whole improbable thing. I've started a folder for next season. It's labeled NEXT, and it's already got a page in it.";
+    var gazW='TIMBER CUP COMES HOME';
+    var newsW="The Duluth Lumberjacks are Timber Cup champions, defeating "+pf+" in the final. The Cup was handed over at center court by Ernie Kowalski, to whom the league's presentation official simply gave way. The Gazette has printed a souvenir edition. It is this one. Keep it somewhere dry.";
+    var gazL='CUP SLIPS AWAY AT THE LAST; FOUR-MINUTE OVATION FOLLOWS';
+    var newsL="The Lumberjacks fell to "+pf+" in the Timber Cup final. The Cup will winter elsewhere. The crowd remained standing for four minutes following the final horn, an ovation directed, by general consensus, at the season itself.";
+    var st={ playoff:'final', title:'THE TIMBER CUP FINAL', mood:'alarmed',
+      venue: home?'home':'road', foes:[foe], when:'game', scene:'final',
+      setup:[
+        "The Timber Cup final. I've been in this office a long time and I have typed that sentence zero times before today.",
+        (home ? pf+", one game, at the Shack. The fire marshal has pre-emptively forgiven us."
+              : pf+", one game, at their place. The bus leaves at two. Ernie Kowalski has purchased his own ticket, and a seat for his coat."),
+        "The Cup itself arrived this morning under league escort \u2014 Stokes sent it with a note that says 'good luck,' and the handwriting suggests he means it for the other team. It's sitting in my office. I have not touched it. You don't touch it. Everyone knows you don't touch it.",
+        "One game, boss. How do we play the night?"],
+      choices:[
+        { t:'Bring the 1961 team out before tip-off.', sub:'Every living Jack, at center court.', when:'game',
+          fx:{morale:8, buzz:10, cash:-900},
+          out:["Eleven old men in blazers that still fit \u2014 a statistic that says everything about this town \u2014 walk to center court to a noise that has waited twenty-odd years for permission. Ernie walks last. Ernie waves once. The current roster watches from the tunnel like men receiving instructions."] },
+        { t:'No ceremony. Just basketball.', sub:"Hank's request. His only one all year.", when:'game',
+          fx:{morale:5, cred:5},
+          out:["The building comes in loud and goes quiet weird \u2014 playoff quiet, church quiet. Hank writes one word on the locker room board. The players decline to say what it was, and Hank, asked directly, says 'grammar.'"] },
+        { t:'Let Sam attempt The Stunt.', sub:"He's been saving one. God help us.", when:'game',
+          fx:{buzz:14, morale:3, cred:-5},
+          out:["Sam has, it emerges, been saving The Stunt since October: the rafters, a rope, the big head, and a finish that violates three league bylaws and one law of motion. He lands it. He lands it, and then lies very still for a while in a satisfied way, and the trainer walks over without hurrying, because it's Sam, and the building is already too loud for sirens anyway."] } ] };
+    for(var i=0;i<st.choices.length;i++){
+      st.choices[i].deskW=deskW; st.choices[i].deskL=deskL;
+      st.choices[i].gazW=gazW; st.choices[i].newsW=newsW;
+      st.choices[i].gazL=gazL; st.choices[i].newsL=newsL;
+    }
+    return st;
+  }
+
+  /* ---------- NEW YEAR OPENER ---------- */
+  function makeYearOpener(){
+    var pr=S.playoffResult;
+    var p1="Mornin', boss. The lake froze early, the coffee's on, and it's Season "+S.season+". "
+      + (pr==='champ' ? "The Cup wintered on my desk. I dusted around it. You don't touch it. Everyone knows you don't touch it."
+       : pr==='finalL' ? "The folder marked NEXT is now the folder marked NOW. I re-labeled it this morning. It felt right."
+       : pr==='semiL' ? "Last spring's semifinal is filed and closed, and the town has finally stopped being supportive at you in the grocery store."
+       : "New year, clean page. The ledger holds no grudges. The ledger leaves that to Grace.");
+    var p2="The fellas are a year older \u2014 which for Ricky means one more year of prime, according to Ricky. Hank spent the summer 'up north,' which is a direction, not an explanation. And Sam is, and the doctors used this word, 'intact.'";
+    var extras=[];
+    if(S.flags.graceGrudge && !S.flags['done_grace_2']) extras.push("Also: Grace sent a Christmas card. It was addressed to the franchise, not to you. I'd treat that as the weather report it is.");
+    if(S.flags.arenaShaky) extras.push("The building made it through the summer. The footnote holds. For now.");
+    else if(S.flags.arenaFixed) extras.push("The building had a quiet summer \u2014 first one anybody can remember. The repairs are holding, and so, for once, is the roof's opinion of us.");
+    var p3="We're carrying "+fmtCash(S.cash)+" into the year"
+      + (S.cash<10000 ? ", which is thinner than I'd like, and I'd like you to hear the word 'thinner' in my voice."
+                      : ". The books open clean.");
+    var setup=[p1,p2].concat(extras).concat([p3,"First order of business for the new year, boss?"]);
+    return { opener:true, title:'SEASON '+S.season+' OPENS', mood:'base', venue:'home',
+      setup:setup,
+      choices:[
+        { t:"Raise ticket prices. We're contenders now.", sub:'The market will bear it. Probably.',
+          fx:{cash:3000, buzz:-4, cred:-2},
+          out:["The town pays the new price and notes it. Attendance holds; warmth cools a degree. Season tickets renew accompanied, in eleven cases, by letters, which Sandra has filed under CORRESPONDENCE, PLEASANT and CORRESPONDENCE, OTHER."],
+          desk:"New price: posted. Letters received: eleven. Two contained coupons, in what I choose to read as an olive branch.",
+          gaz:"TICKET PRICES RISE; LETTERS WRITTEN", news:"The club has raised ticket prices for the new season, citing standards. Renewals held firm. Eleven arrived with accompanying correspondence, the contents of which the club's secretary has filed under two headings, one of them pleasant.", mood:'dry' },
+        { t:'Season-ticket drive. Door to door.', sub:'Handshakes. Hot dish. Commitment.',
+          fx:{cash:1800, buzz:6, morale:3, cred:2},
+          out:["The players go door to door in pairs through the east neighborhoods, and by the third house the whole thing has escaped: Tiny discovers a hot dish circuit, Ricky signs everything handed to him including one mortgage, and the drive doubles its projection by Friday."],
+          desk:"Renewals: strong. One mortgage was presented for Ricky's signature and I have retrieved it. The hot dish, for the record, was excellent.",
+          gaz:"DOOR-TO-DOOR DRIVE DOUBLES PROJECTION; MORTGAGE RECOVERED", news:"The club's season-ticket drive concluded at double its projection after players canvassed the east neighborhoods in pairs. One resident presented a mortgage document for signature, which was signed, and has since been retrieved by the club's secretary. Refreshments were reportedly excellent throughout.", mood:'pleased' },
+        { t:'Spend it on the roster. A shooter from Hibbing.', sub:'$4,500. Comes recommended by silence.',
+          fx:{cash:-4500, morale:5, buzz:3}, flag:'rosterEdge',
+          out:["The kid from Hibbing arrives with one bag and a jump shot that sounds different \u2014 the whole gym hears it. He says eleven words his first week. Four of them are 'thank you for the opportunity.' Hank watches him shoot for an hour and nods once, which around here is a parade."],
+          desk:"Signing: $4,500. Words spoken: eleven. Shots missed in open gym: I stopped counting, because the answer was upsetting the veterans.",
+          gaz:"QUIET MAN FROM HIBBING SIGNS; NETS REPORT UNUSUAL SOUND", news:"The club has signed a shooting specialist out of Hibbing for an undisclosed fee understood to be $4,500. The player spoke eleven words in his first week of practice. Coach Hank Willis observed him shoot for one hour and nodded once, a reaction veterans describe as unprecedented.", mood:'pleased' } ] };
+  }
+
+  /* ---------- WEEK PRESENTATION ---------- */
+  function presentWeek(){
+    phase='setup'; pendingRoute=null;
+    el.noteh.textContent = current.title;
+    if(current.grace){
+      el.name.textContent='GRACE';
+      el.meta.innerHTML='Filling In<br>Held This Desk First';
+      setPortrait('grace', 'base');
+    } else {
+      el.name.textContent='SANDRA';
+      el.meta.innerHTML='Secretary<br>Former Beat Reporter';
+      setPortrait('sandra', current.mood||'base');
+    }
+    el.callSub.textContent="Your move, boss.";
+    setNote(current.setup);
+    el.next.style.display='none';
+    el.call.style.display='';
+    updateBlotter();
+    render();
   }
 
   function beginWeek(){
+    pendingRoute=null;
+    /* the quiet page comes due */
+    if(S.stage==='regular' && S.flags.arenaDoomed && S.flags.doomWeek && S.week>=S.flags.doomWeek){ runFire(); return; }
+    if(S.stage==='semi' || S.stage==='final'){
+      current = (S.stage==='semi') ? makeSemi() : makeFinal();
+      S.venue = current.venue==='home' ? 'HOME' : 'ROAD';
+      S.foe = current.foes[0];
+      presentWeek(); saveGame(); return;
+    }
     current = nextStory();
-    phase='setup';
-    if(!current){ seasonEnd(); return; }
+    if(!current){
+      /* regular season complete: bracket or bust */
+      if((S.wins+S.losses)>0 && placeNow()<=4){
+        S.stage='semi'; setupPlayoffs();
+        current=makeSemi();
+        S.venue = current.venue==='home' ? 'HOME' : 'ROAD';
+        S.foe = current.foes[0];
+        presentWeek(); saveGame(); return;
+      }
+      S.playoffResult='missed';
+      seasonRecap(); return;
+    }
     S.venue = current.venue==='home' ? 'HOME'
             : current.venue==='road' ? 'ROAD'
             : (Math.random()<0.5?'HOME':'ROAD');
     S.foe = (current.foes && current.foes.length)
           ? current.foes[0]
           : FOES[Math.floor(Math.random()*FOES.length)];
-    el.noteh.textContent = current.title;
-    if(current.grace){
-      el.name.textContent='GRACE';
-      el.meta.innerHTML='Filling In<br>Held This Desk First';
-      setPortrait('grace', 'base');
-      el.callSub.textContent="Your move, boss.";
-    } else {
-      el.name.textContent='SANDRA';
-      el.meta.innerHTML='Secretary<br>Former Beat Reporter';
-      setPortrait('sandra', current.mood||'base');
-      el.callSub.textContent="Your move, boss.";
-    }
-    setNote(current.setup);
-    el.next.style.display='none';
-    el.call.style.display='';
-    updateBlotter();
-    render();
+    presentWeek();
+    saveGame();
   }
 
   function openDecision(){
@@ -1597,8 +2125,14 @@
     if(phase!=='decide' || !current) return;
     phase='sequence';
     var ch=current.choices[i];
-    S.flags['done_'+current.id]=true;
-    if(ch.flag) S.flags[ch.flag]=true;
+    if(!current.playoff && !current.opener){
+      S.done[current.id]=true;
+      if(current.once) S.flags['done_'+current.id]=true;
+    }
+    if(ch.flag){
+      S.flags[ch.flag]=true;
+      if(ch.flag==='arenaDoomed'){ S.flags.doomWeek = S.week + 2 + Math.floor(Math.random()*3); }
+    }
     var fx=ch.fx||{};
     S.cash += fx.cash||0;
     S.morale = clamp(S.morale + (fx.morale||0));
@@ -1607,6 +2141,7 @@
 
     var moment = drawMoment(S.venue);
     var home=(S.venue==='HOME');
+    var isPO = !!current.playoff;
     /* A storyline may span several games in one week (the Northern Swing). */
     var GAMES = current.games || 1;
     var FOELIST = (current.foes && current.foes.length) ? current.foes : [S.foe];
@@ -1618,17 +2153,31 @@
     if(GAMES>1){
       tipText = (current.tip || 'THE SWING.') + '\n' + FOELIST.join('. ') + '.\n'
               + GAMES + ' games. ' + (GAMES+1) + ' nights. One bus. Tip-off.';
+    } else if(isPO){
+      tipText = (current.playoff==='semi' ? 'PLAYOFF NIGHT.' : 'THE TIMBER CUP FINAL.')
+        + '\nLUMBERJACKS '+(home?'vs ':'at ')+FOELIST[0]+'.\n'
+        + (home ? 'The Shack has never been this loud this early. Tip-off.'
+                : 'Their barn. Their noise. Our bus. Tip-off.');
     } else {
       tipText = home
         ? 'GAME NIGHT.\nLUMBERJACKS vs '+FOELIST[0]+'.\nThe Shack fills. The lights hum. Tip-off.'
         : 'ROAD TRIP.\nLUMBERJACKS at '+FOELIST[0]+'.\nSix hours of highway. One bus. No survivors of the card game. Tip-off.';
     }
     var tip = {kind:'text', text: tipText,
-      scene: GAMES>1 ? null : (home ? 'tipoff_home' : 'tipoff_road')};
+      scene: GAMES>1 ? null
+           : isPO ? (current.playoff==='final'?'tipoff_final':'tipoff_playoff')
+           : (home ? 'tipoff_home' : 'tipoff_road')};
     var outs = ch.out.map(function(par,idx){
       return {kind:'text', text:par, scene: idx===0?(ch.scene||current.scene):null};
     });
     var steps = (when==='game') ? [tip].concat(outs) : outs.concat([tip]);
+    /* First time a supporting character turns up, Sandra introduces them.
+       The core four are handled at Week Zero and never card again.     */
+    var castWho = castOf(current);
+    if(castWho && !S.met[castWho]){
+      var cc = castCard(castWho);
+      if(cc){ S.met[castWho]=true; steps = [cc].concat(steps); }
+    }
 
     runSequence(steps, null, function(){
       /* Mid-game: owner call from courtside */
@@ -1644,7 +2193,8 @@
         S.morale=clamp(S.morale+(m.morale||0));
         S.buzz=clamp(S.buzz+(m.buzz||0));
         S.cred=clamp(S.cred+(m.cred||0));
-        var p = 0.16 + S.morale*0.0035 + S.buzz*0.0015 + (fx.wins?0.12:0) + m.mod + (home?0.04:-0.04);
+        var p = 0.16 + S.morale*0.0035 + S.buzz*0.0015 + (fx.wins?0.12:0) + m.mod
+              + (home?0.04:-0.04) + (S.flags.rosterEdge?0.025:0);
 
         /* Resolve every game this week carries. */
         var swingW=0, swingL=0, scoreSteps=[];
@@ -1663,28 +2213,68 @@
         }
         var won = swingW>swingL;
 
-        var steps2=[{kind:'text', text:m.out, scene:null}]
-          .concat(scoreSteps)
-          .concat([{kind:'gazette', head: ch.gaz, story: ch.news || ''}]);
+        /* the Cup pays, in every currency the ledger knows */
+        if(isPO && current.playoff==='final' && won){
+          S.champs++; S.cash+=8000;
+          S.cred=clamp(S.cred+10); S.buzz=clamp(S.buzz+15);
+        }
+        var gazHeadTxt = isPO ? (won?ch.gazW:ch.gazL) : ch.gaz;
+        var gazNewsTxt = isPO ? (won?ch.newsW:ch.newsL) : (ch.news||'');
+        var gazDateTxt = (isPO && current.playoff==='final' && won) ? 'SOUVENIR EDITION' : null;
+
+        var steps2=[{kind:'text', text:m.out, scene:null}].concat(scoreSteps);
+        if(isPO && current.playoff==='final' && won){
+          steps2.push({kind:'text', scene:'cup',
+            text:'THE TIMBER CUP.\n\nForty pounds of brass and lake-country history, handed over at center court by Ernie Kowalski, because it was never going to be anyone else.\n\nDuluth, Minnesota: champions.'});
+        }
+        steps2.push({kind:'gazette', head:gazHeadTxt, story:gazNewsTxt, date:gazDateTxt,
+          extra: gazResultLine(won, home, FOELIST, swingW, swingL, GAMES, gsc)
+               + ' ' + gazQuote(castOf(current))});
 
         runSequence(steps2, dash, function(){
           phase='outcome';
           var who = current.grace?'GRACE':'SANDRA';
           el.noteh.textContent = 'FROM '+who+"'S DESK";
           setPortrait(current.grace?'grace':'sandra', ch.mood||current.mood||'base');
-          var brief=[ch.desk];
-          if(GAMES>1){
-            brief.push('We went '+swingW+'-'+swingL+' on the swing. '+S.wins+'-'+S.losses+' on the season. '
-              + (swingW===GAMES ? 'Nobody up here has ever swept it. Nobody will shut up about it either.'
-                : swingL===GAMES ? 'Three nights, three losses, one bus home. It was a quiet ride.'
-                : 'The town noticed. The town always notices.'));
+          var brief=[ isPO ? (won?ch.deskW:ch.deskL) : ch.desk ];
+          if(!isPO){
+            if(GAMES>1){
+              brief.push('We went '+swingW+'-'+swingL+' on the swing. '+S.wins+'-'+S.losses+' on the season. '
+                + (swingW===GAMES ? 'Nobody up here has ever swept it. Nobody will shut up about it either.'
+                  : swingL===GAMES ? 'Three nights, three losses, one bus home. It was a quiet ride.'
+                  : 'The town noticed. The town always notices.'));
+            } else {
+              brief.push(won
+                ? 'And we won, in case the score got by ya. '+S.wins+'-'+S.losses+'. The town noticed.'
+                : 'We dropped the game, for the record. '+S.wins+'-'+S.losses+'. The town noticed that too.');
+            }
+          }
+          var led=applyLedger(GAMES, home, won, isPO);
+          brief.push(led.line);
+          if(S.cash<0){
+            S.debtWeeks++;
+            if(S.debtWeeks===1)      brief.push("And the ledger's red. Gerald from First Federal called before I'd hung up my coat. We have two weeks to get back in the black before the bank, quote, 'explores its options.' Gerald doesn't explore, boss. Gerald forecloses.");
+            else if(S.debtWeeks===2) brief.push("Still red. Gerald called again. He was very polite about it. It's worse when he's polite. One week.");
+            else                     brief.push("Red a third week. Gerald didn't call this time. That's the part that has me filing quickly.");
           } else {
-            brief.push(won
-              ? 'And we won, in case the score got by ya. '+S.wins+'-'+S.losses+'. The town noticed.'
-              : 'We dropped the game, for the record. '+S.wins+'-'+S.losses+'. The town noticed that too.');
+            S.debtWeeks=0;
           }
           setNote(brief);
-          el.nextSub.textContent = won ? "Winner's coffee tastes the same. Drink it anyway." : "Sandra says: shake it off.";
+
+          pendingRoute='week';
+          if(S.debtWeeks>=3){
+            pendingRoute='bankrupt';
+            setNextBtn('THE BANK \u25B6', "Gerald's here at nine.");
+          } else if(isPO && current.playoff==='semi'){
+            if(won){ pendingRoute='final'; setNextBtn('TIMBER CUP FINAL \u25B6','One more.'); }
+            else { S.playoffResult='semiL'; pendingRoute='recap'; setNextBtn('SEASON RECAP \u25B6','Close the book right.'); }
+          } else if(isPO && current.playoff==='final'){
+            S.playoffResult = won?'champ':'finalL';
+            pendingRoute='recap';
+            setNextBtn('SEASON RECAP \u25B6', won?'Bring the Cup.':'Close the book right.');
+          } else {
+            setNextBtn('NEXT WEEK \u25B6', won ? "Winner's coffee tastes the same. Drink it anyway." : "Sandra says: shake it off.");
+          }
           el.next.style.display='';
           render();
         }, momentS);
@@ -1693,29 +2283,295 @@
     }, decideS);
   }
 
-  function seasonEnd(){
-    el.noteh.textContent='SEASON ONE: FINAL';
+  /* ---------- SEASON RECAP & THE NEXT YEAR ---------- */
+  function seasonRecap(){
+    phase='recap'; S.stage='recap'; current=null;
+    el.noteh.textContent='SEASON '+S.season+': FINAL';
     el.name.textContent='SANDRA';
     el.meta.innerHTML='Secretary<br>Former Beat Reporter';
-    setPortrait('sandra', S.wins>=S.losses?'pleased':'tired');
+    setPortrait('sandra', S.playoffResult==='champ'?'pleased':(S.wins>=S.losses?'pleased':'tired'));
+    var poLine =
+      S.playoffResult==='champ'  ? "and the Timber Cup, which I've listed last because I was saving it, the way you save the top of the muffin." :
+      S.playoffResult==='finalL' ? "and a Cup final that'll sting exactly as long as it ought to and not one day longer." :
+      S.playoffResult==='semiL'  ? "and a playoff night I've filed under CLOSE." :
+      "and no playoffs, which the ledger records without comment. I had comments. The ledger declined them.";
     var verdict = S.wins>S.losses
       ? "A winning season. Up here. I've dated the page and underlined it twice, and I don't underline."
       : (S.wins===S.losses
         ? "Dead even. The most honest record a team can post. The ledger respects it."
         : "A losing season, but the building's still standing, the folders are current, and nobody was traded to Bismarck. Around here that's called momentum.");
     setNote([
-      "Well. That's a season, then. " + S.wins + " wins, " + S.losses + " losses, and a filing cabinet that's seen things.",
+      "Well. That's Season "+S.season+", then: "+S.wins+" wins, "+S.losses+" losses, "+poLine,
       verdict,
       "Cash on hand: " + fmtCash(S.cash) + ". Morale's at " + S.morale + "%, buzz at " + S.buzz + "%, and our credibility \u2014 " + S.cred + "% \u2014 is a number I'll let you interpret privately.",
       (S.flags.samFolder ? "The SAM folder is load-bearing now. Structurally. The cabinet leans on it." : "The SAM folder stayed manageable this year. I've noted the miracle."),
       (S.flags.graceGrudge && !S.flags['done_grace_2'] ? "One more thing. Grace called. She says she'll 'see you next season.' She let the pause before 'season' run long. Sleep well." :
-        (S.flags.scoutApproved ? "Row A was empty for the finale. On the seat: nothing. Which, from him, reads as applause." : "The lake's frozen, the coffee's on, and next season's folder is already labeled.")),
-      "See ya in Season Two, boss."
+        (S.flags.arenaShaky ? "The inspector drove past twice this month without stopping, which from him is a wellness check. The footnote holds. For now." :
+        (S.flags.scoutApproved ? "Row A was empty for the finale. On the seat: nothing. Which, from him, reads as applause." :
+         "The lake's frozen, the coffee's on, and next season's folder is already labeled."))),
+      "See ya in Season "+(S.season+1)+", boss."
     ]);
     el.call.style.display='none';
-    el.next.style.display='none';
-    document.getElementById('ticker').textContent='FINAL \u2022 '+divisionPlace();
+    setNextBtn('SEASON '+(S.season+1)+' \u25B6','New year. New folder.');
+    el.next.style.display='';
     render();
+    document.getElementById('ticker').textContent =
+      'FINAL \u2022 '+(S.playoffResult==='champ' ? 'TIMBER CUP CHAMPIONS' : divisionPlace());
+    saveGame();
+  }
+
+  function startNewSeason(){
+    S.season++; S.week=1;
+    S.wins=0; S.losses=0; S.streak=0; S.last=null;
+    S.done={}; S.stage='regular'; S.debtWeeks=0; S.po=null;
+    buildDeck();
+    current=makeYearOpener();
+    S.venue='HOME';
+    S.foe=FOES[Math.floor(Math.random()*FOES.length)];
+    presentWeek();
+    saveGame();
+  }
+
+  /* ---------- ENDINGS ---------- */
+  function terminalPage(paras, tickerTxt){
+    phase='over'; S.stage='over'; current=null; clearSave();
+    el.noteh.textContent='THE LAST PAGE';
+    el.name.textContent='SANDRA';
+    el.meta.innerHTML='Secretary<br>Former Beat Reporter';
+    setPortrait('sandra','grim');
+    setNote(paras);
+    el.call.style.display='none';
+    setNextBtn('START OVER \u25B6','From the top.');
+    el.next.style.display='';
+    render();
+    document.getElementById('ticker').textContent=tickerTxt;
+  }
+  function runBankruptcy(){
+    phase='sequence';
+    el.next.style.display='none'; el.call.style.display='none';
+    var steps=[
+      {kind:'text', scene:'bank',
+       text:"Gerald from First Federal arrives at nine sharp with two men who never take their coats off.\n\nHe is very polite about all of it.\n\nIt's worse that he's polite."},
+      {kind:'text', scene:'boxes',
+       text:"By noon the locks are new and the letterhead is theirs.\n\nSandra packs the office the way she does everything: in order, with dates.\n\nThe SAM folder takes its own box."},
+      {kind:'gazette', date:'SPECIAL EDITION', head:'FIRST FEDERAL ASSUMES CONTROL OF LUMBERJACKS',
+       story:"The First Federal Bank of Duluth has assumed control of the basketball club following three consecutive weeks of insolvency. The transfer was executed at nine in the morning and completed by noon. Bank officers described the club's files as 'immaculate,' a compliment the outgoing secretary is understood to have accepted on the franchise's behalf, as its final asset."}
+    ];
+    runSequence(steps, dash, function(){
+      terminalPage([
+        "Well. That's that, then.",
+        "Gerald let me keep the coffee pot, which I'd like on the record was mine to begin with. Receipt's in the ledger. Everything's in the ledger. That was rather the point of me.",
+        "For what it's worth: I've seen four owners through that door and you weren't the worst. The books don't lie and neither do I.",
+        "The folders are boxed and labeled. Whoever opens them next had better be worthy of the filing system. \u2014 S."
+      ], 'GAME OVER \u2022 FORECLOSED');
+    }, dash);
+  }
+  function runFire(){
+    phase='sequence';
+    el.next.style.display='none'; el.call.style.display='none';
+    var steps=[
+      {kind:'text', scene:'fire',
+       text:"It starts inside the wall of section 112, on a windy Tuesday night, hours after the building has emptied.\n\nThe watchman smells it first. He gets out. Everyone was already out.\n\nThe Shack does not."},
+      {kind:'text', scene:'fire_after',
+       text:"By morning there is a black rectangle in the snow where forty years of winters used to be, and the whole town stands at the fence line not saying much, the way this town doesn't.\n\nErnie Kowalski's banner made it out.\n\nNobody knows how. Nobody is asking."},
+      {kind:'gazette', date:'SPECIAL EDITION', head:'THE SHACK IS GONE',
+       story:"Fire destroyed the Lumberjack Shack overnight. Investigators traced the origin to the wall of section 112, the subject of repairs recommended by the city inspector and declined by ownership, which had signed a waiver acknowledging the risk. There were no injuries. The Kowalski banner was recovered from the snow, folded, by persons unknown."}
+    ];
+    runSequence(steps, dash, function(){
+      terminalPage([
+        "There's no briefing this week. There's no building.",
+        "The insurance man used the word 'excluded' and pointed at your signature on the quiet page. First Federal used other words. The league used very few.",
+        "I've boxed the folders. All of them. The SAM folder took its own box, which feels right. The ledger went in last, and this is the last line in the ledger.",
+        "It was a hell of a thing, being this team's secretary. I'd have done it another twenty years. \u2014 S."
+      ], 'GAME OVER \u2022 THE SHACK, 1948\u2013'+seasonYear());
+    }, dash);
+  }
+
+  /* ---------- THE CAST ----------
+     One record per character, feeding three things: the Week Zero
+     intro cards, the first-appearance card when a supporting player
+     turns up mid-season, and Sandra's filing cabinet. Portraits live
+     at assets/portraits/{who}/base.png; until they exist every card
+     shows the FILE PHOTO PENDING placard and reads exactly the same.
+     'thick' is the folder spine in the cabinet. Sam's is a bit.     */
+  var CAST=[
+    { who:'sandra', tab:'SANDRA', thick:'\u25AE', name:'SANDRA', meta:'Secretary',
+      intro:"\u201CSandra. I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those.\u201D",
+      file:[
+        "SANDRA. Secretary. Former beat reporter, the Frostbite Gazette, 1971\u201378.",
+        "I keep the books, the schedule, and most of the chaos. Two of those are going well.",
+        "There's no more to the file. I wrote it."
+      ]},
+    { who:'hank', tab:'HANK', thick:'\u25AE\u25AE', name:'HANK WILLIS', meta:'Head Coach',
+      intro:"\u201CCoach Willis. Wins basketball games \u2014 I've stopped asking how. Every third quarter he disappears into the men's room and comes back holding the fourth.\n\nHe's also banned water. Says comfort is the enemy. I write it down. I don't ratify it.\u201D",
+      file:[
+        "WILLIS, HANK. Head coach. Hired 1979. Record: better than this roster has any business posting.",
+        "Method: unestablished. Every third quarter he leaves for the men's room and returns with the plan that wins the fourth. I have never seen him write it down. I have checked. Twice.",
+        "Standing note: has banned water. \u201CComfort is the enemy.\u201D I filed an objection. The objection was read, understood, and ignored, which is the whole relationship in one sentence."
+      ]},
+    { who:'ricky', tab:'RICKY', thick:'\u25AE\u25AE', name:'RICKY MALONE', meta:'Guard \u2014 The Star',
+      intro:"\u201CRicky Malone. Our best player, and he'll tell ya, and then he'll tell ya again in case the first one didn't take.\n\nCurrently not speaking to the bus driver. The bus driver is currently not speaking to Ricky. Two seasons now. Nobody remembers why. Including them.\u201D",
+      file:[
+        "MALONE, RICKY. Guard. The best player on this roster, a fact he has never once allowed to go unmentioned in my presence.",
+        "Active grievance: the bus driver. Duration: two seasons. Cause: unrecorded \u2014 nobody wrote it down at the time, and I write everything down. That should tell you how small it was.",
+        "Responds to praise adequately. Responds to spite magnificently. Plan accordingly, and don't let him catch you planning."
+      ]},
+    { who:'tiny', tab:'TINY', thick:'\u25AE\u25AE', name:'TINY McGEE', meta:'Forward \u2014 The Mouth',
+      intro:"\u201CTiny McGee. Funniest man in this league on purpose, which is worse than by accident.\n\nDid forty minutes downtown last night. Thirty were about you. You haven't met him yet. He's already got your walk.\u201D",
+      file:[
+        "McGEE, TINY. Forward. The funniest man in this league on purpose, which is the part people miss.",
+        "Performs downtown most weeks. Material is largely us. Material is largely accurate. That's the problem and also the ticket sales.",
+        "Note for the new owner: there is no dialing Tiny back. There is only aiming him. Four owners have learned this. Three learned it late."
+      ]},
+    { who:'sam', tab:'SAM', thick:'\u25AE\u25AE\u25AE\u25AE\u25AE\u25AE', name:'SAWDUST SAM', meta:'Mascot \u2014 Injured',
+      intro:"\u201CSawdust Sam. The mascot. Perpetually injured, permanently magnificent, and the reason that folder's load-bearing.\n\nHe has never once been cleared to perform. He has never once not performed.\u201D",
+      file:[
+        "SAM (SAWDUST). Mascot. Legal name is on file. I have never once needed it.",
+        "Medical status: continuous. Cleared to perform: never. Performed: always. The doctors have stopped writing \u201Crest\u201D and started writing \u201CSam,\u201D which I've accepted as a diagnosis.",
+        "This is the thickest folder in the cabinet. It is also, structurally, holding up the cabinet. I made my peace with that metaphor a long time ago."
+      ]},
+    { who:'ernie', tab:'ERNIE', thick:'\u25AE', name:'ERNIE KOWALSKI', meta:'\u201CThe Stilt\u201D \u2014 Row F',
+      intro:"\u201CErnie Kowalski. Played here '58 to '64. Sits in Row F now, seat twelve, every home game since.\n\nWe retired his number while he was alive and sitting in it. League says that's unusual. Town says that's just sense.\u201D",
+      file:[
+        "KOWALSKI, ERNIE. \u201CThe Stilt.\u201D Center, 1958\u201364. Row F, seat 12, every home game since, including the ones nobody else came to.",
+        "We retired his number while he was still alive and sitting under it. The league called that irregular. This town called it overdue.",
+        "Guilt-trips area business owners by name, from his seat, at volume. It works every single time. I've stopped questioning it and started scheduling around it."
+      ]},
+    { who:'grace', tab:'GRACE', thick:'\u25AE\u25AE', name:'GRACE', meta:'Secretary, Retired',
+      intro:"\u201CGrace had this desk before me. Retired. Allegedly. Fills in when I'm away, which is rare, because look what happens.\u201D",
+      file:[
+        "GRACE. Held this desk before I did. Retired, allegedly. Fills in when I'm away, which is rare, and getting rarer, and you can read that however you like.",
+        "Righteous. Usually correct, which is what makes the righteous part so hard to argue with. Keeps her own ledger. Hers has no eraser.",
+        "If you treated her well, she remembers. If you didn't, she also remembers. Same memory. Different weather."
+      ]},
+    { who:'walt', tab:'WALT', thick:'\u25AE', name:'WALT SIKMA', meta:'Play-by-Play',
+      intro:"\u201CWalt Sikma calls the games. Has since '66, from a card table at center court.\n\nFour hours of prep for every one. Binder's four inches thick and alphabetized. Ask me about the microphone sometime. Not today.\u201D",
+      file:[
+        "SIKMA, WALT. Play-by-play. Every Lumberjacks game since 1966, from a card table at center court, coat on.",
+        "Preparation: four hours a game. Binder: four inches, alphabetized, current as of this morning. He knows the visiting team's backup center's mother's name. He has used it.",
+        "See attached, re: the microphone. I'd rather you read it than have me say it out loud."
+      ]},
+    { who:'stokes', tab:'STOKES', thick:'\u25AE\u25AE', name:'LARRY STOKES', meta:'Commissioner',
+      intro:"\u201CCommissioner Larry Stokes. Runs the league. Sends letters.\n\nHe'll do you a favor before you ask for one. That's not generosity, that's bookkeeping.\u201D",
+      file:[
+        "STOKES, LARRY. Commissioner. Politically slippery in a way I'd admire if it weren't pointed at us.",
+        "Sends letters. Favors the word \u201Cspectacle.\u201D Has a nephew. The nephew comes up more than you'd think.",
+        "Every favor he does is a loan. Every favor he asks is a payment. He has never once said which one you're getting, and that's the entire trick."
+      ]},
+    { who:'scout', tab:'SCOUT', thick:'\u25AE', name:'THE SCOUT', meta:'\u2014',
+      intro:"\u201CAnd there's a man in a grey suit who sits in Row A with a legal pad. He doesn't buy a ticket. Nobody asks him to.\n\nHe's not from around here. That's all I'll say standing up.\u201D",
+      file:[
+        "THE SCOUT. No name on file. Grey suit, legal pad, Row A, arrives alone, leaves alone.",
+        "Represents the Association. He has never once said the word out loud. Neither have I, and I'd like to keep that record clean.",
+        "Watches the whole game. Writes one line. Underlines it. This is the thinnest folder in the cabinet and it's the only one I keep locked."
+      ]}
+  ];
+  var CAST_BY={}; CAST.forEach(function(c){ CAST_BY[c.who]=c; });
+
+  /* Who a storyline is about \u2014 drives the first-appearance card.
+     Kept out here so the STORY canon stays untouched.              */
+  var CAST_MAP={ tiny_openmic:'tiny', chainsaw_night:'sam', hank_hydration:'hank',
+    ricky_statue:'ricky', scout_sits:'scout', grace_1:'grace', tiny_commercial:'tiny',
+    hank_missing_hour:'hank', retired_number:'ernie', mascot_bighead:'sam',
+    stokes_favor:'stokes', ricky_charity:'ricky', mascot_draft:'sam',
+    scout_speaks:'scout', grace_2:'grace', northern_swing:'ricky',
+    radio_deal:'walt', picture_day:'sam', the_crate:'ernie' };
+  function castOf(st){ return st ? (st.cast || CAST_MAP[st.id] || null) : null; }
+  function castCard(who){
+    var c=CAST_BY[who];
+    if(!c) return null;
+    return {kind:'card', who:c.who, name:c.name, meta:c.meta, text:c.intro};
+  }
+
+  /* ---------- WEEK ZERO: ARRIVAL ---------- */
+  var INTRO_STEPS=[
+    {kind:'text', scene:'intro_arrival',
+     text:"DULUTH, MINNESOTA.\nJANUARY, 1984.\n\nYou own a basketball team now.\n\nNobody in town is entirely sure why. Least of all you."},
+    {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
+     text:"She's waiting at the office door with a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CSandra. I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those.\u201D"},
+    {kind:'text', scene:'intro_files',
+     text:"The tour takes eleven minutes. The filing cabinet gets four of them.\n\nDAIRY. VANITY. SCOUT. MIRACLES. HOME.\n\nAnd one folder thicker than all the rest, labeled simply: SAM.\n\n\u201CDon't ask. It's load-bearing.\u201D"},
+    {kind:'text',
+     text:"\u201CRight. The people. You'll meet 'em all whether you plan to or not, so let's do it here where nobody's bleeding.\u201D\n\nShe opens the first folder."},
+    castCard('hank'),
+    castCard('ricky'),
+    castCard('tiny'),
+    castCard('sam'),
+    {kind:'text', scene:'intro_numbers',
+     text:"\u201CFour numbers run this franchise. You'll see 'em every Monday, top of the desk.\n\nCASH is cash. Gate money in, payroll out, and payroll does not care how the week felt.\n\nMORALE is the fellas. BUZZ is how many folks turn up to watch 'em.\u201D"},
+    {kind:'text', scene:'intro_cred',
+     text:"\u201CAnd CRED. That's what the league thinks of you. Stokes. The refs. The other owners. The man in the grey suit.\n\nBuzz fills the building tonight. Cred is whether anybody takes your call in five years.\n\nChase one, you'll lose the other. That's the job. That's the whole job.\u201D"},
+    {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
+     text:"\u201CYour first briefing is Monday morning. Don't be late.\n\nThe last owner was late.\u201D\n\nShe does not elaborate."}
+  ];
+
+  /* ---------- SANDRA'S FILING CABINET ---------- */
+  var filesS=document.getElementById('files'), ftabs=document.getElementById('ftabs'),
+      foPort=document.getElementById('foPort'), foPlac=document.getElementById('foPlac'),
+      foName=document.getElementById('foName'), foMeta=document.getElementById('foMeta'),
+      foTxt=document.getElementById('foTxt');
+  var fileToken=0;
+  function showFile(idx){
+    var c=CAST[idx];
+    Array.prototype.forEach.call(ftabs.children,function(t,n){ t.classList.toggle('on', n===idx); });
+    foName.textContent=c.name; foMeta.textContent=c.meta;
+    foTxt.innerHTML=c.file.map(function(p){ return '<p>'+p+'</p>'; }).join('');
+    foTxt.scrollTop=0;
+    var tok=++fileToken;
+    paintCard(c.who, foPort, foPlac, function(){ return tok===fileToken; });
+  }
+  function buildFiles(){
+    ftabs.innerHTML='';
+    CAST.forEach(function(c,n){
+      var t=document.createElement('div');
+      t.className='ftab';
+      t.innerHTML=c.tab+' <span class="thick">'+c.thick+'</span>';
+      t.addEventListener('click',function(){ showFile(n); });
+      ftabs.appendChild(t);
+    });
+  }
+  function openFiles(){
+    if(phase!=='setup' && phase!=='outcome') return;
+    buildFiles(); showFile(0);
+    fadeScreens(dash, filesS);
+  }
+
+  /* ---------- SAVE / CONTINUE ---------- */
+  var SAVE_KEY='courtside_save_v2';
+  function curId(){
+    if(!current) return null;
+    if(current.playoff==='semi') return '__semi';
+    if(current.playoff==='final') return '__final';
+    if(current.opener) return '__opener';
+    return current.id;
+  }
+  function saveGame(){
+    try{
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        v:2, S:S,
+        deckIds:deck.map(function(d){return d.id;}),
+        deckPos:deckPos, cur:curId()
+      }));
+    }catch(e){}
+  }
+  function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+  function loadGame(){
+    try{
+      var raw=localStorage.getItem(SAVE_KEY); if(!raw) return false;
+      var d=JSON.parse(raw); if(!d || !d.S) return false;
+      S=d.S; S.flags=S.flags||{}; S.done=S.done||{}; S.met=S.met||{};
+      var byId={}; STORY.forEach(function(st){ byId[st.id]=st; });
+      deck=(d.deckIds||[]).map(function(id){ return byId[id]; }).filter(Boolean);
+      deckPos=d.deckPos||0;
+      if(S.stage==='recap'){ seasonRecap(); return true; }
+      if(d.cur==='__semi'){ if(!S.po){ setupPlayoffs(); } current=makeSemi(); }
+      else if(d.cur==='__final'){ if(!S.po){ setupPlayoffs(); } current=makeFinal(); }
+      else if(d.cur==='__opener'){ current=makeYearOpener(); }
+      else { current = byId[d.cur] || null; }
+      if(!current){ beginWeek(); return true; }
+      presentWeek();
+      return true;
+    }catch(e){ return false; }
   }
 
   dCards[0].addEventListener('click', function(){ choose(0); });
@@ -1723,9 +2579,18 @@
   dCards[2].addEventListener('click', function(){ choose(2); });
   mCards[0].addEventListener('click', function(){ if(momentChoice){var f=momentChoice; momentChoice=null; f(0);} });
   mCards[1].addEventListener('click', function(){ if(momentChoice){var f=momentChoice; momentChoice=null; f(1);} });
+  document.getElementById('filesTab').addEventListener('click', openFiles);
+  document.getElementById('fileBack').addEventListener('click', function(){
+    fadeScreens(filesS, dash);
+  });
   el.call.addEventListener('click', openDecision);
   el.next.addEventListener('click', function(){
+    if(phase==='over'){ clearSave(); location.reload(); return; }
+    if(phase==='recap'){ startNewSeason(); return; }
     if(phase!=='outcome') return;
+    if(pendingRoute==='bankrupt'){ runBankruptcy(); return; }
+    if(pendingRoute==='final'){ S.stage='final'; S.week++; beginWeek(); return; }
+    if(pendingRoute==='recap'){ seasonRecap(); return; }
     S.week++;
     beginWeek();
   });
@@ -1734,10 +2599,25 @@
   buildDeck();
   current = STORY[0]; phase='setup';
   S.venue='HOME'; S.foe=FOES[Math.floor(Math.random()*FOES.length)];
-  updateBlotter();
-  el.call.style.display='';
-  el.next.style.display='none';
-  render();
+  presentWeek();
+  try{
+    if(localStorage.getItem(SAVE_KEY)){
+      var _cb=document.getElementById('contbtn');
+      if(_cb) _cb.style.display='flex';
+    }
+  }catch(e){}
+  window.__newGame=function(){ clearSave(); };
+  window.__continueGame=function(fromScreen){
+    loadGame();
+    fromScreen.classList.remove('on');
+    setTimeout(function(){ dash.classList.add('on'); },700);
+  };
+  window.__enterGame=function(fromScreen){
+    /* Sandra does these four herself at Week Zero; the rest of the cast
+       introduce themselves the first time they turn up. */
+    S.met={ sandra:true, hank:true, ricky:true, tiny:true, sam:true };
+    runSequence(INTRO_STEPS, dash, null, fromScreen);
+  };
 })();
 
 </script>
