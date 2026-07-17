@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Courtside Chaos">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
 <title>Courtside Chaos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,11 +22,16 @@
   html,body{margin:0; height:100%;}
   body{background:#000; display:flex; align-items:center; justify-content:center;
     min-height:100dvh; overflow:hidden;
-    padding:calc(env(safe-area-inset-top,0px) + 6px) 6px calc(env(safe-area-inset-bottom,0px) + 6px);
+    /* Top inset only. Every screen's art has content near y77-83, which would
+       sit under the Dynamic Island at full-bleed, so the top inset stays.
+       Side/bottom padding was pure loss: the frame's own dead margin below
+       y1711 already absorbs the home indicator. Dropping them takes the side
+       letterboxing from ~47px to ~26px on a 14 Pro. */
+    padding:env(safe-area-inset-top,0px) 0 0;
     font-family:"Helvetica Neue",Arial,sans-serif;}
 
   /* width/height set by JS (fit-to-contain); aspect-ratio is a fallback before JS runs */
-  .phone{position:relative; width:min(430px,96vw); aspect-ratio:853/1844; overflow:hidden;
+  .phone{position:relative; width:min(480px,100vw); aspect-ratio:853/1844; overflow:hidden;
     background:#000; user-select:none; -webkit-user-select:none;}
   .stage{position:absolute; left:0; top:0; width:853px; height:1844px; transform-origin:0 0;}
 
@@ -450,7 +460,7 @@
         <div class="team blk"><span class="t">THE LUMBERJACKS</span></div>
         <div class="hcell hs1"><span class="lab">SEASON</span><span class="v blk" id="stSeason">1</span></div>
         <div class="hcell hs2"><span class="lab">WEEK</span><span class="v blk" id="stWeek">01</span></div>
-        <div class="hcell hs3"><span class="lab">RECORD</span><span class="v blk" id="stRec">0-0</span></div>
+        <div class="hcell hs3"><span class="lab">STREAK</span><span class="v blk" id="stStreak">&mdash;</span></div>
         <div class="nm blk" id="nmName">SANDRA</div>
         <div class="nmeta" id="nmMeta">Secretary<br>Former Beat Reporter</div>
         <div class="noteh" id="noteh">DAY ONE</div>
@@ -468,7 +478,7 @@
           <span class="sub" id="callSub">Your move, boss.</span></div>
         <div class="slot slotR" id="slotR">
           <span class="slab">RECORD</span>
-          <span class="sv1" id="slStreak">0-0</span>
+          <span class="sv1" id="slRecord">0-0</span>
           <span class="sv2" id="slLast">FIRST GAME</span></div>
         <div class="ticker" id="ticker">NORTHERN DIVISION &bull; SEASON OPENS</div>
         <div class="card nextcard" id="nextBtn" style="display:none;">
@@ -482,6 +492,12 @@
 <script>
 (function(){
   var phone=document.querySelector('.phone'), stage=document.getElementById('stage');
+  /* Stage is locked to the art's aspect. Shortening it to reduce side
+     letterboxing was tried and reverted: the dashboard frame has dead
+     space at the bottom, but decision/moment/cutaway art all fill the
+     full 1844 (decision card 3 alone runs to y1706), so cropping the
+     stage clips their painted edges. Letterboxing is the correct
+     trade here unless every art asset is re-authored at a new aspect. */
   var STAGE_W=853, STAGE_H=1844;
   function insets(){
     var s=getComputedStyle(document.body);
@@ -490,7 +506,7 @@
   }
   function fit(){
     var pad=insets();
-    var availW=Math.min(430, window.innerWidth-pad.x);
+    var availW=Math.min(480, window.innerWidth-pad.x);   /* cap is for desktop; 430 clipped a 16 Pro Max */
     var availH=window.innerHeight-pad.y;
     var scale=Math.min(availW/STAGE_W, availH/STAGE_H);
     phone.style.width=(STAGE_W*scale)+'px';
@@ -1858,7 +1874,7 @@
   var dash=document.getElementById('dash');
   var el={ cash:document.getElementById('stCash'), morale:document.getElementById('stMorale'),
     buzz:document.getElementById('stBuzz'), cred:document.getElementById('stCred'),
-    week:document.getElementById('stWeek'), rec:document.getElementById('stRec'),
+    week:document.getElementById('stWeek'), rec:document.getElementById('stStreak'),
     noteh:document.getElementById('noteh'), scroll:document.getElementById('notescroll'),
     wrap:document.getElementById('notewrap'),
     call:document.getElementById('callBtn'), callSub:document.getElementById('callSub'),
@@ -1883,10 +1899,11 @@
     el.cred.textContent = S.cred+'%';
     el.cred.className = 'v blk ' + (S.cred>=60?'green':'blue');
     el.week.textContent = (S.week<10?'0':'')+S.week;
-    el.rec.textContent = S.wins+'-'+S.losses;
+    /* bar 2 shows STREAK; RECORD moved to the footer tab (see updateBlotter) */
+    el.rec.textContent = S.streak===0 ? '\u2014' : (S.streak>0 ? 'W'+S.streak : 'L'+(-S.streak));
     var seasonEl=document.getElementById('stSeason');
     if(seasonEl) seasonEl.textContent = S.season;
-    updateBlotter();   /* keep STREAK in lockstep with RECORD */
+    updateBlotter();   /* footer RECORD stays in lockstep */
   }
   function setNote(paras){
     el.scroll.innerHTML = paras.map(function(p){ return '<p>'+p+'</p>'; }).join('');
@@ -1975,7 +1992,7 @@
     if(txt.length>=15)      foeEl.className='sv1 tiny';
     else if(txt.length>=11) foeEl.className='sv1 mid';
     document.getElementById('slVenue').textContent='';
-    var st=document.getElementById('slStreak');
+    var st=document.getElementById('slRecord');
     st.textContent = S.wins+'-'+S.losses;
     document.getElementById('slLast').textContent='';
     /* venue + standing move to the ticker, where there's actual room */
