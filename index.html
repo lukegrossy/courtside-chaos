@@ -68,8 +68,16 @@
     opacity:0; transition:opacity 2.2s ease .5s;}
   #quote.on .q{opacity:1;}
 
-  /* ---- DASHBOARD (v5) ---- */
-  #dash .window{position:absolute; left:40px; top:318px; width:773px; height:478px; overflow:hidden; z-index:3;}
+  /* ---- DASHBOARD (v6 — recalibrated to the rebuilt frame.webp) ----
+     Every position below is measured off the shipped asset, not estimated:
+       stats bar interior  y   90-171   dividers x 236 / 428 / 600
+       bar 2 interior      y  193-245   dividers x 522 / 612 / 702
+       portrait opening    y  260-752   x 37-813
+       nameplate           y  757-813
+       notepad paper       y  829-1488  red margin rule x 92-95
+       footer cards        y 1510-1650  x 45-304 / 332-639 / 667-811
+     If the frame art changes again, re-measure before touching these.   */
+  #dash .window{position:absolute; left:39px; top:262px; width:772px; height:488px; overflow:hidden; z-index:3;}
   #dash .window img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 18%;}
   #dash .frame{position:absolute; left:0; top:0; width:853px; height:1844px; z-index:2; pointer-events:none;}
   #dash .ui{position:absolute; left:0; top:0; width:853px; height:1844px; z-index:4;}
@@ -77,26 +85,28 @@
 
   .blk{font-family:"Arial Black","Helvetica Neue",Impact,sans-serif; font-weight:900; color:var(--ink); line-height:1;}
   .lab{font-weight:800; color:#4a4234; letter-spacing:1px; font-size:19px; line-height:1;}
-  .cell{display:flex; flex-direction:column; align-items:center; gap:10px; top:56px;}
+  .cell{display:flex; flex-direction:column; align-items:center; gap:10px; top:98px;}
   .cell .v{font-size:36px; text-shadow:0 1px 0 rgba(255,250,235,.35);}
-  .s1{left:40px;width:200px;} .s2{left:250px;width:185px;}
-  .s3{left:455px;width:165px;} .s4{left:640px;width:170px;}
-  .team{left:56px; top:196px; width:440px; text-align:left;}
+  .s1{left:41px;width:195px;} .s2{left:236px;width:192px;}
+  .s3{left:428px;width:172px;} .s4{left:600px;width:207px;}
+  /* Bar 2 was halved: 52px of interior. Team name is one line now, not two,
+     and the hcell type steps down to fit. */
+  .team{left:52px; top:197px; width:460px; text-align:left;}
   .team .t{display:block; font-family:"American Typewriter","Rockwell","Georgia",serif;
-    font-weight:900; font-size:42px; line-height:47px; letter-spacing:0.5px;
+    font-weight:900; font-size:38px; line-height:44px; letter-spacing:0.5px;
     transform:scaleX(.88); transform-origin:left; white-space:nowrap;
     text-shadow:0.5px 0.5px 0 rgba(30,20,10,.35);}
-  .hcell{display:flex; flex-direction:column; align-items:center; gap:9px; top:190px;}
-  .hcell .lab{font-size:16px;}
-  .hcell .v{font-size:34px;}
-  .hs1{left:531px;width:95px;} .hs2{left:628px;width:91px;} .hs3{left:721px;width:88px;}
-  .nm{left:62px; top:820px; font-size:48px;}
-  .nmeta{left:315px; top:824px; font-family:"Courier New",monospace; font-weight:700;
-    color:var(--label); font-size:22px; line-height:28px;}
-  .noteh{left:130px; top:922px; font-family:"Courier New",monospace; font-weight:700;
+  .hcell{display:flex; flex-direction:column; align-items:center; gap:4px; top:195px;}
+  .hcell .lab{font-size:14px;}
+  .hcell .v{font-size:30px;}
+  .hs1{left:522px;width:90px;} .hs2{left:612px;width:90px;} .hs3{left:702px;width:107px;}
+  .nm{left:62px; top:761px; font-size:48px;}
+  .nmeta{left:315px; top:759px; font-family:"Courier New",monospace; font-weight:700;
+    color:var(--label); font-size:20px; line-height:26px;}
+  .noteh{left:105px; top:858px; font-family:"Courier New",monospace; font-weight:700;
     color:var(--red); font-size:30px; letter-spacing:1px;
     text-decoration:underline; text-underline-offset:6px;}
-  .notewrap{left:126px; top:978px; width:650px; height:660px;}
+  .notewrap{left:105px; top:916px; width:671px; height:552px;}
   .notescroll{position:absolute; inset:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
     scrollbar-width:none; padding:6px 18px 8px 4px;
     font-family:"Courier New",monospace; font-weight:700;
@@ -123,37 +133,43 @@
   .cc{left:574px;width:221px; transform:rotate(1.45deg);}
   .card{cursor:pointer;}
   .card:active{filter:brightness(.92);}
-  .nextcard{left:264px; width:336px; transform:rotate(-0.4deg); top:1701px; height:110px; padding:0 8px;
+  .nextcard{left:332px; width:307px; transform:rotate(-0.4deg); top:1525px; height:110px; padding:0 8px;
     justify-content:center; background:none; box-shadow:none;}
-  .nextcard .txt{font-size:37px; line-height:43px; text-align:center;}
-  .nextcard .sub{font-size:24px;}
+  .nextcard .txt{font-size:34px; line-height:40px; text-align:center;}
+  .nextcard .sub{font-size:22px;}
   .nextcard .txt{color:var(--red);}
-  .callcard{left:264px; width:336px; top:1701px; height:110px; transform:rotate(-0.4deg); padding:0 8px;
+  .callcard{left:332px; width:307px; top:1525px; height:110px; transform:rotate(-0.4deg); padding:0 8px;
     justify-content:center; background:none; box-shadow:none;}
-  .callcard .txt{font-size:37px; line-height:43px; text-align:center;}
-  .callcard .sub{font-size:24px;}
-  .slot{position:absolute; width:176px; top:1701px; height:110px; display:flex; flex-direction:column;
+  .callcard .txt{font-size:34px; line-height:40px; text-align:center;}
+  .callcard .sub{font-size:22px;}
+  .slot{position:absolute; top:1525px; height:110px; display:flex; flex-direction:column;
     align-items:center; justify-content:center; text-align:center; gap:6px; padding:0 2px;}
-  .slotL{left:45px; transform:rotate(-1.6deg);}
-  .slotR{left:640px; transform:rotate(1.2deg);}
-  .slot .slab{font-family:"Arial Black",sans-serif; font-size:20px; letter-spacing:1px;
+  .slotL{left:45px; width:259px; transform:rotate(-1.6deg);}
+  .slotR{left:667px; width:144px; transform:rotate(1.2deg);}
+  .slot .slab{font-family:"Arial Black",sans-serif; font-size:19px; letter-spacing:1px;
     color:var(--red); border-bottom:2px solid var(--red); padding-bottom:4px;}
   .slot .sv1{font-family:"Courier New",monospace; font-weight:700; color:var(--ink);
-    font-size:36px; line-height:40px; white-space:nowrap;}
+    font-size:32px; line-height:36px; white-space:nowrap;}
+  /* Long place names ("SAULT STE. MARIE") need a step down to stay on the card */
+  .slotL .sv1.mid{font-size:26px; line-height:30px;}
+  .slotL .sv1.tiny{font-size:22px; line-height:26px;}
   .slot .sv2{display:none;}
-  .ticker{position:absolute; left:60px; right:60px; top:1817px; text-align:center;
+  .ticker{position:absolute; left:60px; right:60px; top:1690px; text-align:center;
     font-family:"Courier New",monospace; font-weight:700; color:#b3a288;
     font-size:21px; letter-spacing:1px;}
   .callcard .txt{color:var(--red);}
   /* ---- decision screen ---- */
   .dart{position:absolute; left:0; top:0; width:853px; height:1844px;}
-  .dtitle{position:absolute; left:48px; right:48px; top:146px; height:158px;
+  .dtitle{position:absolute; left:48px; right:48px; top:180px; height:150px;
     display:flex; align-items:center; justify-content:center; text-align:center;
     font-family:"Arial Black",sans-serif; color:#e8e2d4; font-size:64px; line-height:70px;
     letter-spacing:1px; text-shadow:0 3px 16px #000;}
-  .dsub{position:absolute; left:80px; right:80px; top:318px; text-align:center;
+  .dsub{position:absolute; left:80px; right:80px; top:352px; text-align:center;
     font-family:Georgia,serif; font-style:italic; color:#9a927f; font-size:26px;}
-  .dcard{position:absolute; left:146px; width:568px; height:266px; cursor:pointer;
+  /* The cards are painted into decision.webp — these divs must sit centred
+     on them. Measured off the rendered screen: the painted cards occupy
+     stage y 471-830, 896-1258, 1345-1706. Do not move these to close gaps. */
+  .dcard{position:absolute; left:146px; width:568px; height:300px; cursor:pointer;
     display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
     text-align:left; gap:12px; padding-top:6px;
     font-family:"Courier New",monospace; font-weight:700;}
@@ -165,9 +181,9 @@
      past the card painted into the art. Those drop a notch automatically. */
   .dcard.long .txt{font-size:39px; line-height:49px;}
   .dcard.long .sub{font-size:30px; line-height:37px;}
-  .d1{top:420px; transform:rotate(-1.91deg);}
-  .d2{top:874px; transform:rotate(2.47deg);}
-  .d3{top:1342px; transform:rotate(-2.02deg);}
+  .d1{top:500px; transform:rotate(-1.91deg);}
+  .d2{top:927px; transform:rotate(2.47deg);}
+  .d3{top:1375px; transform:rotate(-2.02deg);}
   /* ---- in-game moment screen ---- */
   .mstamp{position:absolute; left:40px; right:40px; top:112px; text-align:center;}
   .mstamp .mper{display:block; font-family:"Courier New",monospace; color:#c9862b;
@@ -273,13 +289,11 @@
     background:rgba(12,10,8,.85); border:2px solid rgba(214,192,150,.5);
     color:var(--cream); font-family:"Arial Black",sans-serif; font-weight:900;
     font-size:26px; letter-spacing:6px;}
-  .filestab{position:absolute; left:50%; transform:translateX(-50%);
-    bottom:0; padding:7px 26px 9px; border-radius:9px 9px 0 0;
-    background:rgba(14,11,8,.88); border:2px solid rgba(214,192,150,.55);
-    border-bottom:none; color:rgba(245,238,220,.88);
+  .filestab{position:absolute; right:14px; bottom:8px;
+    color:rgba(245,238,220,.5);
     font-family:"Courier New",monospace; font-weight:700;
-    font-size:20px; letter-spacing:3px; z-index:4;
-    box-shadow:0 -3px 14px rgba(0,0,0,.5);}
+    font-size:18px; letter-spacing:2px; z-index:4;
+    text-shadow:0 2px 8px #000, 0 0 14px rgba(0,0,0,.9);}
   /* ---- gazette front page ---- */
   .gazpage{position:absolute; left:0; top:281px; width:853px; height:1282px;}
   .gart{position:absolute; left:0; top:0; width:853px; height:1282px;}
@@ -426,14 +440,14 @@
 
     <!-- DASHBOARD -->
     <div class="screen" id="dash">
-      <div class="window" id="portwin"><img alt="" id="portrait" src="assets/ui/sandra-base.webp"><div class="filestab" id="filesTab">&#9654; WHO'S WHO</div></div>
+      <div class="window" id="portwin"><img alt="" id="portrait" src="assets/ui/sandra-base.webp"><div class="filestab" id="filesTab">&#9654; FILES</div></div>
       <img class="frame" alt="" src="assets/ui/frame.webp">
       <div class="ui">
         <div class="cell s1"><span class="lab">CASH</span><span class="v blk green" id="stCash">$55,000</span></div>
         <div class="cell s2"><span class="lab">MORALE</span><span class="v blk green" id="stMorale">72%</span></div>
         <div class="cell s3"><span class="lab">BUZZ</span><span class="v blk amber" id="stBuzz">48%</span></div>
         <div class="cell s4"><span class="lab">CRED</span><span class="v blk blue" id="stCred">36%</span></div>
-        <div class="team blk"><span class="t">THE</span><span class="t">LUMBERJACKS</span></div>
+        <div class="team blk"><span class="t">THE LUMBERJACKS</span></div>
         <div class="hcell hs1"><span class="lab">SEASON</span><span class="v blk" id="stSeason">1</span></div>
         <div class="hcell hs2"><span class="lab">WEEK</span><span class="v blk" id="stWeek">01</span></div>
         <div class="hcell hs3"><span class="lab">RECORD</span><span class="v blk" id="stRec">0-0</span></div>
@@ -453,8 +467,8 @@
           <span class="txt">MAKE THE CALL &#9654;</span>
           <span class="sub" id="callSub">Your move, boss.</span></div>
         <div class="slot slotR" id="slotR">
-          <span class="slab">STREAK</span>
-          <span class="sv1" id="slStreak">&mdash;</span>
+          <span class="slab">RECORD</span>
+          <span class="sv1" id="slStreak">0-0</span>
           <span class="sv2" id="slLast">FIRST GAME</span></div>
         <div class="ticker" id="ticker">NORTHERN DIVISION &bull; SEASON OPENS</div>
         <div class="card nextcard" id="nextBtn" style="display:none;">
@@ -700,7 +714,7 @@
   var S = { cash:55000, morale:72, buzz:48, cred:36,
             week:1, wins:0, losses:0, streak:0, last:null,
             venue:'HOME', foe:'FARGO', flags:{}, done:{}, met:{},
-            season:1, stage:'regular', debtWeeks:0, champs:0,
+            season:1, tw:1, stage:'regular', debtWeeks:0, champs:0,
             playoffResult:null, po:null };
 
   /* ---------- ECONOMY (tune here, not in the ledger logic) ----------
@@ -1247,6 +1261,7 @@
         gaz:"QUIET MAN PATS LEGAL PAD; TEAM DECLINES COMMENT", news:"The club elected not to approach the man in Row A. Players missed three uncontested layups while checking whether he was watching. He was. At half time his legal pad remained on the empty seat. On his return he patted it once. No player has been willing to describe this further.", mood:'grim', flag:'scoutSeen' } ] },
 
   { id:'grace_1', title:"SANDRA'S WEEK OFF", mood:'base', grace:true,
+    needs:'graceWarned', notBefore:{flag:'graceWeek', plus:1},
     setup:[
       "I'm taking a week. I have not taken a week since 1981. My replacement is Grace. She had this desk before me. She is very good and she will tell you so. Do not let her near the chainsaw folder.",
       "\u2014 That was Sandra's note. This is Grace. I've read the files. All of them. In one evening. Some observations: the mascot budget is an embarrassment, the coach appears to be at war with beverages, and someone has paid nine thousand dollars for what I can only describe as a bronze regret.",
@@ -1256,19 +1271,19 @@
         fx:{cash:3500, morale:-4, cred:7},
         out:["Grace's three economies save real money and cost the players their pregame donut cart, which they mourn like a teammate. Grace calls the mourning 'illustrative.'",
              "By Friday the office runs like a Swiss watch that disapproves of you. When Sandra returns she finds her filing system 'improved' and says nothing for a full minute, which those present describe as the loudest silence in franchise history."],
-        desk:"(GRACE'S LEDGER) Savings: $3,500. Morale: an indulgence we can revisit in the playoffs. You're welcome.",
+        desk:"Savings: $3,500. Morale: an indulgence we can revisit in the playoffs. You're welcome.",
         gaz:"SUBSTITUTE SECRETARY BALANCES BUDGET, ALIENATES DONUT COMMUNITY", news:"Grace, filling in during the club secretary's leave, identified three economies before her coffee cooled and implemented all three. The savings were real. The pregame donut cart was not spared. Players are mourning it as a teammate, a reaction Grace has termed illustrative.", mood:'dry', flag:'graceRespected' },
       { t:"Thank her, change nothing.", sub:"Sandra's system works fine.",
         fx:{morale:2, cred:-2},
         out:["You decline the three economies. Grace says 'noted' in a way that suggests it has been noted somewhere permanent.",
              "She spends the rest of the week performing the job flawlessly while radiating the specific disappointment of a woman who has seen this franchise squander potential since the Nixon administration. On Friday she leaves a single index card on your desk: 'The offer stands. \u2014 G.'"],
-        desk:"(GRACE'S LEDGER) Recommendations: declined. Franchise trajectory: consistent with my 1979 memo, which is on file, and which I suggest you never read.",
+        desk:"Recommendations: declined. Franchise trajectory: consistent with my 1979 memo, which is on file, and which I suggest you never read.",
         gaz:"NOTHING CHANGES AT ARENA; SOURCES SAY POINTEDLY", news:"Ownership has declined all three recommendations submitted by the substitute secretary. Grace is understood to have responded with the word 'noted.' She performed the remainder of the week flawlessly while radiating the disappointment of a woman who has watched this franchise squander potential since the Nixon administration.", mood:'dry', flag:'graceRespected' },
       { t:"Tell her to just answer the phones.", sub:"Firm. Perhaps too firm.",
         fx:{morale:-2, cred:-5, buzz:2},
         out:["You tell Grace to answer the phones. There is a pause you will remember on your deathbed. Then she says 'of course,' and answers every phone call that week in a tone that costs the franchise two sponsors and a mascot appearance at a church picnic.",
              "She leaves Friday at five sharp. Her desk is immaculate. On it: her own rival ledger, closed, with a ribbon marking a page. You do not check the page. Sandra returns Monday, reads the room in one glance, and says 'What did you do.'"],
-        desk:"(GRACE'S LEDGER) Duties performed: as instructed. Precisely as instructed. Some men learn from history. Others answer to it. The ribbon marks your page.",
+        desk:"Duties performed: as instructed. Precisely as instructed. Some men learn from history. Others answer to it. The ribbon marks your page.",
         gaz:"CHURCH PICNIC CANCELLED; NO ONE WILL SAY WHY", news:"Ownership instructed the substitute secretary to confine herself to answering the telephones. She did so. By Wednesday two sponsors had paused their agreements and the church picnic committee had unlisted its number. Grace left Friday at five. Her desk was immaculate.", mood:'alarmed', flag:'graceGrudge' } ] },
 
   { id:'tiny_commercial', title:"TINY'S COMMERCIAL", mood:'base',
@@ -1506,19 +1521,19 @@
         fx:{cash:4000, cred:9, morale:-3},
         out:["You submit to the full Grace program. It saves money, tightens operations, and reorganizes the sponsor files by 'reliability, then penmanship.' She works through lunch. She works through YOUR lunch, somehow.",
              "On Friday she closes her rival ledger, unties the ribbon, and \u2014 in full view of the office \u2014 files your page under RESOLVED. It's the most frightening act of forgiveness in franchise history. Sandra returns to find the office 'aggressively improved' and takes one personal day to process it."],
-        desk:"(GRACE'S LEDGER) Recommendations: adopted, all. Page: resolved. I don't hold grudges, I hold RECORDS, and today the record improved. \u2014 G.",
+        desk:"Recommendations: adopted, all. Page: resolved. I don't hold grudges, I hold RECORDS, and today the record improved. \u2014 G.",
         gaz:"OFFICE 'AGGRESSIVELY IMPROVED'; WITNESSES SHAKEN", news:"The club has adopted all three recommendations submitted by Grace during the secretary's absence. Sponsor files have been reorganised by reliability, then penmanship. On Friday Grace closed her ledger, untied its ribbon, and filed the ownership's page under RESOLVED in full view of the office.", mood:'pleased' },
       { t:"Hear them. Adopt one. Diplomatically.", sub:"Meet the ledger halfway.",
         fx:{cash:1500, cred:3},
         out:["You adopt her best recommendation and decline the others with the care of a man defusing something. Grace evaluates the diplomacy, decides it's 'growth, of a kind,' and awards you a provisional pencil check in the rival ledger.",
              "Provisional. She says the word twice. The ribbon moves one page forward, which she confirms is 'not nothing.'"],
-        desk:"(GRACE'S LEDGER) Adoption rate: one of three. Assessment: growth, of a kind, provisional. The ribbon advances. Earn the pen. \u2014 G.",
+        desk:"Adoption rate: one of three. Assessment: growth, of a kind, provisional. The ribbon advances. Earn the pen. \u2014 G.",
         gaz:"D\u00c9TENTE REACHED AT FRONT OFFICE; PENCIL INVOLVED", news:"The club adopted one of three recommendations submitted by Grace and declined the remainder with care. Grace has assessed the diplomacy as growth, of a kind, and entered a provisional mark in pencil. She used the word provisional twice. The ribbon has advanced one page.", mood:'dry' },
       { t:"Just answer the phones, Grace.", sub:"You absolute madman.",
         fx:{morale:-4, cred:-10, buzz:6, cash:-2500},
         out:["You say it again. The office temperature drops in a way the thermostat denies. Grace answers the phones \u2014 all of them, flawlessly, terribly \u2014 and by Wednesday two sponsors have 'paused,' the church picnic people have unlisted their number, and the Gazette runs a wholly accurate story sourced entirely to 'a person familiar with the filing.'",
              "She leaves Friday at five. On your desk: the rival ledger, open now, to your page. It has been laminated. Sandra returns, reads the page, looks at you for a long moment, and says: 'You said it TWICE?'"],
-        desk:"(GRACE'S LEDGER) Instruction: repeated, verbatim, historic. Response: proportionate. The page is laminated because paper forgives and I've retired from forgiving. \u2014 G.",
+        desk:"Instruction: repeated, verbatim, historic. Response: proportionate. The page is laminated because paper forgives and I've retired from forgiving. \u2014 G.",
         gaz:"SOURCE 'FAMILIAR WITH THE FILING' DEVASTATES FRONT OFFICE", news:"Ownership has again instructed Grace to confine herself to the telephones. She answered every call flawlessly and terribly. Two sponsors have paused. The church picnic committee has unlisted its number. This newspaper's account is sourced entirely to a person familiar with the filing. Her ledger has been laminated.", mood:'grim' } ] },
 
   { id:'northern_swing', venue:'road', games:3, foes:['FARGO','THUNDER BAY','BISMARCK'],
@@ -1581,7 +1596,7 @@
         news:"The club declined the Sons of Norway's Lutefisk Night proposal. The organisation proceeded independently, holding a supper in the church hall at the same hour as the fixture and charging nothing. Attendance at the arena was the season's lowest. The odour is confirmed to have reached the building regardless, a distance of two blocks in still air.",
         mood:'grim' } ] },
 
-  { id:'vern_missing', venue:'home', title:'THE MAN ON THE ICE', mood:'grim', scene:'ice',
+  { id:'vern_missing', venue:'home', title:'THE MAN ON THE ICE', mood:'grim', scene:'ice', once:true,
     setup:[
       "Vern Aho didn't come to practice Monday. Vern Aho has not missed anything since 1979.",
       "His truck's at the landing. His house is dark. There was a blizzard Sunday night \u2014 the real kind, the kind that closes the highway \u2014 and Vern went out on the ice Sunday morning with a bucket, a Thermos and an auger, the way he does. The way he has done every Sunday for eleven years.",
@@ -1590,32 +1605,103 @@
     choices:[
       { t:"Retire his number. Friday.", sub:"Do it while the town needs it.",
         fx:{morale:6, buzz:8, cred:4, cash:-1200}, when:'game',
-        out:["The ceremony is beautiful and the building is full and his mother speaks for four minutes without once raising her voice. The number goes to the rafters beside Ernie's. Grown men in flannel weep in a way this town has no vocabulary for and needs none.",
-             "Eleven days later Vern Aho walks into practice. Same coat. Same Thermos. He looks up at the rafters, at his own number, and asks what that's about.",
-             "Told he had been presumed dead, Vern says: 'Presumed by who.' That is the entire explanation anyone ever receives. He had gone to his cousin's. In Ely. The phone was out. He does not understand the fuss and he is, frankly, annoyed about the number, which he can no longer wear."],
-        desk:"Number: retired. Number: unretired. Vern's position on the matter: he'd like it back. There is no paperwork for unretiring a number, so I have invented some. It lives in a drawer marked VERN, which is now a drawer.",
-        gaz:"RETIRED NUMBER UNRETIRED; HOLDER ANNOYED",
-        news:"The club retired the number of Vern Aho, missing since a blizzard on the lake, in a ceremony attended by a capacity crowd. Aho returned to practice eleven days later carrying a Thermos and enquired about the banner. Informed he had been presumed dead, Aho asked by whom. He had been at a cousin's residence in Ely. The telephone was out.",
-        mood:'pleased', flag:'vernBack' },
+        out:["The ceremony is beautiful and the building is full and his mother speaks for four minutes without once raising her voice. The number goes to the rafters beside Ernie's.",
+             "Grown men in flannel weep in a way this town has no vocabulary for and needs none. Nobody leaves early. Nobody has anywhere to be.",
+             "Afterward the banner just hangs there, in the dark, over an empty floor. It will hang there Tuesday too. That's the part nobody warns you about."],
+        desk:"The ceremony was right. I want that written down somewhere permanent, so I'm writing it here. His mother asked me afterward whether we were sure. I said the lake doesn't give things back. I have been wrong before, but not often, and not about the lake.",
+        gaz:"NUMBER RETIRED; TOWN GRIEVES CORRECTLY",
+        news:"The club retired the number of Vern Aho, missing since a blizzard on the lake, in a ceremony attended by a capacity crowd. His mother spoke for four minutes. The banner was raised beside that of Ernie Kowalski. No attendee left before the lights came up.",
+        mood:'grim', flag:'vernRetired', stamp:'vernWeek' },
       { t:"Leave the spot open. Say nothing.", sub:"He's not late. He's not anything yet.",
         fx:{morale:3, cred:6, buzz:-3},
-        out:["You leave the locker as it is and instruct nobody to touch it, which nobody was going to do anyway. The league is told the roster stands. Sandra takes the calls. Sandra takes all of the calls.",
-             "Eleven days later Vern Aho walks into practice like a man returning from lunch, sits down at his locker, and begins taping his ankles. Somebody screams. Vern looks up.",
-             "'What,' he says.",
-             "He had gone to his cousin's. In Ely. The phone was out. The bucket is still in the truck. He would like to know why practice hasn't started."],
-        desk:"Days missing: eleven. Explanation offered: 'Ely.' Words spoken on the subject since: none, by anyone, ever. Filed under HOME. He wanted to know why practice was late.",
-        gaz:"MAN PRESUMED DEAD ATTENDS PRACTICE, ASKS WHY PRACTICE IS LATE",
-        news:"The club declined to fill the roster place of Vern Aho, missing eleven days following a blizzard. Aho attended practice on the twelfth day, seated himself at his locker and began taping his ankles. He had been at a cousin's residence in Ely, where the telephone was out. He has asked why practice had not started and has received no answer.",
-        mood:'base', flag:'vernBack' },
+        out:["You leave the locker as it is and instruct nobody to touch it, which nobody was going to do anyway. The league is told the roster stands.",
+             "Sandra takes the calls. Sandra takes all of the calls. She does not put a single one through to you and she does not mention having taken them.",
+             "The locker stays shut. The room dresses around it. Nobody says his name, which is not the same as nobody thinking it."],
+        desk:"Roster: unchanged. League: informed. Calls taken this week: nineteen. Calls put through to you: none. You didn't need them and I didn't need you to have them. That's the job.",
+        gaz:"CLUB DECLINES TO FILL ROSTER PLACE",
+        news:"The club has declined to fill the roster place of Vern Aho, missing eleven days following a blizzard on the lake. A league spokesman confirmed the roster stands. The club secretary has handled all enquiries and declined to characterize them.",
+        mood:'base', flag:'vernNoCeremony', stamp:'vernWeek' },
       { t:"Sign a replacement. It's what he'd want.", sub:"Vern would be the first to say it.",
         fx:{cash:-2200, morale:-5, cred:2},
-        out:["You sign a big quiet kid out of Hibbing who arrives with one bag and says 'thank you for the opportunity' to a room that cannot look at him. He is not the problem. He knows he is not the problem. He gets dressed very quickly.",
-             "Eleven days later Vern Aho walks into practice and finds a man wearing his locker. The two of them regard each other for a long moment, in front of everybody, and nobody breathes.",
-             "Then Vern says, 'You can keep the locker.' And he takes the one next to it. And that is the last thing either of them ever says about it. They start together inside a month. Nobody can explain the chemistry and nobody is willing to poke at it."],
-        desk:"Roster: two men, one locker, zero discussion. I have stopped attempting to understand this team and started simply recording it. The record is better this way.",
-        gaz:"REPLACEMENT AND REPLACED FORM DEVASTATING FRONTCOURT",
-        news:"The club signed a replacement for Vern Aho, missing eleven days following a blizzard. Aho returned on the twelfth, having been at a cousin's residence in Ely with the telephone out, and found the new man at his locker. Aho told him to keep it. The pair have since started together. Team-mates decline to discuss the arrangement.",
-        mood:'dry', flag:'vernBack' } ] },
+        out:["You sign a big quiet kid out of Hibbing who arrives with one bag and says 'thank you for the opportunity' to a room that cannot look at him.",
+             "He is not the problem. He knows he is not the problem. He gets dressed very quickly and he gets dressed in Vern's locker, because it's the empty one, because nobody could bring themselves to say otherwise.",
+             "He plays well. That's somehow worse."],
+        desk:"Signed: one forward, Hibbing, one bag. He said thank you for the opportunity to a room that could not look at him, and then he went out and played well, which nobody has forgiven him for and which is not his fault. I've filed him under HOME. It seemed like the decent thing.",
+        gaz:"CLUB SIGNS REPLACEMENT; ROOM QUIET",
+        news:"The club has signed a forward from Hibbing to fill the roster place of Vern Aho, missing eleven days following a blizzard. The player arrived with one bag and expressed gratitude for the opportunity. He has been assigned the vacant locker. Team-mates declined to comment.",
+        mood:'dry', flag:'vernNoCeremony', stamp:'vernWeek' } ] },
+
+  { id:'vern_back_retired', venue:'home', title:'VERN AHO IS NOT DEAD', mood:'alarmed',
+    needs:'vernRetired', notBefore:{flag:'vernWeek', plus:3}, once:true,
+    setup:[
+      "Vern Aho walked into practice this morning.",
+      "Same coat. Same Thermos. He had gone to his cousin's, in Ely, and the phone was out, and that is the entire account. Told he'd been presumed dead, Vern said: 'Presumed by who.' Nobody has improved on that answer, including me, and I have tried.",
+      "He has now seen the rafters. He has seen his own number up there, in the dark, over his own head, at a practice he was attending.",
+      "He would like it back. The league's position is that a retired number is retired. Vern's position is that it's his and he's standing right here."],
+    choices:[
+      { t:"Take it down. He wears it Friday.", sub:"There's no form for this. I'll invent one.",
+        fx:{morale:8, buzz:7, cred:-4, cash:-900},
+        out:["The banner comes down in front of a full house, which is a thing no building has ever done before and no building should have to do twice.",
+             "Vern watches it descend with no expression whatsoever, takes it under one arm like a rolled rug, and goes to get changed. The ovation goes eleven minutes. He is already on the floor by minute three, stretching, visibly wishing they would stop.",
+             "He scores twenty-two. Somebody in Section 119 shouts 'PRESUMED BY WHO' and forty people answer him."],
+        desk:"Number: retired. Number: unretired. There is no paperwork for unretiring a number, so I have invented some, and it is now the official paperwork of this league whether they know it or not. It lives in a drawer marked VERN, which is now a drawer.",
+        gaz:"RETIRED NUMBER UNRETIRED; HOLDER ANNOYED IT TOOK THIS LONG",
+        news:"The club has lowered the retired number of Vern Aho at his request, Aho having returned from a cousin's residence in Ely where the telephone was out. The banner was removed during a capacity fixture. Aho carried it to the dressing room himself and scored twenty-two points. A chant developed. The league has not yet responded to the club's paperwork, which the club invented.",
+        mood:'pleased', flag:'vernBack' },
+      { t:"It stays up. Give him a new number.", sub:"The ceremony happened. People cried.",
+        fx:{cred:7, morale:-5, buzz:2},
+        out:["You explain that the town needed the ceremony and that taking it back would take something from them. Vern listens to the whole thing without interrupting, which is worse.",
+             "'Sure,' he says. He takes a new number. He does not mention it again, that day or any day.",
+             "He is four points a game better in it. Nobody will say that out loud in front of him, and nobody has to, because he already knows, and that's the part that gets you."],
+        desk:"Number: remains retired. Vern: reassigned, agreeable, unreadable. He said 'sure' and then he went and got four points a game better, which I have decided not to interpret. Filed under HOME. The banner stays up. His mother still comes.",
+        gaz:"MAN PLAYS BENEATH OWN RETIRED NUMBER, DECLINES TO ELABORATE",
+        news:"Vern Aho, whose number was retired during his absence, has accepted a new number rather than request the banner's removal. Aho offered no comment beyond assent. His scoring average has since risen by four points a game. The banner remains in place.",
+        mood:'dry', flag:'vernBack' },
+      { t:"He wears it. Don't tell the league.", sub:"Who exactly is going to call?",
+        fx:{morale:6, buzz:5, cred:-9},
+        out:["He wears it. The banner stays up. For one full season this franchise runs a man on the floor in a number that is, on league paper, in the rafters above him.",
+             "It takes six weeks for anybody outside this town to notice. When they do, a fan in Fargo writes a letter. The league writes back to confirm that it is aware.",
+             "That is the whole of the league's response. They are aware. They remain aware to this day."],
+        desk:"Status: he wears it, it's also retired, both things are true, and the league is aware. I asked what 'aware' meant. I was told it meant aware. I've filed the correspondence under MIRACLES, which is where I keep things that shouldn't work.",
+        gaz:"LUMBERJACK PLAYS IN NUMBER THAT IS, TECHNICALLY, IN THE RAFTERS",
+        news:"Vern Aho is competing in a number the club retired during his absence, which remains displayed in the arena roof. The league, responding to correspondence from a supporter in Fargo, confirmed that it is aware of the situation. It has not indicated what, if anything, being aware entails.",
+        mood:'base', flag:'vernBack' } ] },
+
+  { id:'vern_back_quiet', venue:'home', title:'VERN AHO IS NOT DEAD', mood:'alarmed',
+    needs:'vernNoCeremony', notBefore:{flag:'vernWeek', plus:3}, once:true,
+    setup:[
+      "Vern Aho walked into practice this morning, sat down at his locker, and started taping his ankles.",
+      "Somebody screamed. Vern looked up and said, 'What.'",
+      "He'd gone to his cousin's. In Ely. The phone was out. Told he had been presumed dead, he said: 'Presumed by who.' That is the entire explanation anybody is getting, now or ever.",
+      "The bucket is still in the truck. He would like to know why practice hasn't started."],
+    choices:[
+      { t:"Start practice.", sub:"He asked a fair question.",
+        fx:{morale:9, cred:4},
+        out:["Practice starts. Nobody says anything. Hank blows the whistle like it's a Tuesday, because it is a Tuesday.",
+             "It is the best practice of the year by a distance nobody can account for. Men are diving on the floor in a drill that does not require diving.",
+             "Afterward Vern collects his Thermos and drives home and the whole thing is never spoken of again, by anyone, at any point."],
+        desk:"Days missing: eleven. Explanation offered: 'Ely.' Words spoken on the subject since: none, by anyone, ever. Filed under HOME. He wanted to know why practice was late. He had a point.",
+        gaz:"MAN PRESUMED DEAD ATTENDS PRACTICE, ASKS WHY PRACTICE IS LATE",
+        news:"Vern Aho, missing eleven days following a blizzard, attended practice, seated himself at his locker and began taping his ankles. He had been at a cousin's residence in Ely, where the telephone was out. Practice proceeded. Team-mates, asked afterward about the session, described it as a good one.",
+        mood:'pleased', flag:'vernBack' },
+      { t:"The town thinks he's dead. Tell them.", sub:"Somebody has to.",
+        fx:{buzz:11, morale:-3, cash:700}, when:'game',
+        out:["The announcement goes out Thursday. By Friday the building is full of people who have come to look at a man who is not dead.",
+             "Vern does not enjoy this. Vern plays the entire game with the expression of a man queuing at a bank.",
+             "A woman brings a casserole to the arena. For Vern. He accepts it. He eats it on the bus. He does not say a word about any of it, and the casserole dish is returned, washed, within the week."],
+        desk:"Attendance: up. Vern's opinion of that: unrecorded, unrecordable, and written all over his face for forty minutes. One casserole received, consumed, dish returned clean. The town's grieving process has become the town's gawking process and Vern is absorbing it the way he absorbs everything.",
+        gaz:"NOT-DEAD MAN DRAWS SEASON-HIGH CROWD, VISIBLY WISHES OTHERWISE",
+        news:"The club confirmed that Vern Aho, missing eleven days, has returned. The following fixture drew a season-high attendance. Aho played the full game. A supporter delivered a casserole to the arena. The dish was returned within the week, washed.",
+        mood:'dry', flag:'vernBack' },
+      { t:"Ask him where he was.", sub:"You'd like to know. Everyone would.",
+        fx:{morale:-2, cred:3},
+        out:["'Ely,' says Vern.",
+             "You wait. Vern waits. It becomes apparent that Vern is better at this than you are, and that he has been better at it for some time, and that he was better at it before the lake.",
+             "You lose."],
+        desk:"Question asked: one. Answer received: 'Ely.' Follow-up: attempted. Result: you lost. I want the record to show I was in the room and I said nothing, which is the correct play and which took me four years to learn.",
+        gaz:"CLUB OFFICIAL ASKS QUESTION; RECEIVES ANSWER",
+        news:"Vern Aho, missing eleven days following a blizzard, has confirmed he was in Ely. Asked to expand, Aho confirmed he was in Ely. The club has indicated it considers the matter closed. Aho has indicated nothing, the matter having never, in his view, been open.",
+        mood:'base', flag:'vernBack' } ] },
 
   { id:'arena_condemned', title:'THE ARENA IS CONDEMNED', mood:'grim', scene:'arena', once:true,
     setup:[
@@ -1844,8 +1930,14 @@
   function nextStory(){
     // conditional inserts: scout_speaks after scoutSeen; grace_2 after graceGrudge;
     // arena_reckoning the season after the asterisk. Sequels can cross seasons.
+    // notBefore holds a sequel back N weeks from the week its trigger fired,
+    // so arcs like Vern's breathe instead of resolving on the spot.
     var pool=STORY.filter(function(st){
-      return st.needs && S.flags[st.needs] && !S.done[st.id] && !(st.once && S.flags['done_'+st.id]);
+      if(!st.needs || !S.flags[st.needs]) return false;
+      if(S.done[st.id]) return false;
+      if(st.once && S.flags['done_'+st.id]) return false;
+      if(st.notBefore && S.tw < (S.flags[st.notBefore.flag]||0) + st.notBefore.plus) return false;
+      return true;
     });
     if(pool.length && Math.random()<0.6){ return pool[0]; }
     while(deckPos<deck.length){
@@ -1871,19 +1963,20 @@
   }
   function updateBlotter(){
     if(phase==='recap'||phase==='over') return; /* terminal screens own the ticker */
-    var FOE_SHORT={'SAULT STE. MARIE':'SAULT','THUNDER BAY':'T. BAY',
-                   'RAPID CITY':'RAPID','GREEN BAY':'GRN BAY'};
+    /* The rebuilt tab is 259px wide, so most names now fit in full \u2014 only the
+       longest still needs shortening. Sizing steps down by length instead of
+       squeezing the type sideways. */
+    var FOE_SHORT={'SAULT STE. MARIE':'SAULT STE.'};
     var nm=FOE_SHORT[S.foe]||S.foe;
     var txt=(current && current.games>1) ? '3 IN 4' : (S.venue==='HOME'?'vs ':'at ')+nm;
     var foeEl=document.getElementById('slFoe');
     foeEl.textContent=txt;
-    /* squeeze only if it would overrun the painted tab */
-    var MAXCH=8.5;
-    foeEl.style.transform = txt.length>MAXCH ? 'scaleX('+(MAXCH/txt.length).toFixed(2)+')' : '';
-    foeEl.style.transformOrigin='center';
+    foeEl.style.transform=''; foeEl.className='sv1';
+    if(txt.length>=15)      foeEl.className='sv1 tiny';
+    else if(txt.length>=11) foeEl.className='sv1 mid';
     document.getElementById('slVenue').textContent='';
     var st=document.getElementById('slStreak');
-    st.textContent = S.streak===0?'\u2014':(S.streak>0?'W'+S.streak:'L'+(-S.streak));
+    st.textContent = S.wins+'-'+S.losses;
     document.getElementById('slLast').textContent='';
     /* venue + standing move to the ticker, where there's actual room */
     var tick;
@@ -1947,7 +2040,7 @@
      cred sells season tickets, winning sells the rest. Run the
      numbers into the ground and Gerald from First Federal will
      run them for you.                                          */
-  function applyLedger(games, home, won, po){
+  function applyLedger(games, home, won, po, grace){
     var gate=0, costs=ECON.PAYROLL;
     if(home){
       for(var g=0; g<games; g++){
@@ -1963,9 +2056,14 @@
     gate=Math.round(gate);
     var net=gate-costs;
     S.cash+=net;
-    var line = "The week's books: gate "+fmtCash(gate)+", costs "+fmtCash(costs)+". "
-      + (net>=0 ? "We cleared "+fmtCash(net)+". Entered in pen."
-                : "We're down "+fmtCash(-net)+" on the week. Entered in pencil, optimistically.");
+    /* Same books, opposite temperaments. Sandra hedges. Grace does not. */
+    var line = grace
+      ? ("Gate: "+fmtCash(gate)+". Costs: "+fmtCash(costs)+". Net: "
+         + (net>=0?fmtCash(net):"\u2212"+fmtCash(-net))
+         + ". Entered in ink. Pencil is for people who expect to be wrong.")
+      : ("The week's books: gate "+fmtCash(gate)+", costs "+fmtCash(costs)+". "
+         + (net>=0 ? "We cleared "+fmtCash(net)+". Entered in pen."
+                   : "We're down "+fmtCash(-net)+" on the week. Entered in pencil, optimistically."));
     return {gate:gate, costs:costs, net:net, line:line};
   }
 
@@ -2159,6 +2257,8 @@
       S.flags[ch.flag]=true;
       if(ch.flag==='arenaDoomed'){ S.flags.doomWeek = S.week + 2 + Math.floor(Math.random()*3); }
     }
+    /* records WHEN this fired, so a sequel can be held back N weeks */
+    if(ch.stamp){ S.flags[ch.stamp] = S.tw; }
     var fx=ch.fx||{};
     S.cash += fx.cash||0;
     S.morale = clamp(S.morale + (fx.morale||0));
@@ -2271,20 +2371,31 @@
           el.noteh.textContent = 'FROM '+who+"'S DESK";
           setPortrait(current.grace?'grace':'sandra', ch.mood||current.mood||'base');
           var brief=[ isPO ? (won?ch.deskW:ch.deskL) : ch.desk ];
+          var byGrace = !!current.grace;
           if(!isPO){
             if(GAMES>1){
-              brief.push('We went '+swingW+'-'+swingL+' on the swing. '+S.wins+'-'+S.losses+' on the season. '
-                + (swingW===GAMES ? 'Nobody up here has ever swept it. Nobody will shut up about it either.'
-                  : swingL===GAMES ? 'Three nights, three losses, one bus home. It was a quiet ride.'
-                  : 'The town noticed. The town always notices.'));
+              brief.push(byGrace
+                ? ('Swing: '+swingW+'-'+swingL+'. Season: '+S.wins+'-'+S.losses+'. Recorded.')
+                : ('We went '+swingW+'-'+swingL+' on the swing. '+S.wins+'-'+S.losses+' on the season. '
+                  + (swingW===GAMES ? 'Nobody up here has ever swept it. Nobody will shut up about it either.'
+                    : swingL===GAMES ? 'Three nights, three losses, one bus home. It was a quiet ride.'
+                    : 'The town noticed. The town always notices.')));
             } else {
-              brief.push(won
-                ? 'And we won, in case the score got by ya. '+S.wins+'-'+S.losses+'. The town noticed.'
-                : 'We dropped the game, for the record. '+S.wins+'-'+S.losses+'. The town noticed that too.');
+              brief.push(byGrace
+                ? (won ? 'We won. '+S.wins+'-'+S.losses+'. Recorded. I don\u2019t celebrate results. I record them.'
+                       : 'We lost. '+S.wins+'-'+S.losses+'. Recorded, in the same hand, at the same speed.')
+                : (won ? 'And we won, in case the score got by ya. '+S.wins+'-'+S.losses+'. The town noticed.'
+                       : 'We dropped the game, for the record. '+S.wins+'-'+S.losses+'. The town noticed that too.'));
             }
           }
-          var led=applyLedger(GAMES, home, won, isPO);
+          var led=applyLedger(GAMES, home, won, isPO, byGrace);
           brief.push(led.line);
+          /* Sandra books her week off before Grace turns up, so the handover
+             is set up a week ahead instead of Grace cold-opening. */
+          if(!S.flags.graceWarned && S.stage==='regular' && S.week>=4 && !current.grace){
+            S.flags.graceWarned=true; S.flags.graceWeek=S.tw;
+            brief.push("Housekeeping. I'm taking next week. It'll be the first since 1981 and I've already been talked out of it twice, so let's not have a third. Grace is covering \u2014 she had this desk before I did. She's very good. She'll tell you that herself, and you'll want to let her.");
+          }
           if(S.cash<0){
             S.debtWeeks++;
             if(S.debtWeeks===1)      brief.push("And the ledger's red. Gerald from First Federal called before I'd hung up my coat. We have two weeks to get back in the black before the bank, quote, 'explores its options.' Gerald doesn't explore, boss. Gerald forecloses.");
@@ -2355,7 +2466,7 @@
   }
 
   function startNewSeason(){
-    S.season++; S.week=1;
+    S.season++; S.week=1;   /* S.tw deliberately keeps counting: cross-season arcs depend on it */
     S.wins=0; S.losses=0; S.streak=0; S.last=null;
     S.done={}; S.stage='regular'; S.debtWeeks=0; S.po=null;
     buildDeck();
@@ -2458,11 +2569,11 @@
         "Note for the new owner: there is no dialing Tiny back. There is only aiming him. Four owners have learned this. Three learned it late."
       ]},
     { who:'leo', tab:'LEO', thick:'\u25AE\u25AE\u25AE', name:'LEO JAMES', meta:'Forward \u2014 Age Contested',
-      intro:"\u201CLeo James. Forty-nine years old. Still starts. Still finishes.\n\nThere are three birth certificates in that folder. They disagree by eleven years. He's signed all three, in the same hand, with the same pen. I've thought about that more than the situation calls for.\n\nThirty minutes a night. I have never seen the man breathe hard.\u201D",
+      intro:"\u201CLeo James. Forty-nine years old. Still starts. Still finishes.\n\nHe was thirty-four the year I started here. That was nine years ago. I've done the arithmetic more than once. The arithmetic is fine. It's everything around the arithmetic.\n\nThirty minutes a night. I have never seen the man breathe hard.\u201D",
       file:[
-        "JAMES, LEO. Forward. Signed 1979. Or 1977. Or earlier, depending which document you hold and how generous you're feeling that morning.",
-        "Three birth certificates on file. Eleven years between the earliest and the latest. All three signed in the same hand, with the same pen, which is the part I would like somebody to sit down and explain to me. Nobody has offered. I've stopped asking, which I want on the record as a decision and not a defeat.",
-        "Plays thirty minutes a night and has never asked to come out. The young fellas go to him before they go to Hank. Hank knows. Hank has never once mentioned it. That's the arrangement, and it works, and I've filed it under HOME where I can find it."
+        "JAMES, LEO. Forward. Listed at forty-nine. Listed at thirty-four the year I started, which was nine years ago. I have done the arithmetic. The arithmetic is fine.",
+        "I have raised this with him twice. The first time he agreed with me. The second time he agreed with me again, warmly, and then the conversation was over and I could not tell you how it ended.",
+        "Plays thirty minutes a night and has never asked to come out. The young fellas go to him before they go to Hank. Hank knows. Hank has never once mentioned it. That's the arrangement, it works, and I'd rather not be the one who examines it."
       ]},
     { who:'import', tab:'IMPORT', thick:'\u25AE', name:'THE IMPORT', meta:'Forward \u2014 The Prodigy',
       intro:"\u201CAnd that's the Import. Eighteen years old. Professional since he was thirteen, apparently.\n\nThe paperwork names a country. I've looked it up twice \u2014 once with the office atlas, once with a better atlas I bought with my own money.\n\nSpeaks no English. Not a word. Not hello. Fourteen months here, and he has never once been confused about anything that was happening.\u201D",
@@ -2540,9 +2651,9 @@
     {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
      text:"She's at the door before you are, holding a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CSandra. I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those. I'll let you pick which.\u201D"},
     {kind:'text', scene:'intro_files',
-     text:"The tour takes eleven minutes. Four of them are the filing cabinet.\n\nDAIRY. VANITY. SCOUT. MIRACLES. HOME.\n\nAnd one folder thicker than the other five stacked together, labeled simply: SAM.\n\n\u201CDon't ask. It's load-bearing.\u201D"},
+     text:"The tour takes eleven minutes.\n\nThe arena smells like woodsmoke and old rubber. The lights over the court need a full minute to come up, and she waits through it without comment, because that's just the minute.\n\nOn the way out she taps a folder on the desk. It's thicker than the rest. It says SAM.\n\n\u201CDon't ask. It's load-bearing.\u201D"},
     {kind:'text',
-     text:"\u201CRight. The people. You'll meet all of 'em whether you plan to or not \u2014 better we do it here, where nobody's bleeding and I control the order.\n\nCabinet's by my desk. You're welcome in it any time.\u201D\n\nShe says the second part in a tone that does not fully support the offer."},
+     text:"\u201CRight. The people.\n\nYou'll meet all of 'em whether you plan to or not \u2014 better we do it here, where nobody's bleeding and I control the order.\u201D\n\nShe starts with the coach."},
     castCard('hank'),
     castCard('ricky'),
     castCard('tiny'),
@@ -2611,7 +2722,7 @@
     try{
       var raw=localStorage.getItem(SAVE_KEY); if(!raw) return false;
       var d=JSON.parse(raw); if(!d || !d.S) return false;
-      S=d.S; S.flags=S.flags||{}; S.done=S.done||{}; S.met=S.met||{};
+      S=d.S; S.flags=S.flags||{}; S.done=S.done||{}; S.met=S.met||{}; S.tw=S.tw||S.week||1;
       var byId={}; STORY.forEach(function(st){ byId[st.id]=st; });
       deck=(d.deckIds||[]).map(function(id){ return byId[id]; }).filter(Boolean);
       deckPos=d.deckPos||0;
@@ -2631,7 +2742,7 @@
   dCards[2].addEventListener('click', function(){ choose(2); });
   mCards[0].addEventListener('click', function(){ if(momentChoice){var f=momentChoice; momentChoice=null; f(0);} });
   mCards[1].addEventListener('click', function(){ if(momentChoice){var f=momentChoice; momentChoice=null; f(1);} });
-  document.getElementById('filesTab').addEventListener('click', openFiles);
+  document.getElementById('portwin').addEventListener('click', openFiles);
   document.getElementById('fileBack').addEventListener('click', function(){
     fadeScreens(filesS, dash);
   });
@@ -2641,9 +2752,9 @@
     if(phase==='recap'){ startNewSeason(); return; }
     if(phase!=='outcome') return;
     if(pendingRoute==='bankrupt'){ runBankruptcy(); return; }
-    if(pendingRoute==='final'){ S.stage='final'; S.week++; beginWeek(); return; }
+    if(pendingRoute==='final'){ S.stage='final'; S.week++; S.tw++; beginWeek(); return; }
     if(pendingRoute==='recap'){ seasonRecap(); return; }
-    S.week++;
+    S.week++; S.tw++;
     beginWeek();
   });
 
