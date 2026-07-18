@@ -112,8 +112,8 @@
     white-space:nowrap;
     text-shadow:0.5px 0.5px 0 rgba(30,20,10,.35);}
   .hcell{display:flex; flex-direction:column; align-items:center; gap:5px; top:197px;}
-  .hcell .lab{font-size:15px;}
-  .hcell .v{font-size:33px;}
+  .hcell .lab{font-size:16px; line-height:1;}
+  .hcell .v{font-size:35px; line-height:1;}
   .hs1{left:522px;width:90px;} .hs2{left:612px;width:90px;} .hs3{left:702px;width:107px;}
   .nm{left:62px; top:761px; font-size:48px;}
   .nmeta{left:315px; top:759px; font-family:"Courier New",monospace; font-weight:700;
@@ -248,7 +248,16 @@
   .caw .cawtxt{position:absolute; left:90px; right:90px; top:50%; transform:translateY(-50%);
     font-family:Georgia,'Times New Roman',serif; font-style:italic; color:#e8e2d4;
     font-size:40px; line-height:58px; text-align:center; text-shadow:0 3px 18px #000, 0 0 60px rgba(0,0,0,.9);
-    white-space:pre-line; transition:opacity .25s;}
+    white-space:pre-line; transition:opacity .25s, top .25s, transform .25s;}
+  /* Establishing shots (tip-off/arena scenes) get the text off the picture
+     entirely — a bottom caption strip, like film subtitles, rather than
+     centered over the artwork. */
+  .caw.captionmode .cawtxt{top:auto; bottom:230px; transform:none;
+    font-size:36px; line-height:50px;}
+  .caw .capband{position:absolute; left:0; right:0; bottom:130px; height:380px;
+    background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(6,5,4,.78) 28%, rgba(6,5,4,.9) 100%);
+    opacity:0; transition:opacity .25s; pointer-events:none;}
+  .caw.captionmode .capband{opacity:1;}
   .caw.scoremode .cawtxt{font-style:normal; font-family:"Courier New",monospace; color:#ffb02e;
     text-shadow:0 0 22px rgba(255,176,46,.55), 0 3px 14px #000; letter-spacing:4px;}
   .caw .cawlabel{position:absolute; left:0; right:0; top:26%; text-align:center;
@@ -403,6 +412,7 @@
       <video class="cawart" id="cawVid" muted autoplay loop playsinline preload="auto"></video>
       <div class="cawshade"></div>
       <div class="cawreadband"></div>
+      <div class="capband"></div>
       <div class="cawlabel">FINAL</div>
       <div class="pcard cawcard" id="cawCard">
         <img class="pimg" id="cawPort" alt="">
@@ -468,19 +478,19 @@
 
     <!-- DASHBOARD -->
     <div class="screen" id="dash">
-      <div class="window" id="portwin"><img alt="" id="portrait" src="assets/ui/sandra-base.webp"><div class="filestab" id="filesTab">&#9654; FILES</div></div>
+      <div class="window" id="portwin"><img alt="" id="portrait" src="assets/ui/sandra-base.webp"></div>
       <img class="frame" alt="" src="assets/ui/frame.webp">
       <div class="ui">
         <div class="cell s1"><span class="lab">CASH</span><span class="v blk green" id="stCash">$55,000</span></div>
         <div class="cell s2"><span class="lab">MORALE</span><span class="v blk green" id="stMorale">72%</span></div>
         <div class="cell s3"><span class="lab">BUZZ</span><span class="v blk amber" id="stBuzz">48%</span></div>
         <div class="cell s4"><span class="lab">CRED</span><span class="v blk blue" id="stCred">36%</span></div>
-        <div class="team blk"><span class="t">THE LUMBERJACKS</span></div>
+        <div class="team blk"><span class="t">LUMBERJACKS</span></div>
         <div class="hcell hs1"><span class="lab">SEASON</span><span class="v blk" id="stSeason">1</span></div>
         <div class="hcell hs2"><span class="lab">WEEK</span><span class="v blk" id="stWeek">01</span></div>
         <div class="hcell hs3"><span class="lab">STREAK</span><span class="v blk" id="stStreak">&mdash;</span></div>
         <div class="nm blk" id="nmName">SANDRA</div>
-        <div class="nmeta" id="nmMeta">Secretary<br>Former Beat Reporter</div>
+        <div class="nmeta" id="nmMeta">Secretary</div>
         <div class="noteh" id="noteh">DAY ONE</div>
         <div class="notewrap" id="notewrap">
           <div class="notescroll" id="notescroll"><p>Monday morning. The actual first day, if we're not counting yesterday — which I'm not, since most of it was you meeting people through a folder.</p><p>Straight to business, then. Tiny worked the Open Mic downtown last night, and about thirty of his forty minutes were an impression of you. I'd call it unflattering. The room disagreed. Loudly.</p><p>So... what's the first order of business?</p></div>
@@ -501,7 +511,6 @@
           <span class="sv2" id="slLast">FIRST GAME</span></div>
         <div class="ticker" id="ticker">NORTHERN DIVISION &bull; SEASON OPENS</div>
         <div class="card nextcard" id="nextBtn" style="display:none;">
-          <span class="hd">NEXT WEEK</span>
           <span class="txt">NEXT WEEK &#9654;</span>
           <span class="sub" id="nextSub">The season rolls on.</span></div>
       </div>
@@ -851,6 +860,7 @@
       caw.classList.toggle('scoremode', step.kind==='score');
       caw.classList.toggle('cardmode', step.kind==='card');
       caw.classList.toggle('textmode', step.kind==='text');
+      caw.classList.toggle('captionmode', step.kind==='text' && !!step.caption);
       cawTxt.textContent=step.text||step.line;
       cawArt.classList.remove('show');
       cawVid.classList.remove('show');
@@ -2230,7 +2240,7 @@
       setPortrait('grace', 'base');
     } else {
       el.name.textContent='SANDRA';
-      el.meta.innerHTML='Secretary<br>Former Beat Reporter';
+      el.meta.innerHTML='Secretary';
       setPortrait('sandra', current.mood||'base');
     }
     el.callSub.textContent="Your move, boss.";
@@ -2326,7 +2336,7 @@
         ? 'GAME NIGHT.\nLUMBERJACKS vs '+FOELIST[0]+'.\nThe Shack fills. The lights hum. Tip-off.'
         : 'ROAD TRIP.\nLUMBERJACKS at '+FOELIST[0]+'.\nSix hours of highway. One bus. No survivors of the card game. Tip-off.';
     }
-    var tip = {kind:'text', text: tipText,
+    var tip = {kind:'text', text: tipText, caption: GAMES<=1,
       scene: GAMES>1 ? null
            : isPO ? (current.playoff==='final'?'tipoff_final':'tipoff_playoff')
            : (home ? 'tipoff_home' : 'tipoff_road')};
@@ -2470,7 +2480,7 @@
     phase='recap'; S.stage='recap'; current=null;
     el.noteh.textContent='SEASON '+S.season+': FINAL';
     el.name.textContent='SANDRA';
-    el.meta.innerHTML='Secretary<br>Former Beat Reporter';
+    el.meta.innerHTML='Secretary';
     setPortrait('sandra', S.playoffResult==='champ'?'pleased':(S.wins>=S.losses?'pleased':'tired'));
     var poLine =
       S.playoffResult==='champ'  ? "and the Timber Cup, which I've listed last because I was saving it, the way you save the top of the muffin." :
@@ -2519,7 +2529,7 @@
     phase='over'; S.stage='over'; current=null; clearSave();
     el.noteh.textContent='THE LAST PAGE';
     el.name.textContent='SANDRA';
-    el.meta.innerHTML='Secretary<br>Former Beat Reporter';
+    el.meta.innerHTML='Secretary';
     setPortrait('sandra','grim');
     setNote(paras);
     el.call.style.display='none';
@@ -2779,7 +2789,8 @@
   dCards[2].addEventListener('click', function(){ choose(2); });
   mCards[0].addEventListener('click', function(){ if(momentChoice){var f=momentChoice; momentChoice=null; f(0);} });
   mCards[1].addEventListener('click', function(){ if(momentChoice){var f=momentChoice; momentChoice=null; f(1);} });
-  document.getElementById('portwin').addEventListener('click', openFiles);
+  /* FILES entry point removed per request. openFiles()/the #files screen
+     stay defined (dead code) rather than torn out, in case this comes back. */
   document.getElementById('fileBack').addEventListener('click', function(){
     fadeScreens(filesS, dash);
   });
@@ -2812,7 +2823,8 @@
   S.venue='HOME'; S.foe=FOES[Math.floor(Math.random()*FOES.length)];
   presentWeek();
   try{
-    if(localStorage.getItem(SAVE_KEY)){
+    var SHOW_CONTINUE = false;  /* Continue button disabled per request; save system stays live */
+    if(SHOW_CONTINUE && localStorage.getItem(SAVE_KEY)){
       var _cb=document.getElementById('contbtn');
       if(_cb) _cb.style.display='flex';
     }
