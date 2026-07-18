@@ -96,19 +96,24 @@
   .blk{font-family:"Arial Black","Helvetica Neue",Impact,sans-serif; font-weight:900; color:var(--ink); line-height:1;}
   .lab{font-weight:800; color:#4a4234; letter-spacing:1px; font-size:19px; line-height:1;}
   .cell{display:flex; flex-direction:column; align-items:center; gap:10px; top:98px;}
-  .cell .v{font-size:36px; text-shadow:0 1px 0 rgba(255,250,235,.35);}
+  /* Item 4: this was the one panel in the game still using Arial Black/Helvetica
+     — every other panel (footer cards, notepad, team name, gazette) is Courier
+     New or a period serif. That's the mismatch. Scoped to just this bar. */
+  .cell .lab{font-family:"Courier New",monospace;}
+  .cell .v{font-family:"Courier New",monospace; font-weight:700; font-size:36px;
+    text-shadow:0 1px 0 rgba(255,250,235,.35);}
   .s1{left:41px;width:195px;} .s2{left:236px;width:192px;}
   .s3{left:428px;width:172px;} .s4{left:600px;width:207px;}
   /* Bar 2 was halved: 52px of interior. Team name is one line now, not two,
      and the hcell type steps down to fit. */
-  .team{left:52px; top:197px; width:460px; text-align:left;}
+  .team{left:52px; top:199px; width:460px; text-align:left;}
   .team .t{display:block; font-family:"American Typewriter","Rockwell","Georgia",serif;
-    font-weight:900; font-size:38px; line-height:44px; letter-spacing:0.5px;
-    transform:scaleX(.88); transform-origin:left; white-space:nowrap;
+    font-weight:900; font-size:36px; line-height:40px; letter-spacing:0.3px;
+    white-space:nowrap;
     text-shadow:0.5px 0.5px 0 rgba(30,20,10,.35);}
-  .hcell{display:flex; flex-direction:column; align-items:center; gap:4px; top:195px;}
-  .hcell .lab{font-size:14px;}
-  .hcell .v{font-size:30px;}
+  .hcell{display:flex; flex-direction:column; align-items:center; gap:5px; top:197px;}
+  .hcell .lab{font-size:15px;}
+  .hcell .v{font-size:33px;}
   .hs1{left:522px;width:90px;} .hs2{left:612px;width:90px;} .hs3{left:702px;width:107px;}
   .nm{left:62px; top:761px; font-size:48px;}
   .nmeta{left:315px; top:759px; font-family:"Courier New",monospace; font-weight:700;
@@ -143,15 +148,28 @@
   .cc{left:574px;width:221px; transform:rotate(1.45deg);}
   .card{cursor:pointer;}
   .card:active{filter:brightness(.92);}
-  .nextcard{left:332px; width:307px; transform:rotate(-0.4deg); top:1525px; height:110px; padding:0 8px;
-    justify-content:center; background:none; box-shadow:none;}
-  .nextcard .txt{font-size:34px; line-height:40px; text-align:center;}
-  .nextcard .sub{font-size:22px;}
-  .nextcard .txt{color:var(--red);}
-  .callcard{left:332px; width:307px; top:1525px; height:110px; transform:rotate(-0.4deg); padding:0 8px;
-    justify-content:center; background:none; box-shadow:none;}
-  .callcard .txt{font-size:34px; line-height:40px; text-align:center;}
-  .callcard .sub{font-size:22px;}
+  /* Item 1: the centre card is the primary action. It gets the same small-
+     heading pattern as the side slots (a third tier they didn't have before),
+     plus a soft warm-toned lift so it reads as raised off the desk without
+     any modern glow/gradient/rounded-button treatment. */
+  .nextcard, .callcard{left:332px; width:307px; top:1525px; height:110px; padding:0 8px;
+    justify-content:center; background:none;
+    box-shadow:0 7px 16px rgba(20,13,7,.4), 0 2px 4px rgba(20,13,7,.28);
+    transform:rotate(-0.4deg) translateY(-2px);
+    transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;}
+  .nextcard .hd, .callcard .hd{font-family:"Arial Black",sans-serif; font-size:18px;
+    letter-spacing:1.5px; color:var(--red); line-height:1;}
+  .nextcard .txt, .callcard .txt{margin-top:8px; font-size:30px; line-height:35px; text-align:center;
+    color:var(--red);}
+  .nextcard .sub, .callcard .sub{margin-top:5px; font-size:21px;}
+  .nextcard:active, .callcard:active{
+    transform:rotate(-0.4deg) translateY(0px);
+    box-shadow:0 2px 6px rgba(20,13,7,.3);
+    filter:brightness(.95);}
+  @media (hover:hover){
+    .nextcard:hover, .callcard:hover{
+      box-shadow:0 9px 18px rgba(20,13,7,.44), 0 2px 5px rgba(20,13,7,.3);}
+  }
   .slot{position:absolute; top:1525px; height:110px; display:flex; flex-direction:column;
     align-items:center; justify-content:center; text-align:center; gap:6px; padding:0 2px;}
   .slotL{left:45px; width:259px; transform:rotate(-1.6deg);}
@@ -474,6 +492,7 @@
           <span class="sv1" id="slFoe">vs FARGO</span>
           <span class="sv2" id="slVenue">HOME NIGHT</span></div>
         <div class="card callcard" id="callBtn">
+          <span class="hd">THIS WEEK</span>
           <span class="txt">MAKE THE CALL &#9654;</span>
           <span class="sub" id="callSub">Your move, boss.</span></div>
         <div class="slot slotR" id="slotR">
@@ -482,6 +501,7 @@
           <span class="sv2" id="slLast">FIRST GAME</span></div>
         <div class="ticker" id="ticker">NORTHERN DIVISION &bull; SEASON OPENS</div>
         <div class="card nextcard" id="nextBtn" style="display:none;">
+          <span class="hd">NEXT WEEK</span>
           <span class="txt">NEXT WEEK &#9654;</span>
           <span class="sub" id="nextSub">The season rolls on.</span></div>
       </div>
@@ -1973,10 +1993,10 @@
     var pct=S.wins/g;
     return pct>=0.72?1 : pct>=0.60?2 : pct>=0.50?3 : pct>=0.42?4 : pct>=0.33?5 : pct>=0.22?6 : 7;
   }
-  function divisionPlace(){
+  function divisionPlace(noRecord){
     var g=S.wins+S.losses;
     if(!g) return 'SEASON OPENS';
-    return ordinal(placeNow())+' IN THE NORTHERN DIVISION \u2022 '+S.wins+'-'+S.losses;
+    return ordinal(placeNow())+' IN THE NORTHERN DIVISION' + (noRecord ? '' : ' \u2022 '+S.wins+'-'+S.losses);
   }
   function updateBlotter(){
     if(phase==='recap'||phase==='over') return; /* terminal screens own the ticker */
@@ -2000,7 +2020,7 @@
     if(current && current.playoff){
       tick='NORTH COUNTRY PLAYOFFS \u2022 '+(current.playoff==='semi'?'SEMIFINAL':'TIMBER CUP FINAL');
     } else {
-      tick=(S.venue==='HOME'?'HOME NIGHT':'ON THE ROAD')+'  \u2022  '+divisionPlace();
+      tick=(S.venue==='HOME'?'HOME NIGHT':'ON THE ROAD')+'  \u2022  '+divisionPlace(true);
     }
     document.getElementById('ticker').textContent=tick;
   }
