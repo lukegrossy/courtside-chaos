@@ -88,7 +88,8 @@
        notepad paper             y  829-1488  red margin rule x 92-95
        footer cards                y 1503-1655  centered pair, x 108-389 / 415-745
      If the frame art changes again, re-measure before touching these.   */
-  #dash .window{position:absolute; left:39px; top:334px; width:772px; height:488px; overflow:hidden; z-index:3;}
+  #dash .window{position:absolute; left:39px; top:334px; width:772px; height:488px; overflow:hidden; z-index:3;
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,.45), inset 0 0 14px 6px rgba(0,0,0,.4);}
   #dash .window img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 18%;}
   #dash .frame{position:absolute; left:0; top:0; width:853px; height:1844px; z-index:2; pointer-events:none;}
   #dash .ui{position:absolute; left:0; top:0; width:853px; height:1844px; z-index:4;}
@@ -97,7 +98,7 @@
   .blk{font-family:"Arial Black","Helvetica Neue",Impact,sans-serif; font-weight:900; color:var(--ink); line-height:1;}
   .lab{font-weight:800; color:#4a4234; letter-spacing:1px; font-size:19px; line-height:1;}
   /* ---- LOGO (y83-155, 72px plain black gap after the notch, no card texture) ---- */
-  .chlogo{left:50%; top:88px; width:360px; height:auto; margin-left:-180px; z-index:5;}
+  .chlogo{left:50%; top:84px; width:360px; height:auto; margin-left:-180px; z-index:5;}
   /* ---- BLANK CARD (y155-211, 56px, no baked dividers) ----
      Season / Week / Record, evenly split into 3, with a thin CSS divider
      between cells since the card art itself has no dividers here. */
@@ -110,8 +111,8 @@
   .h3{left:555px;width:258px; border-left:1px solid rgba(60,45,30,.35);}
   /* ---- 4-EQUAL-CELL CARD (y227-315, 88px, painted dividers x236/428/600) ----
      Cash / Morale / Buzz / Cred, one per painted cell. */
-  .cell{display:flex; flex-direction:column; align-items:center; gap:8px; top:253px;}
-  .cell .lab{font-family:"Courier New",monospace; font-size:18px;}
+  .cell{display:flex; flex-direction:column; align-items:center; gap:6px; top:239px;}
+  .cell .lab{font-family:"Courier New",monospace; font-size:24px; letter-spacing:1.5px;}
   .cell .v{font-family:"Courier New",monospace; font-weight:700; font-size:33px; line-height:1;
     text-shadow:0 1px 0 rgba(255,250,235,.35);}
   .s1{left:39px;width:197px;} .s2{left:236px;width:192px;}
@@ -157,9 +158,14 @@
     transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;}
   .nextcard .hd, .callcard .hd{font-family:"Arial Black",sans-serif; font-size:18px;
     letter-spacing:1.5px; color:var(--red); line-height:1;}
-  .nextcard .txt, .callcard .txt{margin-top:8px; font-size:30px; line-height:35px; text-align:center;
-    color:var(--red);}
-  .nextcard .sub, .callcard .sub{margin-top:5px; font-size:21px;}
+  .nextcard .txt{margin-top:8px; font-size:30px; line-height:35px; text-align:center; color:var(--red);}
+  .nextcard .sub{margin-top:5px; font-size:21px;}
+  /* callcard lost its subtext (redundant + made the card busy) — the action text
+     itself now reads as a stamped button: bordered box, bigger, bolder, nothing
+     else on the card competing for attention. */
+  .callcard .txt{display:block; width:100%; box-sizing:border-box;
+    font-size:30px; line-height:1.2; text-align:center; color:var(--red);
+    font-weight:800; border:3px solid var(--red); border-radius:4px; padding:12px 6px;}
   .nextcard:active, .callcard:active{
     transform:rotate(-0.4deg) translateY(0px);
     box-shadow:0 2px 6px rgba(20,13,7,.3);
@@ -184,7 +190,6 @@
     font-size:21px; letter-spacing:1px;}
   /* Lumberjack Story banner in the bottom black band (y1650-1844) */
   .ljfooter{left:76px; top:1722px; width:700px; height:auto; z-index:5;}
-  .callcard .txt{color:var(--red);}
   /* ---- decision screen ---- */
   .dart{position:absolute; left:0; top:0; width:853px; height:1844px;}
   .dtitle{position:absolute; left:48px; right:48px; top:180px; height:150px;
@@ -502,9 +507,7 @@
           <span class="sv1" id="slFoe">vs FARGO</span>
           <span class="sv2" id="slVenue">HOME NIGHT</span></div>
         <div class="card callcard" id="callBtn">
-          <span class="hd">THIS WEEK</span>
-          <span class="txt">MAKE THE CALL &#9654;</span>
-          <span class="sub" id="callSub">Your move, boss.</span></div>
+          <span class="txt">MAKE THE CALL &#9654;</span></div>
         <div class="ticker" id="ticker">NORTHERN DIVISION &bull; SEASON OPENS</div>
         <img class="ljfooter" alt="A Lumberjack Story" src="assets/ui/lumberjack-footer.png">
         <div class="card nextcard" id="nextBtn" style="display:none;">
@@ -1904,7 +1907,7 @@
     week:document.getElementById('stWeek'), rec:document.getElementById('stRecord'),
     noteh:document.getElementById('noteh'), scroll:document.getElementById('notescroll'),
     wrap:document.getElementById('notewrap'),
-    call:document.getElementById('callBtn'), callSub:document.getElementById('callSub'),
+    call:document.getElementById('callBtn'),
     next:document.getElementById('nextBtn'), nextSub:document.getElementById('nextSub') };
   var decideS=document.getElementById('decide'), dTitle=document.getElementById('dTitle'),
       dCards=[document.getElementById('dA'),document.getElementById('dB'),document.getElementById('dC')];
@@ -2233,7 +2236,6 @@
     } else {
       setPortrait('sandra', current.mood||'base');
     }
-    el.callSub.textContent="Your move, boss.";
     setNote(current.setup);
     el.next.style.display='none';
     el.call.style.display='';
