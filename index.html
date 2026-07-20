@@ -822,11 +822,19 @@
     });
   }
 
+  var videoCache={}; // scene -> preloaded <video> element, reused instead of re-created
+  function preloadVideo(scene){
+    if(videoCache[scene]) return videoCache[scene];
+    var v=document.createElement('video');
+    v.muted=true; v.preload='auto'; v.src='assets/cutscenes/'+scene+'.mp4'; v.load();
+    videoCache[scene]=v;
+    return v;
+  }
   function probeArt(scene, cb){
     if(!scene){ cb(null); return; }
     var vurl='assets/cutscenes/'+scene+'.mp4';
-    var v=document.createElement('video');
-    v.muted=true; v.preload='auto';
+    var v=videoCache[scene] || document.createElement('video');
+    if(!videoCache[scene]){ v.muted=true; v.preload='auto'; }
     var settled=false;
     function tryImage(){
       var iurl='assets/cutscenes/'+scene+'.gif', p=new Image();
@@ -834,12 +842,19 @@
       p.onerror=function(){ if(!settled){ settled=true; cb(null); } };
       p.src=iurl;
     }
-    v.oncanplaythrough=function(){ if(!settled){ settled=true; cb({type:'video',url:vurl}); } };
+    /* canplay fires as soon as the current frame is decoded \u2014 a much lower bar
+       than canplaythrough, which waits until the browser thinks the whole clip
+       can play without stalling. On a cold real-network load, canplaythrough can
+       take a long time to fire (or never, on some mobile browsers); canplay is
+       what we actually need since playback just needs to start. */
+    if(v.readyState>=2){ if(!settled){ settled=true; cb({type:'video',url:vurl}); return; } }
+    v.oncanplay=function(){ if(!settled){ settled=true; cb({type:'video',url:vurl}); } };
     v.onerror=tryImage;
-    v.src=vurl;
-    v.load();
-    /* some browsers never fire canplaythrough for file:// video; give it a beat then fall back */
-    setTimeout(function(){ if(!settled && v.readyState<3) tryImage(); }, 350);
+    if(!videoCache[scene]){ v.src=vurl; v.load(); }
+    /* give a cold, non-preloaded load real time on a real network before falling
+       back \u2014 350ms was tuned for local file:// testing and is too aggressive
+       for GitHub Pages over an actual connection. */
+    setTimeout(function(){ if(!settled && v.readyState<2) tryImage(); }, 1200);
   }
   function fadeScreens(from,to,cb){
     from.classList.remove('on');
@@ -1290,7 +1305,7 @@
 
   { id:'possum_fusebox', venue:'home', title:'THE FUSE BOX', mood:'dry', once:true, special:'possum',
     setup:[
-      "\u201CThere's a family of possums living in the fuse box. Has been for a while. The previous owner wouldn't pay to have them moved. I don't know what he was saving for. Not this.\u201D",
+      "There's a family of possums living in the fuse box. Has been for a while. The previous owner wouldn't pay to have them moved. I don't know what he was saving for. Not this.",
       "No electrician in town will touch the panel while they're in it. I've called all three. One of them laughed. I counted the babies twice. I stopped at six both times.",
       "So. Your call."],
     choices:[
@@ -1445,7 +1460,7 @@
         fx:{buzz:9, morale:8, cash:-1200},
         out:["The lights drop at halftime, the spotlight finds row F, and Ernie Kowalski \u2014 mid-sip \u2014 becomes the first man in league history to be immortalized while holding a thermos. He stands, waves the thermos, and the building comes apart.",
              "He's given the microphone. He critiques the modern pick-and-roll for six full minutes. It's the greatest speech anyone here has ever heard. His number ascends to the rafters while he tells the opposing coach, personally, to 'watch the baseline.'"],
-        desk:"Ceremony cost: $1,200. Ernie's speech: unbudgeted, priceless. He has requested 'a word' about our defense. I've scheduled it. Filed under MIRACLES.",
+        desk:"Ceremony cost: $1,200. Ernie's speech: unbudgeted, priceless. He has requested 'a word' about our defense. I've scheduled it, God help me.",
         gaz:"MAN IMMORTALIZED MID-SIP; CRITIQUES DEFENSE FROM RAFTERS' SHADOW", news:"Ernie 'The Stilt' Kowalski has become the first man in league history immortalised while holding a thermos, the ceremony having been conducted as a surprise on a Tuesday. Handed the microphone, Kowalski critiqued the modern pick-and-roll for six minutes and advised the visiting coach, personally, to watch the baseline.", mood:'pleased' },
       { t:"Tell him first. Do it proper.", sub:"He's earned a heads-up.", when:'game',
         fx:{buzz:5, morale:6, cred:6, cash:-1200},
@@ -1545,7 +1560,7 @@
         fx:{buzz:14, cash:-1000, morale:9, cred:-2},
         out:["Two hundred and eleven souls make it through the storm, and they are the two hundred and eleven most committed human beings in North America. The soup runs out in the second quarter, at which point people begin SHARING soup, and the game achieves a mood that veterans will describe only as 'church.'",
              "The wind howls through the rafters all night like a section of its own. The visiting coach, snow still in his eyebrows, calls it 'the only real game left in the sport' before it's even over. Win or lose, everyone is staying after to dig out everyone else's car. That part was decided around the second soup."],
-        desk:"Attendance: 211. Soup: transcended. In forty years this town will claim thirty thousand people were here and I will not correct a single one of them. Filed under HOME.",
+        desk:"Attendance: 211. Soup: transcended. In forty years this town will claim thirty thousand people were here, and I will not correct a single one of them.",
         gaz:"211 ATTEND GAME; 30,000 WILL CLAIM THEY DID", news:"Two hundred and eleven spectators reached the arena through fourteen inches of snow. Soup ran out in the second quarter, at which point attendees began sharing soup. The wind was audible in the rafters throughout. The visiting coach, snow in his eyebrows, called it the only real game left in the sport.", mood:'pleased', flag:'blizzardGame' },
       { t:"Postpone. Safety first.", sub:"Sensible. There's a first time.",
         fx:{cred:5, buzz:-7},
@@ -1570,7 +1585,7 @@
         fx:{cash:-2500, morale:7, buzz:3},
         out:["You pay. Sandra walks the check to the league office herself, and reports that Larry Stokes accepted it 'with the smile of a man whose new revenue stream just cleared.' The Mascot Draft protects a total of one mascot league-wide this year: ours.",
              "Sam is informed. Sam does a lap of the parking lot with a flag he had prepared in advance. The flag says SAM. He made it himself. It's misspelled. Nobody can figure out how."],
-        desk:"Protection fee: $2,500, which is extortion with a lectern. The flag says SMA. He's ours. Filed under SAM, HOME, and \u2014 after consideration \u2014 MIRACLES.",
+        desk:"Protection fee: $2,500, which is extortion with a lectern. The flag says SMA. He's ours, whatever the letters claim.",
         gaz:"LOCAL MASCOT PROTECTED; FLAG MISSPELLED, BELOVED", news:"The club has paid $2,500 to protect Sawdust Sam from the league's inaugural Mascot Draft. Sam is the only mascot protected league-wide this year. Informed of the news, Sam performed a lap of the parking lot with a flag he had prepared in advance. The flag is misspelled. Nobody can account for it.", mood:'pleased' },
       { t:"Risk the draft. Nobody claims injured mascots.", sub:"The folder is a deterrent.",
         fx:{buzz:6, morale:-8},
@@ -1652,7 +1667,7 @@
         fx:{morale:-3, buzz:6, cash:400},
         out:["The old bus makes the swing on willpower and a fan belt Ricky and the driver replace TOGETHER outside Thunder Bay at midnight, an event so shocking the team watches in silence through frosted windows like it's the northern lights.",
              "By Bismarck the bus has a name (Brenda), a snack hierarchy, and a card game with rules so complex two players quit the game but not the table. Something got built out there. Character, or a support group. Hard to say."],
-        desk:"Fan belt: $12. The thing between Ricky and the driver: repaired at midnight, no invoice, no comment from either. Brenda made it home. Filed under HOME, because she is one.",
+        desk:"Fan belt: $12. The thing between Ricky and the driver: repaired at midnight, no invoice, no comment from either. Brenda made it home. She's one of ours now, which is the only category that matters.",
         gaz:"BUS COMPLETES NORTHERN SWING; TOWN GREETS IT LIKE A SHIP", news:"The club ran the Northern Swing on the original bus, which completed it on willpower and a fan belt replaced at midnight outside Thunder Bay by Ricky Malone and the driver, working together, in silence, while the roster watched through frosted windows. The bus has a name. The bus made it home.", mood:'base', flag:'brendaLives' },
       { t:"Fly Hank and the starters. Bus the rest.", sub:"$1,900. Two-tier travel.",
         fx:{cash:-1900, morale:-7, buzz:3},
@@ -1725,7 +1740,7 @@
         out:["You sign a big quiet kid out of Hibbing who arrives with one bag and says 'thank you for the opportunity' to a room that cannot look at him.",
              "He is not the problem. He knows he is not the problem. He gets dressed very quickly and he gets dressed in Vern's locker, because it's the empty one, because nobody could bring themselves to say otherwise.",
              "He plays well. That's somehow worse."],
-        desk:"Signed: one forward, Hibbing, one bag. He said thank you for the opportunity to a room that could not look at him, and then he went out and played well, which nobody has forgiven him for and which is not his fault. I've filed him under HOME. It seemed like the decent thing.",
+        desk:"Signed: one forward, Hibbing, one bag. He said thank you for the opportunity to a room that could not look at him, and then he went out and played well, which nobody has forgiven him for and which is not his fault. I've decided to treat him like one of ours. It seemed like the decent thing.",
         gaz:"CLUB SIGNS REPLACEMENT; ROOM QUIET",
         news:"The club has signed a forward from Hibbing to fill the roster place of Vern Aho, missing eleven days following a blizzard. The player arrived with one bag and expressed gratitude for the opportunity. He has been assigned the vacant locker. Team-mates declined to comment.",
         mood:'dry', flag:'vernNoCeremony', stamp:'vernWeek' } ] },
@@ -1752,7 +1767,7 @@
         out:["You explain that the town needed the ceremony and that taking it back would take something from them. Vern listens to the whole thing without interrupting, which is worse.",
              "'Sure,' he says. He takes a new number. He does not mention it again, that day or any day.",
              "He is four points a game better in it. Nobody will say that out loud in front of him, and nobody has to, because he already knows, and that's the part that gets you."],
-        desk:"Number: remains retired. Vern: reassigned, agreeable, unreadable. He said 'sure' and then he went and got four points a game better, which I have decided not to interpret. Filed under HOME. The banner stays up. His mother still comes.",
+        desk:"Number: remains retired. Vern: reassigned, agreeable, unreadable. He said 'sure' and then he went and got four points a game better, which I have decided not to interpret. The banner stays up. His mother still comes.",
         gaz:"MAN PLAYS BENEATH OWN RETIRED NUMBER, DECLINES TO ELABORATE",
         news:"Vern Aho, whose number was retired during his absence, has accepted a new number rather than request the banner's removal. Aho offered no comment beyond assent. His scoring average has since risen by four points a game. The banner remains in place.",
         mood:'dry', flag:'vernBack' },
@@ -1779,7 +1794,7 @@
         out:["Practice starts. Nobody says anything. Hank blows the whistle like it's a Tuesday, because it is a Tuesday.",
              "It is the best practice of the year by a distance nobody can account for. Men are diving on the floor in a drill that does not require diving.",
              "Afterward Vern collects his Thermos and drives home and the whole thing is never spoken of again, by anyone, at any point."],
-        desk:"Days missing: eleven. Explanation offered: 'Ely.' Words spoken on the subject since: none, by anyone, ever. Filed under HOME. He wanted to know why practice was late. He had a point.",
+        desk:"Days missing: eleven. Explanation offered: 'Ely.' Words spoken on the subject since: none, by anyone, ever. He wanted to know why practice was late. He had a point.",
         gaz:"MAN PRESUMED DEAD ATTENDS PRACTICE, ASKS WHY PRACTICE IS LATE",
         news:"Vern Aho, missing eleven days following a blizzard, attended practice, seated himself at his locker and began taping his ankles. He had been at a cousin's residence in Ely, where the telephone was out. Practice proceeded. Team-mates, asked afterward about the session, described it as a good one.",
         mood:'pleased', flag:'vernBack' },
@@ -1812,7 +1827,7 @@
         fx:{cash:-12000, cred:10, morale:6},
         out:["The crews come in overnight so the schedule holds. The northeast roof stops its commentary, sections 110\u2013114 stop flickering during free throws \u2014 a home-court advantage we quietly mourn \u2014 and the sound... stops. On the last night, one of the crew asks Sandra what it was. She says 'the building thinking.' He doesn't laugh. He'd heard it too.",
              "The inspector returns, taps things, and issues a pass with the closest thing to warmth the small hammer allows. The old girl makes it. The old girl was always going to make it. But now it's official."],
-        desk:"Repairs: $12,000, paid, worth it. The sound has stopped and I find I miss it, which I'm noting here and nowhere else. Filed under HOME. The thickest page in the thinnest folder.",
+        desk:"Repairs: $12,000, paid, worth it. The sound has stopped and I find I miss it, which I'm admitting here and nowhere else.",
         gaz:"ARENA PASSES INSPECTION; 'THE SOUND' UNAVAILABLE FOR COMMENT", news:"The club has funded $12,000 in overnight repairs to the northeast roof, sections 110 through 114, and the item the city inspector's letter described only as 'the sound.' All three have ceased. A crew member asked what the sound had been and was told it was the building thinking. He did not laugh. He had heard it too.", mood:'pleased', flag:'arenaFixed' },
       { t:"Play under the asterisk.", sub:"Spring's problem. Survive to spring.",
         fx:{buzz:5, cred:-6},
@@ -1824,7 +1839,7 @@
         fx:{cash:7000, buzz:10, morale:7, cred:3},
         out:["The fund drive begins with a coffee tin at the concession stand and gets out of hand immediately, in the good way. The 1961 blazers make appearances. Tiny does a benefit set. Ernie Kowalski personally guilt-trips three business owners by name from row F. A child donates a jar of nickels and the Gazette runs the jar on the front page, above the fold, where it belongs.",
              "The drive clears seven thousand in two weeks. The repairs get scheduled. The tin stays out afterward, permanently, unlabeled, and people keep putting money in it, because the building isn't done needing things and the town isn't done either."],
-        desk:"Raised: $7,000, one jar of nickels (counted: $4.35, value: infinite). The tin stays out. Some ledgers keep themselves. Filed under HOME, MIRACLES, and \u2014 unofficially \u2014 US.",
+        desk:"Raised: $7,000, one jar of nickels (counted: $4.35, value: infinite). The tin stays out. Some ledgers keep themselves.",
         gaz:"JAR OF NICKELS LEADS ARENA FUNDING SURGE", news:"A coffee tin at the concession stand has raised $7,000 toward arena repairs in two weeks. Contributions include appearances by the 1961 roster, a benefit set by Tiny McGee, and the personal guilt-tripping of three business owners by Ernie Kowalski from Row F. A child's jar of nickels appears above the fold, where it belongs.", mood:'pleased', flag:'arenaFixed' } ] },
 
   { id:'halftime_wedding', venue:'home', when:'game', title:'THE HALFTIME WEDDING', mood:'base', scene:'wedding',
@@ -1837,13 +1852,13 @@
         fx:{buzz:10, morale:5, cash:800, cred:2},
         out:["The lights do the thing. Nobody briefed the lighting man; he simply knew. Randy cries first, which costs him twenty dollars to somebody in the plow department. The organist plays the forbidden one AS A PROCESSIONAL, softened into something nearly holy, and half the building doesn't recognize it and the half that does keeps beautifully quiet.",
              "Diane throws the bouquet into 119. It is caught by the bus driver, who looks at Ricky, and for one dangerous second the whole arena holds its breath. Concessions post a wedding-reception number in the third quarter. The visitors never recover the mood."],
-        desk:"Ceremony: performed. Lights: did the thing. I asked the lighting man about the thing and he said 'she knows,' which closes the matter. Filed under HOME and, against my better judgment, MIRACLES.",
+        desk:"Ceremony: performed. Lights: did the thing. I asked the lighting man about the thing and he said 'she knows,' which closes the matter.",
         gaz:"COUPLE WED AT HALF TIME; BOUQUET LANDS BADLY", news:"Randy Pekkala and Diane Ruotsala were married at center court during half time of Friday's fixture. The arena lighting performed what the bride described only as 'the thing.' The bouquet was caught by the team's bus driver. Concession receipts for the third quarter are described as 'reception-grade.' The visiting side declined comment on the mood.", mood:'pleased' },
       { t:'Pregame, not half time.', sub:"There's a schedule. Somewhere.", when:'game',
         fx:{buzz:4, cred:3},
         out:["The ceremony runs at 6:40 in front of the early crowd, both teams stretching, and the visitors' center \u2014 seven feet of him \u2014 pressed into service as an usher, a duty he performs with enormous gravity and a warmup jacket over his arm like a sommelier.",
              "It's lovely. It's brief. The minister segues directly into the anthem, which he was doing anyway, and nobody can point to the exact second the wedding became a basketball game, which Diane says was the whole idea."],
-        desk:"Ceremony: 6:40 sharp, concluded by anthem. The visiting center ushered. He caught the garter, which I am told travels differently than the bouquet, and looked briefly terrified. Filed under HOME.",
+        desk:"Ceremony: 6:40 sharp, concluded by anthem. The visiting center ushered. He caught the garter, which I am told travels differently than the bouquet, and looked briefly terrified.",
         gaz:"WEDDING SEGUES INTO ANTHEM; SEAM UNDETECTABLE", news:"A pregame wedding at the arena concluded when the officiating minister proceeded directly into the national anthem, a transition witnesses could not precisely locate. The visiting team's center served as an usher. He is reported to have caught the garter and to have played the first quarter unsettled.", mood:'dry' },
       { t:"Decline. It's a basketball game.", sub:'Somebody has to say it.', when:'game',
         fx:{buzz:-6, morale:-2, cred:1},
@@ -2929,6 +2944,9 @@
       var im=new Image();
       im.src='assets/portraits/'+CAST[i].who+'/base.png';
     }
+    /* the four tip-off cutscenes are used almost every week \u2014 warm them now
+       instead of racing a cold load the first time a game night needs one */
+    ['tipoff_home','tipoff_road','tipoff_playoff','tipoff_final'].forEach(preloadVideo);
   }
   setTimeout(preloadCast, 600);
 
