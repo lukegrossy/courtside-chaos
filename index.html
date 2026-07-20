@@ -471,6 +471,13 @@
       <div class="dcard d3" id="dC"><span class="txt"><span class="L">C.</span> </span><span class="sub"></span></div>
     </div>
 
+    <!-- POSSUM FUSEBOX MINIGAME OVERLAY (launched from the decision card,
+         reports win/lose back via postMessage; see startPossumLoop) -->
+    <div class="screen" id="possumOverlay">
+      <iframe id="possumFrame" title="The Fuse Box"
+        style="position:absolute; inset:0; width:100%; height:100%; border:0; background:#14110f;"></iframe>
+    </div>
+
     <!-- IN-GAME MOMENT -->
     <div class="screen caw" id="moment">
       <img class="mart" alt="" src="assets/ui/moment.webp">
@@ -1281,6 +1288,52 @@
         desk:"Revenue: $2,500. Projectiles: zero. A quiet week. I've marked it on the calendar so we can look at it later, fondly.",
         gaz:"PROMOTION GOES FINE; DETAILS INSIDE, IF YOU MUST", news:"The club negotiated the dairy cooperative's wedges behind concession glass, where cheese belongs. Sales were strong, attendance rose, and nothing whatsoever was thrown. This newspaper has searched the evening for an angle and reports that there is not one.", mood:'pleased' } ] },
 
+  { id:'possum_fusebox', venue:'home', title:'THE FUSE BOX', mood:'dry', once:true, special:'possum',
+    setup:[
+      "\u201CThere's a family of possums living in the fuse box. Has been for a while. The previous owner wouldn't pay to have them moved. I don't know what he was saving for. Not this.\u201D",
+      "Vern won't go near the panel while they're in it. He has a rule about it. I did not ask him to explain the rule. I counted the babies twice. I stopped at six both times.",
+      "So. Your call."],
+    choices:[
+      { t:"Handle it yourself.", sub:"Free, if it goes clean.", fx:{} },
+      { t:"Call pest control.", sub:"$1,000. Guaranteed.", fx:{cash:-1000},
+        out:["The man with the net comes Tuesday. Efficient, humane, and not remotely your problem anymore.",
+             "Vern shakes his hand like he's meeting a war hero. In a sense, he is."],
+        desk:"Pest control: $1,000, out of pocket. Possums: relocated, unharmed. Filed under HOME.",
+        gaz:"PEST CONTROL HANDLES POSSUM SITUATION AT ARENA",
+        news:"The club retained professional pest control to relocate a family of possums nesting in the arena's fuse box. The operation was completed without incident. The previous owner had declined the same service for reasons that remain undocumented.",
+        mood:'dry' } ],
+    possumOutcomes:{
+      win1:{ out:["Six babies. One crate. Zero fingers lost \u2014 and I had a column ready for fingers lost. It stays empty.",
+                  "Vern can go near the panel now. The lights will still take a full minute to come up. That was never the possums. That's just the North."],
+             desk:"Possums: relocated, by hand, by the owner personally. Filed under HOME.",
+             gaz:"OWNER PERSONALLY EVICTS POSSUM FAMILY FROM FUSE BOX",
+             news:"Ownership personally handled the removal of a possum family nesting in the arena's fuse box, reportedly without injury. The previous owner had declined to pay for the same service. Vern, the longtime maintenance man, called it \u2018the bravest dumb thing I've seen all year.\u2019",
+             mood:'pleased' },
+      win2:{ out:["Second try. Six babies, one crate, and a thousand dollars poorer for the education.",
+                  "Vern can go near the panel now. He looks at you with something between respect and concern, and doesn't say which."],
+             desk:"Possums: relocated, eventually, by hand. First attempt: \u2212$1,000. Filed under HOME.",
+             gaz:"OWNER EVICTS POSSUM FAMILY, EVENTUALLY, PERSONALLY",
+             news:"Ownership completed the removal of a possum family from the arena's fuse box on a second attempt, following an initial setback. The cost of that setback was absorbed personally. The possums were relocated without further incident.",
+             mood:'dry' },
+      win3:{ out:["Third try. Third time paying for the privilege of trying. Six babies, one crate, and a ledger that now has its own weather system.",
+                  "Vern can go near the panel now. He says nothing, which from Vern is a testimonial."],
+             desk:"Possums: relocated, on the third attempt, by hand, at a personal cost of \u2212$2,000 across two failed tries. Filed under HOME.",
+             gaz:"OWNER EVICTS POSSUM FAMILY ON THIRD ATTEMPT",
+             news:"Ownership persisted through two unsuccessful attempts before personally completing the removal of a possum family from the arena's fuse box on a third try. The financial cost of the earlier attempts was not disclosed, though this newspaper has guesses.",
+             mood:'dry' },
+      forced:{ out:["That's three. We stop at three.",
+                    "I'm calling the man with the net. It's the same thousand you could've spent to begin with, before the bleeding. It's in the file, timestamped, right next to where you said, and I quote, \u201Chow hard can it be.\u201D"],
+               desk:"Possums: relocated, professionally, after three personal attempts and \u2212$3,000 in tuition. Filed under HOME.",
+               gaz:"POSSUM FAMILY EVICTED AFTER OWNER'S THIRD FAILED ATTEMPT",
+               news:"A family of possums nesting in the arena's fuse box was ultimately relocated by professional pest control, following three unsuccessful personal attempts by ownership. The cumulative cost of the endeavor has not been made public. It has been made departmental.",
+               mood:'alarmed' },
+      bail:{ out:["Smart. The man with the net comes Tuesday. You've already paid enough tuition for one fuse box.",
+                  "Vern nods at you like you've finally said something sensible."],
+             desk:"Possums: relocated, professionally, after one personal attempt and a wise surrender. Filed under HOME.",
+             gaz:"OWNER CUTS LOSSES, CALLS PROFESSIONAL FOR POSSUM SITUATION",
+             news:"Ownership, after a personal attempt at relocating a possum family from the arena's fuse box, elected to retain professional pest control rather than continue. The possums were relocated without further incident.",
+             mood:'dry' } } },
+
   { id:'scout_sits', venue:'home', when:'game',  title:'THE SCOUT SITS COURTSIDE', mood:'grim',
     setup:[
       "There's a man in Row A. Grey suit. No jacket check. He didn't buy the seat \u2014 the seat was simply his when the doors opened, which is not how seats work.",
@@ -1952,6 +2005,8 @@
     dTitle.textContent = story.title;
     for(var i=0;i<3;i++){
       var c=dCards[i], ch=story.choices[i];
+      if(!ch){ c.style.display='none'; continue; }
+      c.style.display='';
       var safe=ch.t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
       c.querySelector('.txt').innerHTML = '<span class="L">'+LETTERS[i]+'</span> '+safe;
       c.querySelector('.sub').textContent = ch.sub;
@@ -2284,10 +2339,70 @@
     fadeScreens(dash, decideS);
   }
 
+  /* ---------- POSSUM FUSEBOX: minigame loop, owner-call driven ----------
+     The decision card stays the single source of truth for A/B choices —
+     this just decides what A/B *mean* while the loop is in progress, and
+     hands off to the normal resolution pipeline (proceedWithChoice) once
+     it's actually settled (won, forced to pest control, or bailed). */
+  var possumAttempt = 0, possumRetryMode = false;
+  function openPossumFrame(){
+    document.getElementById('possumFrame').src = 'minigames/possum-fusebox.html';
+    document.getElementById('possumOverlay').classList.add('on');
+  }
+  function closePossumFrame(){
+    document.getElementById('possumOverlay').classList.remove('on');
+    document.getElementById('possumFrame').src = 'about:blank';
+  }
+  function startPossumLoop(){
+    possumAttempt = 0; possumRetryMode = false;
+    phase='possum';
+    openPossumFrame();
+  }
+  function showPossumRetry(){
+    possumRetryMode = true;
+    phase='decide';
+    var left = 3 - possumAttempt;
+    dCards[0].style.display=''; dCards[1].style.display=''; dCards[2].style.display='none';
+    dCards[0].classList.remove('long'); dCards[1].classList.remove('long');
+    dCards[0].querySelector('.txt').innerHTML = '<span class="L">A.</span> Try again.';
+    dCards[0].querySelector('.sub').textContent = left+' attempt'+(left===1?'':'s')+' left.';
+    dCards[1].querySelector('.txt').innerHTML = '<span class="L">B.</span> Call pest control.';
+    dCards[1].querySelector('.sub').textContent = 'Cut your losses. No further charge.';
+  }
+  function resolvePossum(outcome){
+    possumRetryMode = false;
+    proceedWithChoice({ fx:{}, out:outcome.out, desk:outcome.desk,
+      gaz:outcome.gaz, news:outcome.news, mood:outcome.mood, scene:outcome.scene });
+  }
+  window.addEventListener('message', function(e){
+    if(!e.data || e.data.type!=='possum-result' || phase!=='possum') return;
+    closePossumFrame();
+    if(e.data.result==='win'){
+      var key='win'+(possumAttempt+1);
+      resolvePossum(current.possumOutcomes[key] || current.possumOutcomes.win1);
+    } else {
+      S.cash -= 1000; render();
+      possumAttempt++;
+      if(possumAttempt>=3){ resolvePossum(current.possumOutcomes.forced); }
+      else { showPossumRetry(); }
+    }
+  });
+
   function choose(i){
     if(phase!=='decide' || !current) return;
-    phase='sequence';
+    if(possumRetryMode){
+      if(i===0){ possumRetryMode=false; phase='possum'; openPossumFrame(); }
+      else if(i===1){ resolvePossum(current.possumOutcomes.bail); }
+      return;
+    }
     var ch=current.choices[i];
+    if(!ch) return;
+    if(current.special==='possum' && i===0){ startPossumLoop(); return; }
+    proceedWithChoice(ch);
+  }
+
+  function proceedWithChoice(ch){
+    phase='sequence';
     if(!current.playoff && !current.opener){
       S.done[current.id]=true;
       if(current.once) S.flags['done_'+current.id]=true;
@@ -2686,7 +2801,7 @@
     {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
      text:"She's at the door before you are, holding a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CSandra. I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those. I'll let you pick which.\u201D"},
     {kind:'text', scene:'intro_files',
-     text:"The tour takes eleven minutes.\n\nThe arena smells like woodsmoke and old rubber. The lights over the court need a full minute to come up, and she waits through it without comment, because that's just the minute.\n\nOn the way out she taps a folder on the desk. It's thicker than the rest. It says SAM.\n\n\u201CDon't ask. It's load-bearing.\u201D"},
+     text:"The tour takes eleven minutes.\n\nThe arena smells like woodsmoke and old rubber. The lights over the court need a full minute to come up, and she waits through it without comment, because that's just the minute. There's a longer list of things like that \u2014 things the previous owner appeared to negotiate around instead of fix. She doesn't itemize it now.\n\nOn the way out she taps a folder on the desk. It's thicker than the rest. It says SAM.\n\n\u201CDon't ask. It's load-bearing.\u201D"},
     {kind:'text',
      text:"\u201CRight. The people.\n\nYou'll meet all of 'em whether you plan to or not \u2014 better we do it here, where nobody's bleeding and I control the order.\u201D\n\nShe starts with the coach."},
     castCard('hank'),
