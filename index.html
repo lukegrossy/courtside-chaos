@@ -1291,32 +1291,32 @@
   { id:'possum_fusebox', venue:'home', title:'THE FUSE BOX', mood:'dry', once:true, special:'possum',
     setup:[
       "\u201CThere's a family of possums living in the fuse box. Has been for a while. The previous owner wouldn't pay to have them moved. I don't know what he was saving for. Not this.\u201D",
-      "Vern won't go near the panel while they're in it. He has a rule about it. I did not ask him to explain the rule. I counted the babies twice. I stopped at six both times.",
+      "No electrician in town will touch the panel while they're in it. I've called all three. One of them laughed. I counted the babies twice. I stopped at six both times.",
       "So. Your call."],
     choices:[
       { t:"Handle it yourself.", sub:"Free, if it goes clean.", fx:{} },
       { t:"Call pest control.", sub:"$1,000. Guaranteed.", fx:{cash:-1000},
         out:["The man with the net comes Tuesday. Efficient, humane, and not remotely your problem anymore.",
-             "Vern shakes his hand like he's meeting a war hero. In a sense, he is."],
+             "By Wednesday an electrician has finally agreed to look at the panel, now that it's just wiring in there and not a nursery."],
         desk:"A thousand dollars to make a problem someone else's. Cheapest thing you've bought all week.",
         gaz:"PEST CONTROL HANDLES POSSUM SITUATION AT ARENA",
         news:"The club retained professional pest control to relocate a family of possums nesting in the arena's fuse box. The operation was completed without incident. The previous owner had declined the same service for reasons that remain undocumented.",
         mood:'dry' } ],
     possumOutcomes:{
       win1:{ out:["Six babies, one crate, and every finger you started with. I'd had my doubts about that last part.",
-                  "Vern can go near the panel now. The lights will still take a full minute to come up. That was never the possums. That's just the North."],
+                  "The panel's clear now. The lights will still take a full minute to come up \u2014 that was never the possums, that's just the North \u2014 but at least the temp can rewire it without wildlife. I've told him it's a growth opportunity. He believes me."],
              desk:"You reached into a live panel full of animals and came out ahead. I'm choosing to call that judgment and not luck.",
              gaz:"OWNER PERSONALLY EVICTS POSSUM FAMILY FROM FUSE BOX",
-             news:"Ownership personally handled the removal of a possum family nesting in the arena's fuse box, reportedly without injury. The previous owner had declined to pay for the same service. Vern, the longtime maintenance man, called it \u2018the bravest dumb thing I've seen all year.\u2019",
+             news:"Ownership personally handled the removal of a possum family nesting in the arena's fuse box, reportedly without injury. The previous owner had declined to pay for the same service. A local electrician, one of three who had refused the job while the animals remained, called it \u2018the bravest dumb thing I've seen all year.\u2019",
              mood:'pleased' },
       win2:{ out:["Second time was the one that took. A thousand dollars for the first lesson, which is a steep tuition for something a possum could've taught you for free.",
-                  "Vern can go near the panel now. He looks at you with something between respect and concern, and doesn't say which."],
+                  "The panel's clear. The temp from the agency has been handed the rewiring and, for morale, the title of Facilities, which costs us nothing and pleases him enormously. He looks at you now with something between respect and concern, and doesn't say which."],
              desk:"Got there in the end. It cost a thousand dollars to learn the possum was faster than you, which, in fairness, most things are.",
              gaz:"OWNER EVICTS POSSUM FAMILY, EVENTUALLY, PERSONALLY",
              news:"Ownership completed the removal of a possum family from the arena's fuse box on a second attempt, following an initial setback. The cost of that setback was absorbed personally. The possums were relocated without further incident.",
              mood:'dry' },
       win3:{ out:["Third time. You are now two thousand dollars into a job that was free when we started, but the possums are out and I've decided to be gracious about it.",
-                  "Vern can go near the panel now. He says nothing, which from Vern is a testimonial."],
+                  "The panel's clear. The temp \u2014 now Head of Facilities, a department of one, on a two-week contract \u2014 says nothing when he sees what you did to your hand, which is the most tactful thing anyone's managed all week."],
              desk:"Two thousand dollars and three tries to do a free thing. You got there. I'm not going to pretend the getting there was pretty.",
              gaz:"OWNER EVICTS POSSUM FAMILY ON THIRD ATTEMPT",
              news:"Ownership persisted through two unsuccessful attempts before personally completing the removal of a possum family from the arena's fuse box on a third try. The financial cost of the earlier attempts was not disclosed, though this newspaper has guesses.",
@@ -1328,7 +1328,7 @@
                news:"A family of possums nesting in the arena's fuse box was ultimately relocated by professional pest control, following three unsuccessful personal attempts by ownership. The cumulative cost of the endeavor has not been made public.",
                mood:'alarmed' },
       bail:{ out:["Smart. The man with the net comes Tuesday. One thousand dollars was plenty to spend learning you're not a possum person.",
-                  "Vern nods at you like you've finally said something sensible."],
+                  "The temp from the agency has already been volunteered to hold the ladder for the electrician, which he's taking as a vote of confidence. Let him."],
              desk:"One try, one thousand dollars, and the good sense to stop. That last part is rarer than it sounds. I noticed.",
              gaz:"OWNER CUTS LOSSES, CALLS PROFESSIONAL FOR POSSUM SITUATION",
              news:"Ownership, after a personal attempt at relocating a possum family from the arena's fuse box, elected to retain professional pest control rather than continue. The possums were relocated without further incident.",
@@ -2017,6 +2017,7 @@
 
   /* ---------- SEASON DECK ---------- */
   var deck=[], deckPos=0, current=null, phase='setup', momentChoice=null, pendingRoute=null;
+  var STORY_BY_ID={}; STORY.forEach(function(st){ STORY_BY_ID[st.id]=st; });
   function buildDeck(){
     deck=[]; deckPos=0;
     var mains = STORY.filter(function(st){
@@ -2032,6 +2033,13 @@
     deck = head.concat(rest.slice(0, Math.ceil(rest.length/2)), arena, rest.slice(Math.ceil(rest.length/2)));
   }
   function nextStory(){
+    /* Hard pin: the fuse box is the first real problem of the franchise.
+       Week 2, season 1, no exceptions \u2014 fires before deck or conditional logic
+       so it can't be pre-empted by a shuffled card or a needs-gated insert. */
+    if(S.season===1 && S.stage==='regular' && !S.done['possum_fusebox']){
+      var pf=STORY_BY_ID['possum_fusebox'];
+      if(pf) return pf;
+    }
     // conditional inserts: scout_speaks after scoutSeen; grace_2 after graceGrudge;
     // arena_reckoning the season after the asterisk. Sequels can cross seasons.
     // notBefore holds a sequel back N weeks from the week its trigger fired,
