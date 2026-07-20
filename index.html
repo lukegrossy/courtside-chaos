@@ -837,10 +837,9 @@
     if(!videoCache[scene]){ v.muted=true; v.preload='auto'; }
     var settled=false;
     function tryImage(){
-      var iurl='assets/cutscenes/'+scene+'.gif', p=new Image();
-      p.onload=function(){ if(!settled){ settled=true; cb({type:'image',url:iurl}); } };
-      p.onerror=function(){ if(!settled){ settled=true; cb(null); } };
-      p.src=iurl;
+      /* gif fallbacks were retired (file size); if the video can't load,
+         the beat plays as text alone, which every scene is written to survive */
+      if(!settled){ settled=true; cb(null); }
     }
     /* canplay fires as soon as the current frame is decoded \u2014 a much lower bar
        than canplaythrough, which waits until the browser thinks the whole clip
