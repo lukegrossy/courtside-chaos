@@ -1298,38 +1298,38 @@
       { t:"Call pest control.", sub:"$1,000. Guaranteed.", fx:{cash:-1000},
         out:["The man with the net comes Tuesday. Efficient, humane, and not remotely your problem anymore.",
              "Vern shakes his hand like he's meeting a war hero. In a sense, he is."],
-        desk:"Pest control: $1,000, out of pocket. Possums: relocated, unharmed. Filed under HOME.",
+        desk:"A thousand dollars to make a problem someone else's. Cheapest thing you've bought all week.",
         gaz:"PEST CONTROL HANDLES POSSUM SITUATION AT ARENA",
         news:"The club retained professional pest control to relocate a family of possums nesting in the arena's fuse box. The operation was completed without incident. The previous owner had declined the same service for reasons that remain undocumented.",
         mood:'dry' } ],
     possumOutcomes:{
-      win1:{ out:["Six babies. One crate. Zero fingers lost \u2014 and I had a column ready for fingers lost. It stays empty.",
+      win1:{ out:["Six babies, one crate, and every finger you started with. I'd had my doubts about that last part.",
                   "Vern can go near the panel now. The lights will still take a full minute to come up. That was never the possums. That's just the North."],
-             desk:"Possums: relocated, by hand, by the owner personally. Filed under HOME.",
+             desk:"You reached into a live panel full of animals and came out ahead. I'm choosing to call that judgment and not luck.",
              gaz:"OWNER PERSONALLY EVICTS POSSUM FAMILY FROM FUSE BOX",
              news:"Ownership personally handled the removal of a possum family nesting in the arena's fuse box, reportedly without injury. The previous owner had declined to pay for the same service. Vern, the longtime maintenance man, called it \u2018the bravest dumb thing I've seen all year.\u2019",
              mood:'pleased' },
-      win2:{ out:["Second try. Six babies, one crate, and a thousand dollars poorer for the education.",
+      win2:{ out:["Second time was the one that took. A thousand dollars for the first lesson, which is a steep tuition for something a possum could've taught you for free.",
                   "Vern can go near the panel now. He looks at you with something between respect and concern, and doesn't say which."],
-             desk:"Possums: relocated, eventually, by hand. First attempt: \u2212$1,000. Filed under HOME.",
+             desk:"Got there in the end. It cost a thousand dollars to learn the possum was faster than you, which, in fairness, most things are.",
              gaz:"OWNER EVICTS POSSUM FAMILY, EVENTUALLY, PERSONALLY",
              news:"Ownership completed the removal of a possum family from the arena's fuse box on a second attempt, following an initial setback. The cost of that setback was absorbed personally. The possums were relocated without further incident.",
              mood:'dry' },
-      win3:{ out:["Third try. Third time paying for the privilege of trying. Six babies, one crate, and a ledger that now has its own weather system.",
+      win3:{ out:["Third time. You are now two thousand dollars into a job that was free when we started, but the possums are out and I've decided to be gracious about it.",
                   "Vern can go near the panel now. He says nothing, which from Vern is a testimonial."],
-             desk:"Possums: relocated, on the third attempt, by hand, at a personal cost of \u2212$2,000 across two failed tries. Filed under HOME.",
+             desk:"Two thousand dollars and three tries to do a free thing. You got there. I'm not going to pretend the getting there was pretty.",
              gaz:"OWNER EVICTS POSSUM FAMILY ON THIRD ATTEMPT",
              news:"Ownership persisted through two unsuccessful attempts before personally completing the removal of a possum family from the arena's fuse box on a third try. The financial cost of the earlier attempts was not disclosed, though this newspaper has guesses.",
              mood:'dry' },
       forced:{ out:["That's three. We stop at three.",
-                    "I'm calling the man with the net. It's the same thousand you could've spent to begin with, before the bleeding. It's in the file, timestamped, right next to where you said, and I quote, \u201Chow hard can it be.\u201D"],
-               desk:"Possums: relocated, professionally, after three personal attempts and \u2212$3,000 in tuition. Filed under HOME.",
+                    "I'm calling the man with the net. It's the same thousand you could've spent to begin with, before the bleeding started \u2014 except now there's three of them, plus whatever we're calling the thing you did to your hand.\u201D"],
+               desk:"Three tries, three thousand dollars, and a professional on Tuesday anyway. Somewhere the previous owner is laughing, and for once I understand him.",
                gaz:"POSSUM FAMILY EVICTED AFTER OWNER'S THIRD FAILED ATTEMPT",
-               news:"A family of possums nesting in the arena's fuse box was ultimately relocated by professional pest control, following three unsuccessful personal attempts by ownership. The cumulative cost of the endeavor has not been made public. It has been made departmental.",
+               news:"A family of possums nesting in the arena's fuse box was ultimately relocated by professional pest control, following three unsuccessful personal attempts by ownership. The cumulative cost of the endeavor has not been made public.",
                mood:'alarmed' },
-      bail:{ out:["Smart. The man with the net comes Tuesday. You've already paid enough tuition for one fuse box.",
+      bail:{ out:["Smart. The man with the net comes Tuesday. One thousand dollars was plenty to spend learning you're not a possum person.",
                   "Vern nods at you like you've finally said something sensible."],
-             desk:"Possums: relocated, professionally, after one personal attempt and a wise surrender. Filed under HOME.",
+             desk:"One try, one thousand dollars, and the good sense to stop. That last part is rarer than it sounds. I noticed.",
              gaz:"OWNER CUTS LOSSES, CALLS PROFESSIONAL FOR POSSUM SITUATION",
              news:"Ownership, after a personal attempt at relocating a possum family from the arena's fuse box, elected to retain professional pest control rather than continue. The possums were relocated without further incident.",
              mood:'dry' } } },
@@ -2022,10 +2022,13 @@
     var mains = STORY.filter(function(st){
       return st.id!=='tiny_openmic' && !st.needs && !(st.once && S.flags['done_'+st.id]);
     });
-    var arena = mains.filter(function(st){return st.id==='arena_condemned';});
-    var rest  = mains.filter(function(st){return st.id!=='arena_condemned';});
+    var arena  = mains.filter(function(st){return st.id==='arena_condemned';});
+    var possum = mains.filter(function(st){return st.id==='possum_fusebox';});
+    var rest   = mains.filter(function(st){return st.id!=='arena_condemned' && st.id!=='possum_fusebox';});
     for(var i=rest.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=rest[i]; rest[i]=rest[j]; rest[j]=t; }
-    var head = (S.season===1) ? [STORY[0]] : [];
+    /* Fuse box fires week 2, right after the opener \u2014 an early-ownership
+       problem, not a random mid-season one. Pinned like arena_condemned. */
+    var head = (S.season===1) ? [STORY[0]].concat(possum) : [];
     deck = head.concat(rest.slice(0, Math.ceil(rest.length/2)), arena, rest.slice(Math.ceil(rest.length/2)));
   }
   function nextStory(){
