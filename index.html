@@ -159,12 +159,11 @@
   .nextcard .hd, .callcard .hd{font-family:"Arial Black",sans-serif; font-size:18px;
     letter-spacing:1.5px; color:var(--red); line-height:1;}
   .nextcard .txt{display:block; width:100%; box-sizing:border-box;
-    font-size:27px; line-height:1.15; text-align:center; color:var(--red);
-    font-weight:800; border:3px solid var(--red); border-radius:4px; padding:9px 6px;}
-  .nextcard .sub{display:block; margin-top:6px; font-size:19px; text-align:center;}
+    font-size:30px; line-height:1.2; text-align:center; color:var(--red);
+    font-weight:800; border:3px solid var(--red); border-radius:4px; padding:12px 6px;}
   /* callcard lost its subtext (redundant + made the card busy) — the action text
      itself now reads as a stamped button: bordered box, bigger, bolder, nothing
-     else on the card competing for attention. */
+     else on the card competing for attention. NEXT WEEK now matches it. */
   .callcard .txt{display:block; width:100%; box-sizing:border-box;
     font-size:30px; line-height:1.2; text-align:center; color:var(--red);
     font-weight:800; border:3px solid var(--red); border-radius:4px; padding:12px 6px;}
@@ -186,6 +185,14 @@
   /* Long place names ("SAULT STE. MARIE") need a step down to stay on the card */
   .slotL .sv1.mid{font-size:26px; line-height:30px;}
   .slotL .sv1.tiny{font-size:22px; line-height:26px;}
+  /* Post-game result stamp: a big inked W (win) or L (loss) on the card,
+     tilted like a rubber stamp rather than typed. */
+  .slotL .sv1.stamp{font-family:"Arial Black",sans-serif; font-weight:900;
+    font-size:64px; line-height:64px; letter-spacing:0;
+    transform:rotate(-8deg); display:inline-block;
+    text-shadow:0 1px 0 rgba(255,250,235,.25);}
+  .slotL .sv1.stamp.win{color:#3f7d34;}
+  .slotL .sv1.stamp.loss{color:#9a3826;}
   .slot .sv2{display:none;}
   .ticker{position:absolute; left:60px; right:60px; top:1672px; text-align:center;
     font-family:"Courier New",monospace; font-weight:700; color:#b3a288;
@@ -222,8 +229,8 @@
      Card divs are centred vertically on each painted card, and widened to fit
      moment.webp's larger card bodies (x89-765). */
   #decide.two .dcard{left:150px; width:560px;}
-  #decide.two .d1{top:663px; transform:rotate(1.46deg);}
-  #decide.two .d2{top:1142px; transform:rotate(-3.03deg);}
+  #decide.two .d1{top:839px; transform:rotate(1.46deg);}
+  #decide.two .d2{top:1318px; transform:rotate(-3.03deg);}
   /* ---- in-game moment screen ---- */
   .mstamp{position:absolute; left:40px; right:40px; top:112px; text-align:center;}
   .mstamp .mper{display:block; font-family:"Courier New",monospace; color:#c9862b;
@@ -248,8 +255,8 @@
   .mcard:active{filter:brightness(.92);}
   .mcard .txt{color:#241c12; font-size:38px; line-height:46px;}
   .mcard .sub{color:#54432c; font-style:italic; font-size:29px; line-height:36px;}
-  .m1{top:659px; transform:rotate(1.46deg);}
-  .m2{top:1136px; transform:rotate(-3.03deg);}
+  .m1{top:835px; transform:rotate(1.46deg);}
+  .m2{top:1312px; transform:rotate(-3.03deg);}
   /* ---- cutaway screens ---- */
   .caw{background:#000;}
   .caw .cawart{position:absolute; left:0; top:0; width:853px; height:1844px;
@@ -363,19 +370,17 @@
   /* Three sub-boxes are painted into the art at x 13-304 / 304-483 / 483-792
      (centers ~159 / ~394 / ~638). Each label is absolutely centered on its box
      rather than spread with space-between, which never matched the boxes. */
-  /* The whole text layer is rotated -1.4deg, which drifts cells the further
-     they sit from the rotation origin \u2014 the right cell (15c) drifts most,
-     spilling past its box. Centers below are rotation-compensated so each
-     label lands inside its painted box, and each cell is width-capped to its
-     box so it can't escape even if the tilt shifts slightly on-device.
-     Boxes: x 13-304 / 304-483 / 483-792 (widths ~291 / ~179 / ~309).      */
-  .gazsub{position:absolute; left:0; right:0; top:274px; height:26px;
+  /* Sub-row boxes were removed from the art (they caused tilt-drift spill).
+     Now it's two plain divider ticks at x304/x483 making three sections
+     (centers ~159 / ~394 / ~638), plus one section rule under the row.
+     Labels center in their section; no walls to spill past.               */
+  .gazsub{position:absolute; left:0; right:0; top:270px; height:26px;
     font-family:"Courier New",monospace; font-weight:700; color:#33302b;}
   .gazsub span{position:absolute; text-align:center; white-space:nowrap;
-    transform:translateX(-50%); overflow:hidden;}
-  .gazsub .gc1{left:159px; top:0; font-size:15px; letter-spacing:.5px;}
-  .gazsub .gc2{left:392px; top:1px; font-size:15px; letter-spacing:.5px;}
-  .gazsub .gc3{left:632px; top:2px; font-size:15px; letter-spacing:.5px;}
+    transform:translateX(-50%); font-size:16px; letter-spacing:.5px;}
+  .gazsub .gc1{left:159px; top:0;}
+  .gazsub .gc2{left:394px; top:1px;}
+  .gazsub .gc3{left:638px; top:2px;}
   .gazhead{position:absolute; left:108px; right:96px; top:322px; height:266px;
     display:flex; align-items:center; justify-content:center;
     font-family:"Arial Black","Arial Narrow",sans-serif; font-weight:900; color:#171512;
@@ -549,8 +554,7 @@
         <div class="ticker" id="ticker">NORTHERN DIVISION &bull; SEASON OPENS</div>
         <img class="ljfooter" alt="A Lumberjack Story" src="assets/ui/lumberjack-footer.png">
         <div class="card nextcard" id="nextBtn" style="display:none;">
-          <span class="txt">NEXT WEEK &#9654;</span>
-          <span class="sub" id="nextSub">The season rolls on.</span></div>
+          <span class="txt">NEXT WEEK &#9654;</span></div>
       </div>
     </div>
 
@@ -1431,9 +1435,9 @@
   { id:'grace_1', title:"SANDRA'S WEEK OFF", mood:'base', grace:true,
     needs:'graceWarned', notBefore:{flag:'graceWeek', plus:1},
     setup:[
-      "I'm taking a week. I have not taken a week since 1981. My replacement is Grace. She had this desk before me. She is very good and she will tell you so. Do not let her near the chainsaw folder.",
-      "\u2014 That was Sandra's note. This is Grace. I've read the files. All of them. In one evening. Some observations: the mascot budget is an embarrassment, the coach appears to be at war with beverages, and someone has paid nine thousand dollars for what I can only describe as a bronze regret.",
-      "This team had dignity once. I was there. Now: I found three ways to save money before my coffee cooled. Would you like to hear them, or shall I file them where opinions apparently go in this office?"],
+      "Grace. You were told I'd be here. I'll assume Sandra was kind about it, which would be unlike her, so I'll assume she was accurate instead.",
+      "I have read the files. All of them. In one evening. Some observations: the mascot budget is an embarrassment, the coach appears to be at war with beverages, and someone has paid nine thousand dollars for what I can only describe as a bronze regret.",
+      "This team had dignity once. I was here for it. Now \u2014 I found three ways to save money before my coffee cooled. Would you like to hear them, or shall I file them where opinions apparently go in this office?"],
     choices:[
       { t:"Hear her out. Implement all three.", sub:"She ran this desk before.",
         fx:{cash:3500, morale:-4, cred:7},
@@ -1729,6 +1733,56 @@
              "The bus crew warms up on its own end of the floor and celebrates only with each other. You have accidentally created the league's first intra-squad union. They have demands. The first demand is patches for the equipment staff."],
         desk:"Savings versus charter: $900. Cost: a schism with embroidery. The BUS CREW patch is, I'm told, 'earned, not given.' I was given one. I've never been prouder of anything.",
         gaz:"'BUS CREW' PATCHES SIGHTED; SCHISM DENIED", news:"The club flew its starters to Fargo and bussed the remainder. The bus contingent arrived four hours later with inside jokes, a shared enemy, and hand-sewn patches produced from a motel sewing kit. The two groups now warm up at opposite ends. The patches are described as earned, not given.", mood:'dry', flag:'busCrew' } ] },
+
+  { id:'rookie_gasstation', venue:'road', title:'THE GAS STATION', mood:'dry',
+    setup:[
+      "We are ninety minutes into the road trip and we are missing a rookie. The bus stopped for gas outside Brainerd, the rookie went in for what he has described, in the one phone call he was able to make, as 'a real snack situation,' and the bus left without him. Nobody noticed. For ninety minutes. That's the part I keep circling.",
+      "He is currently at the counter of a gas station, out of quarters, being minded by a clerk named Deb who has already offered him a job. Tip-off is in three hours and the bus is the wrong ninety minutes away to turn around comfortably.",
+      "He wants to know if he should hitchhike. Deb thinks he should. Your call, boss."],
+    choices:[
+      { t:"Let him hitchhike. He'll make it or he won't.", sub:"Deb vouches for the North.",
+        fx:{buzz:9, morale:4, cred:-2},
+        out:["He catches a ride inside four minutes with a man hauling Christmas trees in July, arrives at the arena smelling of pine and gas-station taquito, and starts. Deb comes to the game. Deb sits behind the bench. Deb now has opinions about our rotation and, honestly, they're not wrong.",
+             "The rookie plays out of his mind, either from adrenaline or the taquito, and afterward tells reporters the whole thing was 'a bonding experience,' which is the single most road-trip sentence a rookie has ever spoken."],
+        desk:"Rookie: recovered, via a stranger and a truck full of out-of-season Christmas trees. Cost to the club: nothing. Cost to the rookie: his quarters and, briefly, his dignity. Deb is coming to the next three games. We're keeping Deb.",
+        gaz:"ROOKIE HITCHHIKES TO GAME, STARTS, STARS", news:"A Lumberjacks rookie, inadvertently left at a Brainerd gas station when the team bus departed without him, hitchhiked to the arena aboard a truck transporting Christmas trees and started the game. He described the ordeal as a bonding experience. A station clerk named Deb attended the game and offered several rotation suggestions.", mood:'pleased' },
+      { t:"Send the bus back for him. Everyone waits.", sub:"Nobody gets left. New rule.",
+        fx:{cash:-300, morale:9, cred:4},
+        out:["The bus turns around. Twelve players and Hank sit in a gas station parking lot for an hour while the rookie, mortified, buys the entire team snacks with money he does not have, running a tab with Deb that Deb waves off. The team decides, collectively and without a vote, that the rookie is now theirs.",
+             "They arrive late and tired and win anyway, on spite and gas-station jerky. From that night the bus does a headcount. Out loud. Every stop. Tiny reads the names like a substitute teacher who cares too much."],
+        desk:"Detour: an hour and $300 in gas. Return on investment: a rookie who now belongs to eleven people who waited for him in a parking lot. That's not on the balance sheet. It should be. Headcounts are now policy. Tiny volunteered.",
+        gaz:"TEAM BUS RETURNS FOR STRANDED ROOKIE; HEADCOUNTS INSTITUTED", news:"The Lumberjacks team bus, having departed a Brainerd station without a rookie, returned for him after ninety minutes, the roster waiting in the parking lot. The team arrived late and won. A verbal headcount is now conducted at every stop, read aloud by Tiny McGee.", mood:'pleased' },
+      { t:"Call Deb. Ask her to drive him.", sub:"$40 for gas. A local solution.",
+        fx:{cash:-40, buzz:5, cred:2},
+        out:["Deb closes the station early \u2014 hangs a sign reading BASKETBALL EMERGENCY, which is now, I'm told, a permanent sign she keeps under the counter \u2014 and drives the rookie two hours in a hatchback while explaining local politics with total authority. He arrives informed, terrified, and on time.",
+             "Deb refuses payment, accepts a jersey, and becomes, effective immediately, the team's unofficial northern correspondent. She calls Sandra with scores before the box score prints. Nobody knows how Deb gets the scores first. Deb won't say."],
+        desk:"Deb: drove two hours, refused the $40, took a jersey, and has appointed herself to a role that did not previously exist and now cannot be filled by anyone else. The BASKETBALL EMERGENCY sign is real. I've seen a photograph. I want one.",
+        gaz:"STATION CLERK DRIVES ROOKIE TO GAME; DECLINES PAYMENT", news:"A Brainerd station clerk identified as Deb closed her station early and drove a stranded Lumberjacks rookie two hours to the arena, declining payment. She accepted a team jersey. She has since begun relaying game scores to the club office by telephone, ahead of official channels, by means she has declined to disclose.", mood:'dry' } ] },
+
+  { id:'bowling_night', venue:'road', title:'THE BOWLING ALLEY', mood:'dry',
+    setup:[
+      "There's a rain delay on the road \u2014 which shouldn't affect indoor basketball, but the roof of tonight's gym is 'weeping,' the local term, so tip-off's pushed two hours and I have twelve restless men in a strange town. Ricky found a bowling alley. Ricky has already rented a lane. Ricky is wearing the shoes.",
+      "The issue is that Ricky takes bowling the way Ricky takes everything, which is to say he has appointed himself league commissioner of a league that does not exist and has begun explaining the rules to Leo, who bowled professionally-adjacent in the seventies and is letting Ricky finish out of respect.",
+      "Do we sanction team bowling night, boss? It's a real question. There's money and dignity on the table."],
+    choices:[
+      { t:"Full team night. Put it on the club.", sub:"$180 in lanes and shoes. Worth it.",
+        fx:{cash:-180, morale:12, buzz:6},
+        out:["The team bowls for two hours and something happens that no amount of practice buys: they become a team on the road, in rented shoes, under a flickering sign, in a town whose name half of them will forget. Leo bowls a 268 without changing his expression and refuses to explain where that came from. Tiny bowls with the wrong hand for laughs and then, horrifyingly, with the right hand for a strike.",
+             "They arrive at the gym loose, unified, and quoting a bowling movie at each other in a shared dialect that did not exist this morning. The weeping roof holds. They win by nine. Ricky has trophies made. Small ones. He was serious about the league."],
+        desk:"Bowling: $180, sanctioned, transcendent. Leo's high game: 268, unexplained, and I've decided not to pursue it, having learned my lesson with the age. Ricky's league now has a commissioner (Ricky), a trophy (small), and a bylaw about shoe rental I have been asked to notarize. I did. It felt correct.",
+        gaz:"AREA TEAM BONDS AT BOWLING ALLEY DURING RAIN DELAY", news:"With tip-off delayed by a leaking gymnasium roof, the Lumberjacks spent two hours at a local bowling alley. Veteran Leo James recorded a 268. Ricky Malone established a league, of which he is commissioner, and commissioned trophies. The team subsequently won by nine points, reportedly quoting a bowling film in unison.", mood:'pleased' },
+      { t:"Let a few go. Keep the starters resting.", sub:"Balance. Someone has to be sensible.",
+        fx:{morale:4, cred:3},
+        out:["Half the team bowls, half the team naps at the gym, and the two halves reunite as slightly different people. The bowlers have inside jokes and a running feud with a local league team called the Pin Pals who challenged them and lost. The nappers are rested and vaguely suspicious they missed the best night of the season. They did.",
+             "You win, comfortably, but for years afterward the phrase 'you had to be there' is deployed at team dinners specifically to wound the men who were not there. Ricky keeps a plaque. The plaque names names."],
+        desk:"Partial bowling: sensible, and therefore slightly regretted by everyone including me. The Pin Pals were dispatched. A plaque exists. It divides the roster gently, along bowling lines, which is the least dangerous fault line a team can have.",
+        gaz:"HALF OF AREA TEAM BOWLS; OTHER HALF RESTS, REGRETS", news:"During a rain delay, a portion of the Lumberjacks roster visited a local bowling alley and defeated a house league team known as the Pin Pals. The remaining players rested at the gymnasium. The team won its game. A commemorative plaque, listing participants by name, has reportedly been produced.", mood:'dry' },
+      { t:"No. Everyone back to the gym.", sub:"We're here to play basketball.",
+        fx:{morale:-6, buzz:-2, cred:1},
+        out:["You call it off. Ricky returns the shoes with the face of a man whose life's work has been dismissed. The team sits in a damp gym for two hours watching the roof weep, and wins anyway, joylessly, professionally, correctly.",
+             "It is the least fun anyone has ever had winning by fourteen. Ricky refers to the evening, forever after, as 'the night they wouldn't let us bowl,' and he says it the way other men say 'the war.' You were probably right. Nobody will ever tell you that you were right."],
+        desk:"Bowling: denied. The correct call, which is a category of call that wins games and no friends. Ricky has filed the shoes away in his memory alongside other grievances, where they will age, and ferment, and return. They always return.",
+        gaz:"AREA TEAM DECLINES BOWLING, WINS JOYLESSLY", news:"Offered a bowling excursion during a rain delay, the Lumberjacks declined and remained at the gymnasium, subsequently winning by fourteen. A player described the evening as the least fun associated with a comfortable victory in recent memory. The rented shoes were returned unused.", mood:'dry' } ] },
 
   { id:'lutefisk_night', venue:'home', when:'game', title:'LUTEFISK NIGHT', mood:'dry', scene:'lutefisk',
     setup:[
@@ -2030,7 +2084,7 @@
     noteh:document.getElementById('noteh'), scroll:document.getElementById('notescroll'),
     wrap:document.getElementById('notewrap'),
     call:document.getElementById('callBtn'),
-    next:document.getElementById('nextBtn'), nextSub:document.getElementById('nextSub') };
+    next:document.getElementById('nextBtn') };
   var decideS=document.getElementById('decide'), dTitle=document.getElementById('dTitle'),
       dCards=[document.getElementById('dA'),document.getElementById('dB'),document.getElementById('dC')];
   var momentS=document.getElementById('moment'), mStamp=document.getElementById('mStamp'),
@@ -2159,18 +2213,30 @@
   }
   function updateBlotter(){
     if(phase==='recap'||phase==='over') return; /* terminal screens own the ticker */
-    /* The rebuilt tab is 259px wide, so most names now fit in full \u2014 only the
-       longest still needs shortening. Sizing steps down by length instead of
-       squeezing the type sideways. */
-    var FOE_SHORT={'SAULT STE. MARIE':'SAULT STE.'};
-    var nm=FOE_SHORT[S.foe]||S.foe;
-    var txt=(current && current.games>1) ? '3 IN 4' : (S.venue==='HOME'?'vs ':'at ')+nm;
+    var slabEl=document.querySelector('#slotL .slab');
     var foeEl=document.getElementById('slFoe');
-    foeEl.textContent=txt;
-    foeEl.style.transform=''; foeEl.className='sv1';
-    if(txt.length>=15)      foeEl.className='sv1 tiny';
-    else if(txt.length>=11) foeEl.className='sv1 mid';
-    document.getElementById('slVenue').textContent='';
+    /* Post-game: the lower-left card shows a big W or L stamp instead of the
+       matchup, until the next week begins. */
+    if(S.showResultStamp){
+      slabEl.textContent='RESULT';
+      foeEl.textContent = S.lastWon ? 'W' : 'L';
+      foeEl.className = 'sv1 stamp ' + (S.lastWon ? 'win' : 'loss');
+      foeEl.style.transform='';
+      document.getElementById('slVenue').textContent='';
+    } else {
+      slabEl.textContent='NEXT GAME';
+      /* The rebuilt tab is 259px wide, so most names now fit in full \u2014 only the
+         longest still needs shortening. Sizing steps down by length instead of
+         squeezing the type sideways. */
+      var FOE_SHORT={'SAULT STE. MARIE':'SAULT STE.'};
+      var nm=FOE_SHORT[S.foe]||S.foe;
+      var txt=(current && current.games>1) ? '3 IN 4' : (S.venue==='HOME'?'vs ':'at ')+nm;
+      foeEl.textContent=txt;
+      foeEl.style.transform=''; foeEl.className='sv1';
+      if(txt.length>=15)      foeEl.className='sv1 tiny';
+      else if(txt.length>=11) foeEl.className='sv1 mid';
+      document.getElementById('slVenue').textContent='';
+    }
     /* RECORD now lives in bar 1 (#stRecord), refreshed in the main render pass.
        venue + standing move to the ticker, where there's actual room */
     var tick;
@@ -2184,7 +2250,7 @@
 
   function setNextBtn(label, sub){
     el.next.querySelector('.txt').textContent=label;
-    el.nextSub.textContent=sub||'';
+    /* subtext removed from the NEXT WEEK card for clarity; sub arg ignored */
   }
   function properFoe(f){
     return f.split(' ').map(function(w){ return w.charAt(0)+w.slice(1).toLowerCase(); }).join(' ');
@@ -2389,6 +2455,7 @@
   /* ---------- WEEK PRESENTATION ---------- */
   function presentWeek(){
     phase='setup'; pendingRoute=null;
+    S.showResultStamp = false;
     el.noteh.textContent = current.title;
     if(current.grace){
       setPortrait('grace', 'base');
@@ -2607,6 +2674,7 @@
             +'\n\n'+(gWon?'W':'L')+'  \u2022  '+S.wins+'-'+S.losses+(home?'':'  \u2022  ROAD')});
         }
         var won = swingW>swingL;
+        S.lastWon = won; S.showResultStamp = true;
 
         /* the Cup pays, in every currency the ledger knows */
         if(isPO && current.playoff==='final' && won){
@@ -2651,11 +2719,28 @@
           }
           var led=applyLedger(GAMES, home, won, isPO, byGrace);
           brief.push(led.line);
+          /* Grace signs off at the end of her week. Her farewell shifts with how
+             she was treated \u2014 respected, tolerated, or crossed. */
+          if(byGrace && !isPO){
+            if(S.flags.graceGrudge){
+              brief.push("That's my week. I've left the desk exactly as I found it, which is to say better than it deserves. My ledger goes home with me. You'll understand why. Tell Sandra I said the files are a disgrace and that I mean it fondly, about her, and not fondly at all, about the rest of it. \u2014 G.");
+            } else if(S.flags.graceRespected){
+              brief.push("That's my week. I'll not pretend I didn't enjoy it. The desk runs when it's run properly, and for seven days it was. Sandra's back Monday. Be good to her \u2014 she's better at this than I am, and it costs me nothing to say so, because it's true and I only deal in those. \u2014 G.");
+            } else {
+              brief.push("That's my week. The desk is squared away, the ledger's balanced, and I'm going home to a quiet house that has never once asked me to approve a mascot. Sandra returns Monday. The offer, whatever it was, stands. \u2014 G.");
+            }
+          }
           /* Sandra books her week off before Grace turns up, so the handover
              is set up a week ahead instead of Grace cold-opening. */
           if(!S.flags.graceWarned && S.stage==='regular' && S.week>=4 && !current.grace){
             S.flags.graceWarned=true; S.flags.graceWeek=S.tw;
             brief.push("Housekeeping. I'm taking next week. It'll be the first since 1981 and I've already been talked out of it twice, so let's not have a third. Grace is covering \u2014 she had this desk before I did. She's very good. She'll tell you that herself, and you'll want to let her.");
+          }
+          /* Sandra's first week back after Grace covered: she acknowledges the
+             holiday, once, in her own register. */
+          if(!current.grace && !isPO && S.flags['done_grace_1'] && !S.flags.sandraReturned){
+            S.flags.sandraReturned=true;
+            brief.push("First week back, in case anyone's counting, and someone always is. I saw the sun. Confirmed it still works. I sat in a chair that wasn't this one and thought about none of you, which took more effort than I'll admit. Grace left the desk immaculate and a note that just says 'you're welcome.' I've filed it under things I'll deal with never.");
           }
           if(S.cash<0){
             S.debtWeeks++;
@@ -2798,7 +2883,7 @@
      'thick' is the folder spine in the cabinet. Sam's is a bit.     */
   var CAST=[
     { who:'sandra', tab:'SANDRA', thick:'\u25AE', name:'SANDRA', meta:'Secretary',
-      intro:"\u201CSandra. I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those.\u201D",
+      intro:"\u201CWelcome to the Lumberjack Shack. I'm Sandra \u2014 I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those.\u201D",
       file:[
         "SANDRA. Secretary. Former beat reporter, the Frostbite Gazette, 1971\u201378.",
         "I keep the books, the schedule, and most of the chaos. Two of those are going well.",
@@ -2855,8 +2940,8 @@
         "We retired his number while he was still alive and sitting under it. The league called that irregular. This town called it overdue.",
         "Guilt-trips area business owners by name, from his seat, at volume. It works every single time. I've stopped questioning it and started scheduling around it."
       ]},
-    { who:'grace', tab:'GRACE', thick:'\u25AE\u25AE', name:'GRACE', meta:'Secretary, Retired',
-      intro:"\u201CGrace had this desk before me. Retired. Allegedly. Fills in when I'm away, which is rare, because look what happens.\u201D",
+    { who:'grace', tab:'GRACE', thick:'\u25AE\u25AE', name:'GRACE', meta:'Secretary, Retired \u2014 Filling In',
+      intro:"\u201CI'm taking a week. I have not taken a week since 1981, so don't make it weird.\n\nWhile I'm gone, Grace is at this desk. She held it before I did \u2014 retired, allegedly \u2014 and she is very good, and she will tell you so herself, at length, with citations.\n\nBe civil. She keeps her own ledger, and hers has no eraser. See you in a week.\u201D",
       file:[
         "GRACE. Held this desk before I did. Retired, allegedly. Fills in when I'm away, which is rare, and getting rarer, and you can read that however you like.",
         "Righteous. Usually correct, which is what makes the righteous part so hard to argue with. Keeps her own ledger. Hers has no eraser.",
@@ -2906,7 +2991,7 @@
     {kind:'text', scene:'intro_arrival',
      text:"WINTER, 1984.\n\nYou bought a basketball team.\n\nNobody up here has asked why. Not the bank, not the league, not the fella who sold it to you \u2014 who shook your hand with both of his, which you have since had time to think about."},
     {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
-     text:"She's at the door before you are, holding a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CSandra. I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those. I'll let you pick which.\u201D"},
+     text:"She's at the door before you are, holding a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CWelcome to the Lumberjack Shack. I'm Sandra \u2014 I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those. I'll let you pick which.\u201D"},
     {kind:'text', scene:'intro_files',
      text:"The tour takes eleven minutes.\n\nThe arena smells like woodsmoke and old rubber. The lights over the court need a full minute to come up, and she waits through it without comment, because that's just the minute. There's a longer list of things like that \u2014 things the previous owner appeared to negotiate around instead of fix. She doesn't itemize it now.\n\nOn the way out she taps a folder on the desk. It's thicker than the rest. It says SAM.\n\n\u201CDon't ask. It's load-bearing.\u201D"},
     {kind:'text',
