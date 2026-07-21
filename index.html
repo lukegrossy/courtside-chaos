@@ -232,8 +232,13 @@
     font-family:"Arial Black",sans-serif; color:#ffb02e;
     font-size:52px; line-height:58px; letter-spacing:2px;
     text-shadow:0 0 22px rgba(255,176,46,.45), 0 3px 14px #000;}
-  .msit{position:absolute; left:95px; right:95px; top:308px;
-    font-family:Georgia,serif; font-style:italic; color:#e8e2d4; font-size:34px; line-height:52px;
+  /* Scenario text lives in a FIXED lane between the title and the first card
+     (card 1 art starts at y623). Capping the height + clipping means a long
+     moment like THE RAFFLE can't grow down into the card the way it did.
+     Type is a touch tighter so 7-line scenarios still fit the lane.        */
+  .msit{position:absolute; left:95px; right:95px; top:300px; height:300px; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    font-family:Georgia,serif; font-style:italic; color:#e8e2d4; font-size:31px; line-height:44px;
     text-align:center; text-shadow:0 3px 18px #000;}
   .mart{position:absolute; left:0; top:0; width:853px; height:1844px;}
   .mcard{position:absolute; left:150px; width:552px; height:320px; cursor:pointer;
