@@ -1436,7 +1436,7 @@
     needs:'graceWarned', notBefore:{flag:'graceWeek', plus:1},
     setup:[
       "Grace. You were told I'd be here. I'll assume Sandra was kind about it, which would be unlike her, so I'll assume she was accurate instead.",
-      "I have read the files. All of them. In one evening. Some observations: the mascot budget is an embarrassment, the coach appears to be at war with beverages, and someone has paid nine thousand dollars for what I can only describe as a bronze regret.",
+      "I have read the files. All of them. In one evening. Some observations: the mascot budget is an embarrassment, the coach appears to be at war with beverages, and the word 'miscellaneous' is doing more work in these books than any player on the roster.",
       "This team had dignity once. I was here for it. Now \u2014 I found three ways to save money before my coffee cooled. Would you like to hear them, or shall I file them where opinions apparently go in this office?"],
     choices:[
       { t:"Hear her out. Implement all three.", sub:"She ran this desk before.",
@@ -2454,6 +2454,21 @@
 
   /* ---------- WEEK PRESENTATION ---------- */
   function presentWeek(){
+    /* Grace's first appearance: Sandra hands the desk over face-to-face BEFORE
+       the dashboard flips to Grace \u2014 her card follows, in her own voice.
+       This runs ahead of everything so the player is never cold-opened on a
+       stranger at Sandra's desk. */
+    if(current && current.grace && !S.met['grace']){
+      S.met['grace']=true;
+      var handoff={kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
+        text:"\u201CI'm taking a week. I have not taken a week since 1981, so don't make it weird.\n\nWhile I'm gone, Grace is at this desk. She held it before I did \u2014 retired, allegedly \u2014 and she is very good, and she will tell you so herself, at length, with citations.\n\nBe civil. She keeps her own ledger, and hers has no eraser. See you in a week.\u201D"};
+      var gcc=castCard('grace');
+      runSequence([handoff, gcc], dash, function(){ presentWeekBody(); }, dash);
+      return;
+    }
+    presentWeekBody();
+  }
+  function presentWeekBody(){
     phase='setup'; pendingRoute=null;
     S.showResultStamp = false;
     el.noteh.textContent = current.title;
@@ -2941,7 +2956,7 @@
         "Guilt-trips area business owners by name, from his seat, at volume. It works every single time. I've stopped questioning it and started scheduling around it."
       ]},
     { who:'grace', tab:'GRACE', thick:'\u25AE\u25AE', name:'GRACE', meta:'Secretary, Retired \u2014 Filling In',
-      intro:"\u201CI'm taking a week. I have not taken a week since 1981, so don't make it weird.\n\nWhile I'm gone, Grace is at this desk. She held it before I did \u2014 retired, allegedly \u2014 and she is very good, and she will tell you so herself, at length, with citations.\n\nBe civil. She keeps her own ledger, and hers has no eraser. See you in a week.\u201D",
+      intro:"\u201CGrace. I held this desk for twenty-two years before Sandra had it, and I'll hold it for one week now, which should be enough time to see what's become of the place.\n\nI've been told to be civil. I'm always civil. Civility and honesty are not in conflict \u2014 they simply take turns.\n\nSit anywhere. Not that chair.\u201D",
       file:[
         "GRACE. Held this desk before I did. Retired, allegedly. Fills in when I'm away, which is rare, and getting rarer, and you can read that however you like.",
         "Righteous. Usually correct, which is what makes the righteous part so hard to argue with. Keeps her own ledger. Hers has no eraser.",
