@@ -158,8 +158,10 @@
     transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;}
   .nextcard .hd, .callcard .hd{font-family:"Arial Black",sans-serif; font-size:18px;
     letter-spacing:1.5px; color:var(--red); line-height:1;}
-  .nextcard .txt{margin-top:8px; font-size:30px; line-height:35px; text-align:center; color:var(--red);}
-  .nextcard .sub{margin-top:5px; font-size:21px;}
+  .nextcard .txt{display:block; width:100%; box-sizing:border-box;
+    font-size:27px; line-height:1.15; text-align:center; color:var(--red);
+    font-weight:800; border:3px solid var(--red); border-radius:4px; padding:9px 6px;}
+  .nextcard .sub{display:block; margin-top:6px; font-size:19px; text-align:center;}
   /* callcard lost its subtext (redundant + made the card busy) — the action text
      itself now reads as a stamped button: bordered box, bigger, bolder, nothing
      else on the card competing for attention. */
@@ -234,8 +236,8 @@
   .mcard:active{filter:brightness(.92);}
   .mcard .txt{color:#241c12; font-size:41px; line-height:53px;}
   .mcard .sub{color:#54432c; font-style:italic; font-size:33px; line-height:41px;}
-  .m1{top:965px; transform:rotate(1.46deg);}
-  .m2{top:1432px; transform:rotate(-3.03deg);}
+  .m1{top:695px; transform:rotate(1.46deg);}
+  .m2{top:1162px; transform:rotate(-3.03deg);}
   /* ---- cutaway screens ---- */
   .caw{background:#000;}
   .caw .cawart{position:absolute; left:0; top:0; width:853px; height:1844px;
@@ -346,9 +348,16 @@
     display:flex; align-items:center; justify-content:center;
     font-family:"Playfair Display",Georgia,serif; font-weight:900; font-style:normal; color:#1c1a17;
     font-size:60px; letter-spacing:0px;}
-  .gazsub{position:absolute; left:122px; right:126px; top:274px;
-    display:flex; justify-content:space-between;
-    font-family:"Courier New",monospace; font-weight:700; color:#33302b; font-size:19px;}
+  /* Three sub-boxes are painted into the art at x 13-304 / 304-483 / 483-792
+     (centers ~159 / ~394 / ~638). Each label is absolutely centered on its box
+     rather than spread with space-between, which never matched the boxes. */
+  .gazsub{position:absolute; left:0; right:0; top:274px; height:26px;
+    font-family:"Courier New",monospace; font-weight:700; color:#33302b;}
+  .gazsub span{position:absolute; text-align:center; white-space:nowrap;
+    transform:translateX(-50%); top:0;}
+  .gazsub .gc1{left:159px; font-size:15px; letter-spacing:.5px;}
+  .gazsub .gc2{left:394px; font-size:17px;}
+  .gazsub .gc3{left:638px; font-size:17px;}
   .gazhead{position:absolute; left:108px; right:96px; top:322px; height:266px;
     display:flex; align-items:center; justify-content:center;
     font-family:"Arial Black","Arial Narrow",sans-serif; font-weight:900; color:#171512;
@@ -367,10 +376,11 @@
   .gazalsohd{position:absolute; left:132px; right:120px; top:1030px; text-align:center;
     font-family:"Arial Black",sans-serif; color:#2a2620; font-size:20px; letter-spacing:4px;}
   .gazalso{position:absolute; left:132px; right:120px; top:1074px; height:120px;
-    display:flex; flex-direction:column; gap:12px;}
+    display:flex; flex-direction:column; gap:12px; overflow:hidden;}
   .gazalso .ah{font-family:"Arial Narrow","Arial Black",sans-serif; font-weight:900;
     color:#201d18; font-size:23px; line-height:26px; letter-spacing:.5px;
-    border-bottom:1px dotted rgba(40,36,30,.4); padding-bottom:8px;}
+    border-bottom:1px dotted rgba(40,36,30,.4); padding-bottom:8px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 
   .hl{top:1723px; display:flex; flex-direction:column;}
   .hl .head{color:var(--red); font-weight:800; font-size:21px; line-height:25px;
@@ -434,7 +444,10 @@
         <img class="gart" alt="" src="assets/ui/gazette.webp">
         <div class="gaztext">
         <div class="gazmast">The Frostbite Gazette</div>
-        <div class="gazsub"><span>NORTH COUNTRY</span><span id="gazDate">WEEK 1</span><span>15&cent;</span></div>
+        <div class="gazsub">
+          <span class="gc1">NORTH COUNTRY</span>
+          <span class="gc2" id="gazDate">WEEK 1</span>
+          <span class="gc3">15&cent;</span></div>
         <div class="gazhead" id="gazHead">HEADLINE</div>
         <div class="gazbyline">BY GAZETTE STAFF</div>
         <div class="gazstory" id="gazStory"></div>
@@ -1108,11 +1121,26 @@
     "ZAMBONI DRIVER RETIRES, UNRETIRES","LAKE STILL FROZEN, EXPERTS CONFIRM",
     "COUNCIL DEBATES SECOND STOPLIGHT","HOT DISH SUPPER RESCHEDULED",
     "BUS DRIVER DECLINES COMMENT AGAIN","PLOW GUY SEEN WAVING",
-    "MILL WHISTLE HEARD; NOSTALGIA REPORTED","AREA MAN SHOVELS NEIGHBOUR'S WALK, DENIES IT",
+    "MILL WHISTLE HEARD; NOSTALGIA REPORTED","AREA MAN SHOVELS WALK, DENIES IT",
     "THERMOMETER BROKEN OR HONEST","GAS STATION SELLS OUT OF GLOVES",
     "ICE FISHING HOUSE MOVED, BARELY","DOG RETURNED TO WRONG FAMILY, KEPT",
     "SNOW FORECAST; RESIDENTS UNMOVED","CHURCH ROOF FUND REACHES $40",
-    "MAN FIXES OWN FURNACE, TELLS EVERYONE","LIBRARY EXTENDS HOURS BY 20 MINUTES"
+    "MAN FIXES OWN FURNACE, TELLS EVERYONE","LIBRARY EXTENDS HOURS 20 MINUTES",
+    "DINER SOUP RATED 'FINE' BY REGULAR","SECOND COUSIN VISITS; STAYS TOO LONG",
+    "SIDEWALK ICED; TOWN CALLS IT CHARACTER","FEUD ENTERS FOURTH DECADE, STILL POLITE",
+    "CASSEROLE RETURNED WASHED, AS IS LAW","POST OFFICE LINE MOVED ONCE",
+    "TRUCK WON'T START; OWNER NOT SURPRISED","HARDWARE STORE GETS NEW BROOM",
+    "SNOWMAN VANDALIZED; SUSPECT IS SUN","BAKE SALE RAISES ELEVEN DOLLARS",
+    "MOOSE CROSSES ROAD; ROAD YIELDS","RADIO STATIC 'CLEARER THAN USUAL'",
+    "BARBER CLOSES EARLY, CITES WEATHER","CURLING RINK BOOKED SOLID TILL APRIL",
+    "MAN BUYS SECOND FLANNEL, DENIES EXCESS","ICE AUGER LOCATED IN OTHER SHED",
+    "KID SHOVELS DRIVEWAY, OVERCHARGES","GRANDMOTHER WINS RAFFLE SHE RAN",
+    "STREETLIGHT FLICKERS; ROMANTIC TO SOME","TOWN CLOCK OFF BY SIX MINUTES, LOVED",
+    "FROZEN PIPE THAWS; NEIGHBOUR TAKES CREDIT","VFW PANCAKE FEED DEEMED SUCCESS",
+    "SNOWBANK NOW TALLER THAN MAILBOX","LOCAL DOG ELECTED, UNOFFICIALLY",
+    "MAN WARMS CAR TWENTY MINUTES, DRIVES BLOCK","LEFTOVER FISH FRY, HALF PRICE",
+    "COFFEE POT REPLACED; MORALE UP","CHRISTMAS LIGHTS STILL UP, DEFENDED",
+    "PLOW BLADE HITS SAME CURB AGAIN","WOMAN KNITS FASTER THAN ANYONE, HUMBLE"
   ];
   /* The sidebar is where a living town leaks through. Base pool is
      evergreen local colour; the rest gets earned by things you did.     */
@@ -1143,12 +1171,21 @@
     if(S.season>1) p.push("SECOND-YEAR OWNER STILL HERE, LOCALS NOTE");
     return p;
   }
+  var recentFillers=[];
   function fillerPair(){
     var P=fillerPool();
-    var a=Math.floor(Math.random()*P.length), b;
-    do{ b=Math.floor(Math.random()*P.length); }while(b===a);
-    var c; do{ c=Math.floor(Math.random()*P.length); }while(c===a||c===b);
-    return [P[a],P[b],P[c]];
+    /* avoid anything shown in the last ~12 issues so the sidebar doesn't
+       feel like it's cycling the same three headlines. Fall back gracefully
+       if the eligible pool ever gets too small. */
+    var eligible=P.filter(function(h){ return recentFillers.indexOf(h)===-1; });
+    if(eligible.length<3) eligible=P.slice();
+    var pick=[];
+    while(pick.length<3 && eligible.length){
+      var i=Math.floor(Math.random()*eligible.length);
+      pick.push(eligible.splice(i,1)[0]);
+    }
+    recentFillers=pick.concat(recentFillers).slice(0,12);
+    return pick;
   }
 
   /* ---------- MOMENT DEALER: shuffle bag, no repeats ---------- */
@@ -1919,15 +1956,15 @@
   { id:'the_crate', venue:'home', when:'game', title:'THE CRATE', mood:'base', scene:'crate',
     setup:[
       "The laundry service froze. Not figuratively \u2014 the truck, the pipes, and one employee's mustache, all of it, solid, outside Two Harbors. Our uniforms are inside that truck and will remain there until what the driver is calling 'a thaw event.'",
-      "The game is Friday. However. In clearing the equipment room \u2014 for reasons, or possibly because of reasons, I've agreed not to reopen \u2014 somebody found a crate. Stenciled: LUMBERJACKS, 1961. Inside: a full set of wool uniforms from the year this team won everything. Ernie Kowalski's number is in there. His actual jersey.",
+      "The game is Friday. However. In clearing the equipment room \u2014 for reasons, or possibly because of reasons, I've agreed not to reopen \u2014 somebody found a crate. Stenciled: LUMBERJACKS, 1961. Inside: a full set of wool uniforms from the year this team won everything. Ernie Kowalski's actual jersey is folded on top, the number long since hanging in the rafters, the cloth itself apparently just in a box this whole time.",
       "The wool has opinions. The moths have made contributions. And Ernie, informed by means nobody will admit to, is already in the parking lot."],
     choices:[
-      { t:'The Jacks wear 1961.', sub:'Ernie hands his own number to the rookie.', when:'game',
+      { t:'The Jacks wear 1961.', sub:'Ernie lends the rookie the old jersey for one night.', when:'game',
         fx:{buzz:12, morale:8, cred:4},
-        out:["The wool itches like history. The team takes the floor looking like a photograph, and the building makes a sound it has been saving since 1961. Ernie presents his jersey to the rookie at center court with two sentences nobody caught on tape, and the rookie plays the night of his life in it, sneezing.",
+        out:["The wool itches like history. The team takes the floor looking like a photograph, and the building makes a sound it has been saving since 1961. Ernie drapes the old jersey over the rookie's shoulders at center court \u2014 the cloth, not the number; the number stays up in the rafters where it lives \u2014 says two sentences nobody caught on tape, and the rookie plays the night of his life in it, sneezing.",
              "The visitors spend the whole game vaguely unsettled, the way you would be if you looked up and the past was running a fast break at you."],
-        desk:"Uniforms: 1961, wool, moth-annotated. The rookie has asked to keep the jersey and Ernie has ruled \u2014 his word \u2014 'custody.' Weekends and holidays. I am not drafting the schedule. Filed under MIRACLES.",
-        gaz:"1961 RETURNS FOR ONE NIGHT; PRESENT DAY OUTSCORED", news:"A frozen laundry truck obliged the Lumberjacks to compete in wool uniforms recovered from a crate stenciled 1961, the club's championship year. Ernie Kowalski presented his own jersey to the team's rookie at center court. The exchange was brief and has not been repeated by either party. The rookie's performance is being described as historic and congested.", mood:'pleased', flag:'crate61' },
+        desk:"The rookie wore the cloth for one night and has asked to keep it. Ernie ruled \u2014 his word \u2014 'custody.' Weekends and holidays. The number stays retired; only the jersey travels. I am not drafting the schedule.",
+        gaz:"1961 RETURNS FOR ONE NIGHT; PRESENT DAY OUTSCORED", news:"A frozen laundry truck obliged the Lumberjacks to compete in wool uniforms recovered from a crate stenciled 1961, the club's championship year. Ernie Kowalski draped his old jersey over the team's rookie at center court \u2014 a loan of the cloth only, his retired number remaining in the rafters. The rookie's performance is being described as historic and congested.", mood:'pleased', flag:'crate61' },
       { t:'Buy plain grays off the rack in town.', sub:'$700. Dignity optional.',
         fx:{cash:-700, buzz:-3, morale:1}, when:'game',
         out:["The team plays in practice grays with numbers in electrical tape, applied by Sandra, straight-edged, level, correct. The tape starts peeling in the second quarter and the scorer's table begins identifying players by 'vibe,' their word, entered in an official league document.",
@@ -2180,14 +2217,23 @@
     gate=Math.round(gate);
     var net=gate-costs;
     S.cash+=net;
-    /* Same books, opposite temperaments. Sandra hedges. Grace does not. */
-    var line = grace
-      ? ("Gate: "+fmtCash(gate)+". Costs: "+fmtCash(costs)+". Net: "
-         + (net>=0?fmtCash(net):"\u2212"+fmtCash(-net))
-         + ". Entered in ink. Pencil is for people who expect to be wrong.")
-      : ("The week's books: gate "+fmtCash(gate)+", costs "+fmtCash(costs)+". "
-         + (net>=0 ? "We cleared "+fmtCash(net)+". Entered in pen."
-                   : "We're down "+fmtCash(-net)+" on the week. Entered in pencil, optimistically."));
+    /* Home games have a gate. Road games do not \u2014 we take the visitor's cut
+       of THEIR gate, which is a share, not a gate. Word it honestly per venue. */
+    var revLabel = home ? "gate" : "visitor's share";
+    var line;
+    if(grace){
+      line = (home?"Gate: ":"Visitor's share: ")+fmtCash(gate)+". Costs: "+fmtCash(costs)+". Net: "
+        + (net>=0?fmtCash(net):"\u2212"+fmtCash(-net))
+        + ". Entered in ink. Pencil is for people who expect to be wrong.";
+    } else if(home){
+      line = "The week's books: gate "+fmtCash(gate)+", costs "+fmtCash(costs)+". "
+        + (net>=0 ? "We cleared "+fmtCash(net)+". Entered in pen."
+                  : "We're down "+fmtCash(-net)+" on the week. Entered in pencil, optimistically.");
+    } else {
+      line = "The week's books: our cut of their gate came to "+fmtCash(gate)+", against "+fmtCash(costs)+" for payroll and the bus. "
+        + (net>=0 ? "We cleared "+fmtCash(net)+". Entered in pen."
+                  : "We're down "+fmtCash(-net)+" on the week. Entered in pencil, optimistically.");
+    }
     return {gate:gate, costs:costs, net:net, line:line};
   }
 
@@ -2723,7 +2769,7 @@
         "There's no more to the file. I wrote it."
       ]},
     { who:'hank', tab:'HANK', thick:'\u25AE\u25AE', name:'HANK WILLIS', meta:'Head Coach',
-      intro:"\u201CCoach Willis. Wins basketball games. I've stopped asking how.\n\nEvery third quarter he goes into the men's room and comes back holding the fourth. I've timed it. The number doesn't help.\n\nHe's also banned water. Says comfort is the enemy. I write it down. I don't ratify it.\u201D",
+      intro:"\u201CCoach Willis. Wins basketball games. I've stopped asking how.\n\nEvery third quarter he disappears into the men's room. Every fourth quarter we outscore them. I've timed how long he's gone. Knowing the number has not once helped me.\n\nHe's also banned water at practice. Says comfort is the enemy. I write that down. I don't ratify it.\u201D",
       file:[
         "WILLIS, HANK. Head coach. Hired 1979. Record: better than this roster has any business posting.",
         "Method: unestablished. Every third quarter he leaves for the men's room and returns with the plan that wins the fourth. I have never seen him write it down. I have checked. Twice.",
@@ -2744,9 +2790,9 @@
         "Note for the new owner: there is no dialing Tiny back. There is only aiming him. Four owners have learned this. Three learned it late."
       ]},
     { who:'leo', tab:'LEO', thick:'\u25AE\u25AE\u25AE', name:'LEO JAMES', meta:'Forward \u2014 Age Contested',
-      intro:"\u201CLeo James. Forty-nine years old. Still starts. Still finishes.\n\nHe was thirty-four the year I started here. That was nine years ago. I've done the arithmetic more than once. The arithmetic is fine. It's everything around the arithmetic.\n\nThirty minutes a night. I have never seen the man breathe hard.\u201D",
+      intro:"\u201CLeo James. Forty-nine years old. Still starts. Still finishes.\n\nHe was thirty-four the year I started here. That was nine years ago. You can do that sum yourself. I have, several times, and then I've put my pen down and left it alone, the way you leave a sleeping dog or a load-bearing wall.\n\nThirty minutes a night. I have never once seen the man breathe hard.\u201D",
       file:[
-        "JAMES, LEO. Forward. Listed at forty-nine. Listed at thirty-four the year I started, which was nine years ago. I have done the arithmetic. The arithmetic is fine.",
+        "JAMES, LEO. Forward. Listed at forty-nine. Also listed at thirty-four the year I started, which was nine years ago. Both numbers are in the file, in ink, and I have decided the file is allowed to contradict itself as long as he keeps scoring.",
         "I have raised this with him twice. The first time he agreed with me. The second time he agreed with me again, warmly, and then the conversation was over and I could not tell you how it ended.",
         "Plays thirty minutes a night and has never asked to come out. The young fellas go to him before they go to Hank. Hank knows. Hank has never once mentioned it. That's the arrangement, it works, and I'd rather not be the one who examines it."
       ]},
