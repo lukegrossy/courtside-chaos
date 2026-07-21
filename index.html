@@ -218,6 +218,12 @@
   .d1{top:500px; transform:rotate(-1.91deg);}
   .d2{top:927px; transform:rotate(2.47deg);}
   .d3{top:1375px; transform:rotate(-2.02deg);}
+  /* 2-card mode: reuse moment.webp's recentred cards (y623-1015 / y1102-1490).
+     Card divs are centred vertically on each painted card, and widened to fit
+     moment.webp's larger card bodies (x89-765). */
+  #decide.two .dcard{left:150px; width:560px;}
+  #decide.two .d1{top:663px; transform:rotate(1.46deg);}
+  #decide.two .d2{top:1142px; transform:rotate(-3.03deg);}
   /* ---- in-game moment screen ---- */
   .mstamp{position:absolute; left:40px; right:40px; top:112px; text-align:center;}
   .mstamp .mper{display:block; font-family:"Courier New",monospace; color:#c9862b;
@@ -230,14 +236,15 @@
     font-family:Georgia,serif; font-style:italic; color:#e8e2d4; font-size:34px; line-height:52px;
     text-align:center; text-shadow:0 3px 18px #000;}
   .mart{position:absolute; left:0; top:0; width:853px; height:1844px;}
-  .mcard{position:absolute; left:148px; width:558px; height:280px; cursor:pointer;
+  .mcard{position:absolute; left:150px; width:552px; height:320px; cursor:pointer;
     display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
-    text-align:left; gap:12px; font-family:"Courier New",monospace; font-weight:700;}
+    text-align:left; gap:10px; padding:0 24px; box-sizing:border-box; overflow:hidden;
+    font-family:"Courier New",monospace; font-weight:700;}
   .mcard:active{filter:brightness(.92);}
-  .mcard .txt{color:#241c12; font-size:41px; line-height:53px;}
-  .mcard .sub{color:#54432c; font-style:italic; font-size:33px; line-height:41px;}
-  .m1{top:695px; transform:rotate(1.46deg);}
-  .m2{top:1162px; transform:rotate(-3.03deg);}
+  .mcard .txt{color:#241c12; font-size:38px; line-height:46px;}
+  .mcard .sub{color:#54432c; font-style:italic; font-size:29px; line-height:36px;}
+  .m1{top:659px; transform:rotate(1.46deg);}
+  .m2{top:1136px; transform:rotate(-3.03deg);}
   /* ---- cutaway screens ---- */
   .caw{background:#000;}
   .caw .cawart{position:absolute; left:0; top:0; width:853px; height:1844px;
@@ -351,13 +358,19 @@
   /* Three sub-boxes are painted into the art at x 13-304 / 304-483 / 483-792
      (centers ~159 / ~394 / ~638). Each label is absolutely centered on its box
      rather than spread with space-between, which never matched the boxes. */
+  /* The whole text layer is rotated -1.4deg, which drifts cells the further
+     they sit from the rotation origin \u2014 the right cell (15c) drifts most,
+     spilling past its box. Centers below are rotation-compensated so each
+     label lands inside its painted box, and each cell is width-capped to its
+     box so it can't escape even if the tilt shifts slightly on-device.
+     Boxes: x 13-304 / 304-483 / 483-792 (widths ~291 / ~179 / ~309).      */
   .gazsub{position:absolute; left:0; right:0; top:274px; height:26px;
     font-family:"Courier New",monospace; font-weight:700; color:#33302b;}
   .gazsub span{position:absolute; text-align:center; white-space:nowrap;
-    transform:translateX(-50%); top:0;}
-  .gazsub .gc1{left:159px; font-size:15px; letter-spacing:.5px;}
-  .gazsub .gc2{left:394px; font-size:17px;}
-  .gazsub .gc3{left:638px; font-size:17px;}
+    transform:translateX(-50%); overflow:hidden;}
+  .gazsub .gc1{left:159px; top:0; font-size:15px; letter-spacing:.5px;}
+  .gazsub .gc2{left:392px; top:1px; font-size:15px; letter-spacing:.5px;}
+  .gazsub .gc3{left:632px; top:2px; font-size:15px; letter-spacing:.5px;}
   .gazhead{position:absolute; left:108px; right:96px; top:322px; height:266px;
     display:flex; align-items:center; justify-content:center;
     font-family:"Arial Black","Arial Narrow",sans-serif; font-weight:900; color:#171512;
@@ -2052,8 +2065,11 @@
   el.scroll.addEventListener('scroll', checkScroll);
 
   var LETTERS=['A.','B.','C.'];
+  var dArtImg=document.querySelector('#decide .dart');
   function fillDecision(story){
     dTitle.textContent = story.title;
+    var n = story.choices.filter(function(c){return !!c;}).length;
+    applyDecisionLayout(n);
     for(var i=0;i<3;i++){
       var c=dCards[i], ch=story.choices[i];
       if(!ch){ c.style.display='none'; continue; }
@@ -2063,6 +2079,18 @@
       c.querySelector('.sub').textContent = ch.sub;
       /* long titles wrap to four lines and spill off the painted card */
       c.classList.toggle('long', (ch.t.length + 3) > 42);
+    }
+  }
+  /* Two-choice stories use the recentred 2-card art (moment.webp) instead of
+     the 3-card decision art, so the cards aren't top-heavy with an empty third
+     card painted below and the text lands on the actual cards. */
+  function applyDecisionLayout(n){
+    if(n===2){
+      dArtImg.src='assets/ui/moment.webp';
+      decideS.classList.add('two');
+    } else {
+      dArtImg.src='assets/ui/decision.webp';
+      decideS.classList.remove('two');
     }
   }
 
@@ -2432,6 +2460,8 @@
   function showPossumRetry(){
     possumRetryMode = true;
     phase='decide';
+    dTitle.textContent = 'THE FUSE BOX';
+    applyDecisionLayout(2);
     var left = 3 - possumAttempt;
     dCards[0].style.display=''; dCards[1].style.display=''; dCards[2].style.display='none';
     dCards[0].classList.remove('long'); dCards[1].classList.remove('long');
@@ -2439,6 +2469,7 @@
     dCards[0].querySelector('.sub').textContent = left+' attempt'+(left===1?'':'s')+' left.';
     dCards[1].querySelector('.txt').innerHTML = '<span class="L">B.</span> Call pest control.';
     dCards[1].querySelector('.sub').textContent = 'Cut your losses. No further charge.';
+    decideS.classList.add('on');
   }
   function resolvePossum(outcome){
     possumRetryMode = false;
