@@ -1860,6 +1860,43 @@
         news:"An unaccredited mascot travelling with the visiting club performed during the halftime interval without authorisation and was subsequently detained by arena staff following a pursuit through service corridors. A fine was issued. The visiting club's representative signed the citation on the mascot's behalf, or, by one account, did not.",
         mood:'dry' } } },
 
+  { id:'hotdish_night', venue:'home', title:'HOTDISH NIGHT', mood:'base', rest:true, special:'hotdish',
+    setup:[
+      "The schedule gods have granted us a dark week \u2014 no game, no bus, no gate. In this league that's called rest. In this town it's called an opening.",
+      "Which brings me to the tradition you're apparently starting, boss, because I've already had four phone calls about it: the owner hosts the team. At your home. For hotdish. Tater tot, cream of mushroom, the works \u2014 this is not negotiable and I did not make the rules, the rules came with the county.",
+      "Twelve players, a coach who distrusts liquids, a wolf, and whatever Leo brings, which historically predates the recipe. Your kitchen. Sunday. How are we doing this?"],
+    choices:[
+      { t:"Host the full spread. Everyone. Your kitchen.", sub:"You're building the centerpiece yourself. Tots and all." },
+      { t:"Church basement. Sandra runs it. You attend.", sub:"Neutral ground. Folding tables. Proper urns.",
+        fx:{cash:-80, morale:7, buzz:2},
+        out:["The church basement does what church basements have always done: holds a town's worth of warmth at folding-table height. Sandra runs the evening like a state function \u2014 name cards, two urns, bars sorted by category \u2014 and the team relaxes in the specific way men relax in a room their mothers would approve of.",
+             "It's good. It's genuinely good. It is also, everyone quietly notes, not your kitchen, and up here the difference between hosting and attending is a distinction people keep in the same drawer as their baptism records."],
+        desk:"Hotdish Night: executed, basement, dignified. Eighty dollars, two urns, zero incidents. The team went home warm. The only note in the suggestion box \u2014 we had a suggestion box, I run a tight basement \u2014 said 'next year the house,' unsigned, in handwriting I've already matched to Tiny.",
+        gaz:"TEAM HOTDISH SUPPER HELD AT CHURCH; URNS PRAISED",
+        news:"The club marked its open week with a team hotdish supper in a church basement, organised by club secretary Sandra. The event was described as warm and well-run. An anonymous suggestion regarding next year's venue was submitted and is understood to be under review.", mood:'base' },
+      { t:"Skip it. Rest means rest.", sub:"Everyone gets a week off. Including the oven.",
+        fx:{morale:-8, buzz:-3},
+        out:["The dark week passes dark. Everyone rests, technically. But the phone calls had gone out, and the town had heard 'hotdish' before it heard 'cancelled,' and there is no force in the North quite like a casserole that was promised and not produced.",
+             "Tiny refers to the week, in perpetuity, as 'the hunger.' Mrs. Kowalczyk plays something minor-key at the next home game and looks at your seats while she does it. The team wins anyway, out of spite, which works exactly once."],
+        desk:"Hotdish Night: cancelled before it began, which the town has processed as a casserole-shaped hole in the calendar. I've fielded eleven calls, one condolence card, and a tot recipe mailed anonymously 'for next year.' There will have to be a next year, boss. This is bigger than both of us now.",
+        gaz:"HOTDISH NIGHT CANCELLED; TOWN IN QUIET MOURNING",
+        news:"An anticipated team hotdish supper did not take place during the club's open week. No official explanation was offered. A recipe was mailed to the club offices anonymously. Local sentiment has been characterised as disappointed but patient, in the regional tradition.", mood:'grim' } ],
+    hotdishOutcomes:{
+      win:{ fx:{cash:-150, morale:12, buzz:4, cred:2}, when:null,
+        out:["Sunday night, your house holds the entire franchise. Three hotdishes deep \u2014 the classic, one with wild rice for the sophisticates, and the centerpiece: yours, its tots spelling LUMBERJACKS in eleven golden letters, which nobody will stop photographing and which Hank has inspected twice, letter by letter, nodding like a man auditing a miracle.",
+             "The Import eats in silence, finishes, looks at the empty pan, and says his first full unprompted English sentence on record: 'There is more?' There was more. Leo's contribution sits unopened in the center of the table like a monument. Tiny gives a toast that starts as a bit and lands, by accident, somewhere true \u2014 and for one night in the middle of a long winter, this is just a family that plays basketball.",
+             "Sam does the dishes. In costume. Nobody asked. The sleeves did not survive."],
+        desk:"Hotdish Night, year one, is in the books: $150 in groceries against returns I have no column for. The centerpiece spelled LUMBERJACKS and was photographed more than the Cup would be. Leftovers: none, on account of the Import. The tradition is now annual \u2014 the team decided it on the way out the door, and traditions up here don't ask twice.",
+        gaz:"OWNER'S HOTDISH SPELLS TEAM NAME; TRADITION DECLARED ANNUAL",
+        news:"With no fixture scheduled, club ownership hosted the full roster for a tater tot hotdish supper at the owner's residence, the centerpiece of which spelled LUMBERJACKS in arranged tots. It was photographed extensively before being consumed entirely. The event was declared annual by consensus before departure, a mechanism this region recognises as binding.", mood:'pleased' },
+      lose:{ fx:{cash:-150, morale:7, buzz:3},
+        out:["The centerpiece comes out of the oven saying something. What it says is not LUMBERJACKS. The team gathers around the pan in respectful silence, tilting their heads in unison like a flock changing direction, until Tiny \u2014 who has been waiting his whole life for this \u2014 pronounces it 'SLUMBERJACKS' and the kitchen comes apart.",
+             "They eat every tot of it. Loyally. Seconds, even, of the crooked letters specifically, which the Import points at before taking. Hank declares the burnt corner 'the only part cooked with conviction' and eats it standing up, facing the door. The night, against the casserole's best efforts, lands anyway.",
+             "Sam does the dishes. In costume. The sleeves did not survive. Some things are constants."],
+        desk:"Hotdish Night, year one: the centerpiece was, spelling-wise, an incident, and is now team lore under a name I refuse to write down twice. They ate all of it anyway, which is the whole town in a sentence. The tradition is annual regardless \u2014 possibly BECAUSE. Next year we practice the letters first.",
+        gaz:"TEAM HOTDISH SUPPER HELD; SPELLING DESCRIBED AS 'AMBITIOUS'",
+        news:"Club ownership hosted the full roster for a tater tot hotdish supper during the open week. The centerpiece, intended to spell the team name in arranged tots, was reported to spell something adjacent to it. It was nonetheless consumed in its entirety, portions of it by request. The event was declared annual by consensus.", mood:'dry' } } },
+
   { id:'assoc_rumor', title:'THE EXPANSION RUMOR', mood:'grim', once:true,
     setup:[
       "A rumor reached the diner before it reached my desk, which tells you it's either completely false or completely true. The Association \u2014 the big one, the one that doesn't advertise \u2014 is looking to expand. The state has been earmarked. And the version going around says they'd rather license an existing club than build one from dirt.",
@@ -2334,7 +2371,8 @@
     var arena  = mains.filter(function(st){return st.id==='arena_condemned';});
     var possum = mains.filter(function(st){return st.id==='possum_fusebox';});
     var bequest= mains.filter(function(st){return st.id==='estate_bequest';});
-    var rest   = mains.filter(function(st){return st.id!=='arena_condemned' && st.id!=='possum_fusebox' && st.id!=='estate_bequest';});
+    var hot    = mains.filter(function(st){return st.id==='hotdish_night';});
+    var rest   = mains.filter(function(st){return st.id!=='arena_condemned' && st.id!=='possum_fusebox' && st.id!=='estate_bequest' && st.id!=='hotdish_night';});
     for(var i=rest.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=rest[i]; rest[i]=rest[j]; rest[j]=t; }
     /* Stories the player has EVER seen deal last: a new season deals every
        fresh story before any repeat. Stable sort keeps the shuffle otherwise. */
@@ -2345,7 +2383,8 @@
        The estate bequest opens season 2 the same way. */
     var head = (S.season===1) ? [STORY[0]].concat(possum)
              : bequest; /* empty once played — pins at the head of any later season until it fires */
-    deck = head.concat(rest.slice(0, Math.ceil(rest.length/2)), arena, rest.slice(Math.ceil(rest.length/2)));
+    /* Hotdish Night pins to mid-season, every season — it's annual. */
+    deck = head.concat(rest.slice(0, Math.ceil(rest.length/2)), hot, arena, rest.slice(Math.ceil(rest.length/2)));
   }
   function nextStory(){
     /* Hard pin: the fuse box is the first real problem of the franchise.
@@ -2401,6 +2440,11 @@
       foeEl.className = 'sv1 stamp ' + (S.lastWon ? 'win' : 'loss');
       foeEl.style.transform='';
       document.getElementById('slVenue').textContent='';
+    } else if(current && current.rest){
+      slabEl.textContent='REST WEEK';
+      foeEl.textContent='NO GAME';
+      foeEl.style.transform=''; foeEl.className='sv1 mid';
+      document.getElementById('slVenue').textContent='';
     } else {
       slabEl.textContent='NEXT GAME';
       /* The rebuilt tab is 259px wide, so most names now fit in full \u2014 only the
@@ -2421,7 +2465,7 @@
     if(current && current.playoff){
       tick='NORTH COUNTRY PLAYOFFS \u2022 '+(current.playoff==='semi'?'SEMIFINAL':'TIMBER CUP FINAL');
     } else {
-      tick=(S.venue==='HOME'?'HOME NIGHT':'ON THE ROAD')+'  \u2022  '+divisionPlace(true);
+      tick=((current&&current.rest)?'DARK WEEK AT THE SHACK':(S.venue==='HOME'?'HOME NIGHT':'ON THE ROAD'))+'  \u2022  '+divisionPlace(true);
     }
     document.getElementById('ticker').textContent=tick;
   }
@@ -2771,6 +2815,13 @@
         if(possumAttempt>=3){ resolvePossum(current.possumOutcomes.forced); }
         else { showPossumRetry(); }
       }
+    } else if(phase==='hotdish'){
+      closeMinigame();
+      var ho = current && current.hotdishOutcomes;
+      if(!ho) return;
+      /* The night happens either way — lose just means the casserole has a
+         story. Both resolve through the normal rest-week pipeline. */
+      proceedWithChoice(d.result==='win' ? ho.win : ho.lose);
     } else if(phase==='samtunnel'){
       closeMinigame();
       var o = current && current.samOutcomes;
@@ -2810,6 +2861,7 @@
     if(!ch) return;
     if(current.special==='possum' && i===0){ startPossumLoop(); return; }
     if(current.special==='samtunnel' && i===0){ S.flags.samPending=true; }
+    if(current.special==='hotdish' && i===0){ phase='hotdish'; openMinigame('hotdish-night.html'); return; }
     proceedWithChoice(ch);
   }
 
@@ -2832,6 +2884,31 @@
     S.morale = clamp(S.morale + (fx.morale||0));
     S.buzz   = clamp(S.buzz   + (fx.buzz||0));
     S.cred   = clamp(S.cred   + (fx.cred||0));
+
+    /* ---------- REST WEEK ----------
+       No game: no tip-off, no score, no W/L, no gate. The week is the event
+       itself (Hotdish Night). Payroll is still due \u2014 rest is not free. */
+    if(current.rest){
+      var rSteps = ch.out.map(function(par,idx){
+        return {kind:'text', text:par, scene: idx===0?(ch.scene||current.scene):null};
+      });
+      rSteps.push({kind:'gazette', head:ch.gaz, story:ch.news, date:'WEEK '+(S.week<10?'0':'')+S.week,
+        extra:''});
+      runSequence(rSteps, dash, function(){
+        S.cash -= ECON.PAYROLL;
+        var rBrief=[ch.desk,
+          "The dark week's books: no gate, because no game. Payroll doesn't rest: "+fmtCash(ECON.PAYROLL)+" out. Some weeks you buy wins. This one we bought something that doesn't fit a column, and I'd pay it again."];
+        setNote(rBrief);
+        setPortrait(current.grace?'grace':'sandra', ch.mood||'base');
+        el.noteh.textContent='FROM '+(current.grace?"GRACE'S":"SANDRA'S")+' DESK';
+        pendingRoute='week';
+        setNextBtn('NEXT WEEK \u25B6','');
+        el.next.style.display='';
+        phase='outcome';
+        render(); saveGame();
+      }, decideS);
+      return;
+    }
 
     var moment = drawMoment(S.venue);
     var home=(S.venue==='HOME');
