@@ -171,6 +171,22 @@ var CLUTTER = [
 
 // ---------- state ----------
 var ST_INTRO=0, ST_PLAY=1, ST_WIN=2, ST_CAUGHT=3, ST_BUS=4, ST_DEPART=5;
+
+/* ---------- PARENT BRIDGE ----------
+   This runs inside an iframe in Courtside Chaos. When the run ends, the
+   result is handed back to the parent game, which owns all outcomes and
+   consequences. One shot: no replay loop, because nothing is at stake on a
+   retry and "try until you win" would make the outcome meaningless. */
+var reported=false;
+function reportResult(){
+  if(reported) return;
+  reported=true;
+  var payload =
+    (state===ST_WIN)    ? {type:'samtunnel-result', result:'win'} :
+    (state===ST_CAUGHT) ? {type:'samtunnel-result', result:'lose', reason:'caught'} :
+                          {type:'samtunnel-result', result:'lose', reason:'missed'};
+  try{ window.parent.postMessage(payload,'*'); }catch(e){}
+}
 var state = ST_INTRO;
 var BUS_TIME = 75;
 var timeLeft, sam, musk, dust, shakeT, flashT, tick=0;
@@ -303,7 +319,8 @@ function px(e){ var t=e.changedTouches?e.changedTouches[0]:e;
 
 function tapAdvance(){
   if(state===ST_INTRO){ introPage++; if(introPage>1){ reset(); state=ST_PLAY; } }
-  else if(state===ST_WIN||state===ST_CAUGHT||state===ST_BUS){ introPage=1; state=ST_INTRO; }
+  /* End states hand back to Courtside Chaos instead of restarting. */
+  else if(state===ST_WIN||state===ST_CAUGHT||state===ST_BUS){ reportResult(); }
 }
 function pressStart(p){
   audioInit(); audioResume();
@@ -831,8 +848,7 @@ function drawIntro(){
 function drawEnd(){
   if(state===ST_WIN){
     nightScene({gone:true});
-    rect(196,96,2,2,P.tail); rect(202,96,2,2,P.tail);
-    screenText('HE MADE THE BUS',[
+    rect(196,96,2,2,P.tail); rect(202,96,2,2,P.tail);    screenText('HE MADE THE BUS',[
       'HE WAVED AT THE',
       'FISH FROM THE',
       'WINDOW. THE FISH',
@@ -842,7 +858,7 @@ function drawEnd(){
       'MIRACLES, WITH A',
       'NOTE THAT IT SHOULD',
       'NOT HAVE BEEN ONE.'
-    ],'TAP TO RUN IT BACK');
+    ],'TAP TO CONTINUE');
   } else if(state===ST_CAUGHT){
     nightScene({idle:true});
     screenText('THE FISH GOT HIM',[
@@ -855,7 +871,7 @@ function drawEnd(){
       'SAM FOLDER, WHICH',
       'NO LONGER CLOSES',
       'PROPERLY.'
-    ],'TAP TO TRY AGAIN');
+    ],'TAP TO CONTINUE');
   } else {
     nightScene({gone:true});
     rect(196,96,2,2,P.tail); rect(202,96,2,2,P.tail);
@@ -867,7 +883,7 @@ function drawEnd(){
       'HE SEEMS OKAY',
       'WITH IT.',
       'NOBODY ELSE IS.'
-    ],'TAP TO TRY AGAIN');
+    ],'TAP TO CONTINUE');
   }
 }
 
