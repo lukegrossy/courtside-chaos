@@ -507,10 +507,11 @@
       <div class="dcard d3" id="dC"><span class="txt"><span class="L">C.</span> </span><span class="sub"></span></div>
     </div>
 
-    <!-- POSSUM FUSEBOX MINIGAME OVERLAY (launched from the decision card,
-         reports win/lose back via postMessage; see startPossumLoop) -->
-    <div class="screen" id="possumOverlay">
-      <iframe id="possumFrame" title="The Fuse Box"
+    <!-- SHARED MINIGAME OVERLAY. Every minigame loads here and reports
+         {result:'win'|'lose'} back via postMessage. Only one runs at a time,
+         so one overlay serves them all (possum fuse box, Sam's tunnel escape). -->
+    <div class="screen" id="mgOverlay">
+      <iframe id="mgFrame" title="Minigame"
         style="position:absolute; inset:0; width:100%; height:100%; border:0; background:#14110f;"></iframe>
     </div>
 
@@ -872,9 +873,14 @@
     if(!videoCache[scene]){ v.muted=true; v.preload='auto'; }
     var settled=false;
     function tryImage(){
-      /* gif fallbacks were retired (file size); if the video can't load,
-         the beat plays as text alone, which every scene is written to survive */
-      if(!settled){ settled=true; cb(null); }
+      /* Stills use .webp \u2014 small enough that the old file-size problem
+         (which was specifically about animated .gif) doesn't apply. Most
+         event art is a single generated painting, not a video, so this is
+         the common path, not a fallback of last resort. */
+      var iurl='assets/cutscenes/'+scene+'.webp', p=new Image();
+      p.onload=function(){ if(!settled){ settled=true; cb({type:'image',url:iurl}); } };
+      p.onerror=function(){ if(!settled){ settled=true; cb(null); } };
+      p.src=iurl;
     }
     /* canplay fires as soon as the current frame is decoded \u2014 a much lower bar
        than canplaythrough, which waits until the browser thinks the whole clip
@@ -1311,7 +1317,7 @@
         desk:"Sponsorship: $6,000. Hank's fines: collected in a coffee tin labeled COMFORT TAX. I am not administering the tin.",
         gaz:"THIRST OFFICIALLY SPONSORED; COACH DECLARES PARTIAL VICTORY", news:"A regional electrolyte manufacturer has purchased naming rights to the club's hydration policy under the title The Official Earned Sip. Coach Willis personally approved the slogan, the only sponsorship copy he is known to have read. Two players have since been fined for appearing too refreshed.", mood:'dry' } ] },
 
-  { id:'ricky_statue', title:'RICKY DEMANDS A STATUE', mood:'dry',
+  { id:'ricky_statue', title:'RICKY DEMANDS A STATUE', mood:'dry', scene:'statue',
     setup:[
       "Ricky Malone came by the office with a folder of his own, which I take personally. Inside: sketches. Of a statue. Of Ricky.",
       "He has already spoken to a sculptor. The sculptor, I am told, 'only works in momentum.' I asked what that means. Ricky said I 'wouldn't get it.' The quote for the piece is nine thousand dollars.",
@@ -1783,6 +1789,52 @@
              "It is the least fun anyone has ever had winning by fourteen. Ricky refers to the evening, forever after, as 'the night they wouldn't let us bowl,' and he says it the way other men say 'the war.' You were probably right. Nobody will ever tell you that you were right."],
         desk:"Bowling: denied. The correct call, which is a category of call that wins games and no friends. Ricky has filed the shoes away in his memory alongside other grievances, where they will age, and ferment, and return. They always return.",
         gaz:"AREA TEAM DECLINES BOWLING, WINS JOYLESSLY", news:"Offered a bowling excursion during a rain delay, the Lumberjacks declined and remained at the gymnasium, subsequently winning by fourteen. A player described the evening as the least fun associated with a comfortable victory in recent memory. The rented shoes were returned unused.", mood:'dry' } ] },
+
+  { id:'sam_stowaway', venue:'road', title:'THE STOWAWAY', mood:'dry', once:true, special:'samtunnel', scene:'samtunnel',
+    setup:[
+      "The equipment manager opened the uniform trunk at the away arena and found Sawdust Sam folded into it like a deck chair. Fully suited. Holding a thermos. He had been in there since we left, which is four hours, and nobody heard a thing, which he indicates was the point.",
+      "Mascots do not travel. There's no budget line for it, no visiting credential, and the home club has their own \u2014 a Muskie \u2014 who I am told takes the role seriously, in a way that was described to me over the phone as 'territorial,' by a man who then declined to elaborate.",
+      "Sam would like to do his halftime bit. In their building. Uninvited. He's already stretching."],
+    choices:[
+      { t:"Let him do the whole bit.", sub:"Uninvited, unbudgeted, unforgettable." },
+      { t:"One lap of the floor, then back on the bus.", sub:"A compromise nobody will enjoy.",
+        fx:{buzz:4, morale:3},
+        out:["Sam does one slow lap, waving, and the away crowd \u2014 who did not come here to like anything \u2014 likes it, briefly, against their will. Then he goes and sits on the bus, alone, in full costume, for the rest of the game.",
+             "He does not sulk. He would like it noted that he does not sulk. He sat facing forward the entire time, which is somehow worse."],
+        desk:"One lap, permitted. Wolf: compliant, and disappointed in a way that requires no words and produces no complaints, which is the most effective form of it. He has left the thermos in my office. I don't know what that means yet.",
+        gaz:"VISITING MASCOT MAKES BRIEF, UNSCHEDULED APPEARANCE",
+        news:"An unaccredited visiting mascot completed a single circuit of the floor during a break in play before returning to the team bus. The home club's mascot was not made available for comment. Officials declined to characterise the incident.",
+        mood:'dry' },
+      { t:"Back in the trunk. He rides home.", sub:"He will take this personally.",
+        fx:{morale:-6, cred:2},
+        out:["Sam gets back in the trunk without argument, which is the part that stings. The trunk goes back on the bus. We win the game in front of a crowd that has no idea a wolf is in the parking lot in a box, and the whole night is quieter and smaller for it.",
+             "He hasn't mentioned it since. He mentions everything. The not-mentioning is the mention."],
+        desk:"Wolf: returned to trunk, uncomplaining. There is a version of tonight where two thousand strangers in a hostile building learn what he is, and I chose the other one. I've written that down plainly so I can't soften it later.",
+        gaz:"NOTHING UNUSUAL OCCURS AT AWAY FIXTURE",
+        news:"The club's away fixture proceeded without incident of note. The visiting side won. No mascot was present in any official capacity.",
+        mood:'grim' } ],
+    samOutcomes:{
+      win:{ fx:{buzz:14, morale:9, cred:-3},
+        out:["Sam takes their floor at halftime in a building that did not invite him and does ninety seconds so good the home crowd forgets, briefly, which side it's on. There is a moment \u2014 short, unrepeatable, worth the whole trip \u2014 where two thousand strangers cheer a wolf they will be instructed to resent by morning.",
+             "Then the Muskie comes off the baseline at a dead sprint, and Sam goes into the tunnels, and the next four minutes are undocumented because everyone who witnessed any of it was laughing too hard to be useful. He reaches the lot as the bus is pulling out. He makes the bus anyway. Nobody has explained how."],
+        desk:"Unscheduled halftime performance by an unbudgeted wolf in a hostile building, followed by a pursuit through a corridor system he had not seen before and navigated better than their own mascot. No injuries. No fine, somehow. One Muskie left standing by a loading dock with his hands on his knees.",
+        gaz:"STOWAWAY MASCOT PERFORMS UNINVITED, ESCAPES ON FOOT",
+        news:"An unaccredited mascot travelling with the visiting club performed during the halftime interval without authorisation, drawing sustained applause from the home crowd. A pursuit through the arena's service corridors followed. The visiting mascot reached the team coach unassisted. The home club has requested that the matter be considered closed.",
+        mood:'pleased' },
+      missed:{ fx:{buzz:9, morale:-4, cred:-2},
+        out:["The bit lands. The exit does not. Sam clears the tunnels, loses the Muskie somewhere near the compressor room, steps out into the lot with his arms up in triumph \u2014 and watches our tail lights turn onto the highway without him.",
+             "He walked. Not all of it; a woman hauling feed picked him up outside Bemidji and drove him ninety of the hundred and ninety miles, on the condition that he keep the head on, which he did, the entire way, out of what he later described as professionalism."],
+        desk:"Wolf: arrived home under his own power at four in the morning, in costume, having been driven most of it by a stranger who has since sent a Christmas card addressed to Sam personally. He is not sorry. He has never once been sorry. That is the entire problem and the entire appeal.",
+        gaz:"MASCOT MISSES TEAM BUS, ARRIVES HOME BY OTHER MEANS",
+        news:"An unaccredited mascot travelling with the visiting club failed to reach the team coach following an unauthorised halftime performance and returned home separately, a journey of approximately 190 miles. He is reported to have remained in costume throughout. The club has declined to clarify its policy on the matter, there being none.",
+        mood:'dry' },
+      lose:{ fx:{cash:-400, buzz:7, cred:-5, morale:-2},
+        out:["The bit lands. The escape does not. The Muskie corners him by the loading dock with the unhurried patience of an animal who has done this before and knows every door, and the two of them are found by arena security in a standoff that neither party has been willing to characterise since.",
+             "There is a fine. There is a form. Sam signed the form with a paw print, and the league has accepted the paw print, and I would like that fact preserved somewhere it cannot be quietly deleted."],
+        desk:"Fine: $400, for an unaccredited performer in a restricted corridor. He was caught because he stopped to take a bow at the top of the tunnel with a Muskie in open pursuit, which tells you everything about him and most of what you need to know about why we keep him.",
+        gaz:"STOWAWAY MASCOT DETAINED AFTER HALFTIME INCURSION",
+        news:"An unaccredited mascot travelling with the visiting club performed during the halftime interval without authorisation and was subsequently detained by arena staff following a pursuit through service corridors. A fine was issued. The visiting club's representative signed the citation on the mascot's behalf, or, by one account, did not.",
+        mood:'dry' } } },
 
   { id:'lutefisk_night', venue:'home', when:'game', title:'LUTEFISK NIGHT', mood:'dry', scene:'lutefisk',
     setup:[
@@ -2463,7 +2515,8 @@
       var handoff={kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
         text:"\u201CI'm taking a week. I have not taken a week since 1981, so don't make it weird.\n\nWhile I'm gone, Grace is at this desk. She held it before I did \u2014 retired, allegedly \u2014 and she is very good, and she will tell you so herself, at length, with citations.\n\nBe civil. She keeps her own ledger, and hers has no eraser. See you in a week.\u201D"};
       var gcc=castCard('grace');
-      runSequence([handoff, gcc], dash, function(){ presentWeekBody(); }, dash);
+      var steps=gcc ? [handoff, gcc] : [handoff];
+      runSequence(steps, dash, function(){ presentWeekBody(); }, dash);
       return;
     }
     presentWeekBody();
@@ -2525,20 +2578,28 @@
     fadeScreens(dash, decideS);
   }
 
+  /* ---------- SHARED MINIGAME BRIDGE ----------
+     One overlay/iframe serves every minigame. A minigame signals its result
+     by posting {result:'win'|'lose'} (we accept any type string, so a game
+     whose id differs from what's assumed here still resolves correctly).
+     Which game is running is tracked by `phase`, not by the message. */
+  function openMinigame(file){
+    document.getElementById('mgFrame').src = 'minigames/'+file;
+    document.getElementById('mgOverlay').classList.add('on');
+  }
+  function closeMinigame(){
+    document.getElementById('mgOverlay').classList.remove('on');
+    document.getElementById('mgFrame').src = 'about:blank';
+  }
+
   /* ---------- POSSUM FUSEBOX: minigame loop, owner-call driven ----------
      The decision card stays the single source of truth for A/B choices —
      this just decides what A/B *mean* while the loop is in progress, and
      hands off to the normal resolution pipeline (proceedWithChoice) once
      it's actually settled (won, forced to pest control, or bailed). */
   var possumAttempt = 0, possumRetryMode = false;
-  function openPossumFrame(){
-    document.getElementById('possumFrame').src = 'minigames/possum-fusebox.html';
-    document.getElementById('possumOverlay').classList.add('on');
-  }
-  function closePossumFrame(){
-    document.getElementById('possumOverlay').classList.remove('on');
-    document.getElementById('possumFrame').src = 'about:blank';
-  }
+  function openPossumFrame(){ openMinigame('possum-fusebox.html'); }
+  function closePossumFrame(){ closeMinigame(); }
   function startPossumLoop(){
     possumAttempt = 0; possumRetryMode = false;
     phase='possum';
@@ -2563,17 +2624,45 @@
     proceedWithChoice({ fx:{}, out:outcome.out, desk:outcome.desk,
       gaz:outcome.gaz, news:outcome.news, mood:outcome.mood, scene:outcome.scene });
   }
+  /* ---------- SAM'S TUNNEL ESCAPE ----------
+     Single attempt, no retry loop: win or lose, both outcomes are written.
+     Launched from the decision card the same way the fuse box is. */
+  function startSamTunnel(){
+    phase='samtunnel';
+    openMinigame('sam-tunnel-escape.html');
+  }
+  function resolveSam(outcome){
+    proceedWithChoice({ fx:outcome.fx||{}, out:outcome.out, desk:outcome.desk,
+      gaz:outcome.gaz, news:outcome.news, mood:outcome.mood, scene:outcome.scene });
+  }
+
+  /* One listener for every minigame. Deliberately does NOT require a specific
+     e.data.type \u2014 only that a win/lose result arrived while a minigame phase
+     is active \u2014 so a game whose internal id differs still resolves. */
   window.addEventListener('message', function(e){
-    if(!e.data || e.data.type!=='possum-result' || phase!=='possum') return;
-    closePossumFrame();
-    if(e.data.result==='win'){
-      var key='win'+(possumAttempt+1);
-      resolvePossum(current.possumOutcomes[key] || current.possumOutcomes.win1);
-    } else {
-      S.cash -= 1000; render();
-      possumAttempt++;
-      if(possumAttempt>=3){ resolvePossum(current.possumOutcomes.forced); }
-      else { showPossumRetry(); }
+    var d = e.data;
+    if(!d || (d.result!=='win' && d.result!=='lose')) return;
+    if(phase==='possum'){
+      closeMinigame();
+      if(d.result==='win'){
+        var key='win'+(possumAttempt+1);
+        resolvePossum(current.possumOutcomes[key] || current.possumOutcomes.win1);
+      } else {
+        S.cash -= 1000; render();
+        possumAttempt++;
+        if(possumAttempt>=3){ resolvePossum(current.possumOutcomes.forced); }
+        else { showPossumRetry(); }
+      }
+    } else if(phase==='samtunnel'){
+      closeMinigame();
+      var o = current && current.samOutcomes;
+      if(!o) return;
+      /* Three distinct endings: escaped, caught by the Muskie, or made it out
+         but the bus had already gone. The minigame sends reason on a loss. */
+      var pick = (d.result==='win') ? o.win
+               : (d.reason==='missed') ? (o.missed || o.lose)
+               : o.lose;
+      resolveSam(pick);
     }
   });
 
@@ -2587,6 +2676,7 @@
     var ch=current.choices[i];
     if(!ch) return;
     if(current.special==='possum' && i===0){ startPossumLoop(); return; }
+    if(current.special==='samtunnel' && i===0){ startSamTunnel(); return; }
     proceedWithChoice(ch);
   }
 
@@ -2993,7 +3083,7 @@
     hank_missing_hour:'hank', retired_number:'ernie', mascot_bighead:'sam',
     stokes_favor:'stokes', ricky_charity:'ricky', mascot_draft:'sam',
     scout_speaks:'scout', grace_2:'grace', northern_swing:'ricky',
-    radio_deal:'walt', picture_day:'sam', the_crate:'ernie' };
+    radio_deal:'walt', picture_day:'sam', the_crate:'ernie', sam_stowaway:'sam' };
   function castOf(st){ return st ? (st.cast || CAST_MAP[st.id] || null) : null; }
   function castCard(who){
     var c=CAST_BY[who];
