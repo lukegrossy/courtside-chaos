@@ -819,11 +819,22 @@
   var portrait = document.getElementById('portrait');
   var BASE_SRC = portrait.src;
   function setPortrait(who, mood){
-    var url = 'assets/portraits/' + who + '/' + (mood||'base') + '.png';
-    var probe = new Image();
-    probe.onload = function(){ portrait.src = url; };
-    probe.onerror = function(){ portrait.src = BASE_SRC; };
-    probe.src = url;
+    var m = mood||'base', i=0;
+    (function tryNext(){
+      if(i>=PORTRAIT_EXTS.length){
+        /* A missing MOOD used to drop straight to Sandra's face \u2014 which is
+           how Grace ended up wearing Sandra's portrait. Fall back to the
+           character's own base first; only then to the painted master. */
+        if(m!=='base') setPortrait(who,'base');
+        else portrait.src = BASE_SRC;
+        return;
+      }
+      var url='assets/portraits/'+who+'/'+m+'.'+PORTRAIT_EXTS[i++];
+      var probe=new Image();
+      probe.onload=function(){ portrait.src=url; };
+      probe.onerror=tryNext;
+      probe.src=url;
+    })();
   }
 
   /* ---------- CUTAWAY SEQUENCE RUNNER ----------
@@ -843,12 +854,20 @@
      the FILE PHOTO PENDING placard, except Sandra, who falls back to the
      painted master already on the dashboard.                          */
   var portToken=0, seqArtToken=0;
+  /* Portraits are looked up by extension in order. The hardcoded .png was
+     silently 404ing on webp files \u2014 which is what everything else in
+     assets/ is \u2014 and falling through to the FILE PHOTO PENDING placard. */
+  var PORTRAIT_EXTS=['webp','png','jpg','jpeg'];
   function probePortrait(who, cb){
     if(!who){ cb(null); return; }
-    var url='assets/portraits/'+who+'/base.png', p=new Image();
-    p.onload=function(){ cb(url); };
-    p.onerror=function(){ cb(who==='sandra'?BASE_SRC:null); };
-    p.src=url;
+    var i=0;
+    (function tryNext(){
+      if(i>=PORTRAIT_EXTS.length){ cb(who==='sandra'?BASE_SRC:null); return; }
+      var url='assets/portraits/'+who+'/base.'+PORTRAIT_EXTS[i++], p=new Image();
+      p.onload=function(){ cb(url); };
+      p.onerror=tryNext;
+      p.src=url;
+    })();
   }
   function paintCard(who, imgEl, placEl, tokenCheck){
     imgEl.classList.remove('show'); placEl.classList.remove('hide');
@@ -3435,9 +3454,10 @@
      means five cold requests back to back. Warm them while the splash is
      still up; by the time a card needs one it's already in cache.      */
   function preloadCast(){
+    /* Uses the same resolver as the cards, so it warms whichever extension
+       actually exists and stops there, instead of 404ing on a guess. */
     for(var i=0;i<CAST.length;i++){
-      var im=new Image();
-      im.src='assets/portraits/'+CAST[i].who+'/base.png';
+      probePortrait(CAST[i].who, function(url){ if(url){ var im=new Image(); im.src=url; } });
     }
     /* the four tip-off cutscenes are used almost every week \u2014 warm them now
        instead of racing a cold load the first time a game night needs one */
