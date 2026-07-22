@@ -842,7 +842,7 @@
   /* Cast portraits: assets/portraits/{who}/base.png. Missing files show
      the FILE PHOTO PENDING placard, except Sandra, who falls back to the
      painted master already on the dashboard.                          */
-  var portToken=0;
+  var portToken=0, seqArtToken=0;
   function probePortrait(who, cb){
     if(!who){ cb(null); return; }
     var url='assets/portraits/'+who+'/base.png', p=new Image();
@@ -906,6 +906,17 @@
        endScreen:   if given, fade to it and call done; if null with done, done() decides;
                     default: fade back to dash then done                              */
   function runSequence(steps, endScreen, done, startScreen){
+    /* Text never sits over cutscene art: any step carrying both text and a
+       scene is split into a clean text screen followed by the art full-bleed
+       on its own (tap to continue past each). Art-only steps whose asset is
+       missing auto-skip so the player never taps through a blank screen. */
+    steps = steps.reduce(function(acc,s){
+      if(s && s.kind==='text' && s.scene && s.text){
+        acc.push({kind:'text', text:s.text});
+        acc.push({kind:'text', text:'', scene:s.scene, artOnly:true});
+      } else acc.push(s);
+      return acc;
+    },[]);
     var i=-1, from=startScreen||dash;
     function show(step){
       if(step.kind==='gazette'){
@@ -935,8 +946,10 @@
         return;
       }
       if(step.kind==='text'){
+        var stTok=++seqArtToken;
         probeArt(step.scene,function(res){
-          if(!res) return;
+          if(stTok!==seqArtToken) return; /* player already advanced */
+          if(!res){ if(step.artOnly) advance(); return; }
           if(res.type==='video'){
             cawVid.src=res.url; cawVid.currentTime=0;
             cawVid.play().catch(function(){});
@@ -1217,18 +1230,23 @@
   }
 
   /* ---------- MOMENT DEALER: shuffle bag, no repeats ---------- */
-  var momentBags={HOME:[],ROAD:[]}, recentMoments={HOME:[],ROAD:[]};
+  /* Moment history lives in S so it SAVES: the old runtime-only bags reset on
+     every reload, which is exactly how the anthem played twice. */
+  function momentState(){
+    S.mb = S.mb || {HOME:[],ROAD:[]};
+    S.mr = S.mr || {HOME:[],ROAD:[]};
+  }
   function drawMoment(venue){
+    momentState();
     var pool = venue==='HOME'?HOME_MOMENTS:ROAD_MOMENTS;
-    var bag = momentBags[venue], recent = recentMoments[venue];
+    var bag = S.mb[venue], recent = S.mr[venue];
     if(!bag.length){
-      bag=[]; for(var i=0;i<pool.length;i++) bag.push(i);
+      for(var i=0;i<pool.length;i++) bag.push(i);
       for(var i=bag.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=bag[i]; bag[i]=bag[j]; bag[j]=t; }
-      /* We pop from the END. Sort so recently-seen indices sit at the FRONT
-         (drawn last), guaranteeing a wide gap across bag boundaries.
-         Sort is stable, so never-seen entries keep their shuffled order. */
+      /* Pop from the END. Recently-seen indices sort to the FRONT (drawn last)
+         so there's a wide gap across bag boundaries. Stable sort keeps the
+         shuffled order for never-seen entries. */
       bag.sort(function(a,b){ return recent.lastIndexOf(b) - recent.lastIndexOf(a); });
-      momentBags[venue]=bag;
     }
     var idx=bag.pop();
     recent.push(idx);
@@ -1441,7 +1459,6 @@
   { id:'grace_1', title:"SANDRA'S WEEK OFF", mood:'base', grace:true,
     needs:'graceWarned', notBefore:{flag:'graceWeek', plus:1},
     setup:[
-      "Grace. You were told I'd be here. I'll assume Sandra was kind about it, which would be unlike her, so I'll assume she was accurate instead.",
       "I have read the files. All of them. In one evening. Some observations: the mascot budget is an embarrassment, the coach appears to be at war with beverages, and the word 'miscellaneous' is doing more work in these books than any player on the roster.",
       "This team had dignity once. I was here for it. Now \u2014 I found three ways to save money before my coffee cooled. Would you like to hear them, or shall I file them where opinions apparently go in this office?"],
     choices:[
@@ -1790,13 +1807,20 @@
         desk:"Bowling: denied. The correct call, which is a category of call that wins games and no friends. Ricky has filed the shoes away in his memory alongside other grievances, where they will age, and ferment, and return. They always return.",
         gaz:"AREA TEAM DECLINES BOWLING, WINS JOYLESSLY", news:"Offered a bowling excursion during a rain delay, the Lumberjacks declined and remained at the gymnasium, subsequently winning by fourteen. A player described the evening as the least fun associated with a comfortable victory in recent memory. The rented shoes were returned unused.", mood:'dry' } ] },
 
-  { id:'sam_stowaway', venue:'road', title:'THE STOWAWAY', mood:'dry', once:true, special:'samtunnel', scene:'samtunnel',
+  { id:'sam_stowaway', venue:'road', title:'THE STOWAWAY', mood:'dry', once:true, special:'samtunnel',
     setup:[
       "The equipment manager opened the uniform trunk at the away arena and found Sawdust Sam folded into it like a deck chair. Fully suited. Holding a thermos. He had been in there since we left, which is four hours, and nobody heard a thing, which he indicates was the point.",
       "Mascots do not travel. There's no budget line for it, no visiting credential, and the home club has their own \u2014 a Muskie \u2014 who I am told takes the role seriously, in a way that was described to me over the phone as 'territorial,' by a man who then declined to elaborate.",
       "Sam would like to do his halftime bit. In their building. Uninvited. He's already stretching."],
     choices:[
-      { t:"Let him do the whole bit.", sub:"Uninvited, unbudgeted, unforgettable." },
+      { t:"Let him do the whole bit.", sub:"Uninvited, unbudgeted, unforgettable.", when:'game',
+        fx:{buzz:6},
+        out:["Sam takes their floor at halftime in a building that did not invite him and does ninety seconds so good the home crowd forgets, briefly, which side it's on. There is a moment \u2014 short, unrepeatable, worth the whole trip \u2014 where two thousand strangers cheer a wolf they will be instructed to resent by morning.",
+             "Then the Muskie comes off the baseline at a dead sprint, and Sam goes into the tunnels, and that is the last anyone has seen of either of them. The game resumes. The game, incredibly, is the less interesting thing in the building."],
+        desk:"Halftime: performed, uninvited, triumphant. Current wolf status: somewhere in their service corridors with a Muskie in pursuit, while the bus idles and the driver checks his watch in a way that has legal implications. I'll update this note when there's something to update it with.",
+        gaz:"UNINVITED MASCOT STEALS HALFTIME; WHEREABOUTS UNKNOWN",
+        news:"An unaccredited mascot travelling with the visiting club performed during the halftime interval without authorisation, drawing sustained applause from a home crowd. The performer then entered the arena's service corridors, pursued by the home club's mascot. At press time neither had emerged.",
+        mood:'dry' },
       { t:"One lap of the floor, then back on the bus.", sub:"A compromise nobody will enjoy.",
         fx:{buzz:4, morale:3},
         out:["Sam does one slow lap, waving, and the away crowd \u2014 who did not come here to like anything \u2014 likes it, briefly, against their will. Then he goes and sits on the bus, alone, in full costume, for the rest of the game.",
@@ -1815,26 +1839,119 @@
         mood:'grim' } ],
     samOutcomes:{
       win:{ fx:{buzz:14, morale:9, cred:-3},
-        out:["Sam takes their floor at halftime in a building that did not invite him and does ninety seconds so good the home crowd forgets, briefly, which side it's on. There is a moment \u2014 short, unrepeatable, worth the whole trip \u2014 where two thousand strangers cheer a wolf they will be instructed to resent by morning.",
-             "Then the Muskie comes off the baseline at a dead sprint, and Sam goes into the tunnels, and the next four minutes are undocumented because everyone who witnessed any of it was laughing too hard to be useful. He reaches the lot as the bus is pulling out. He makes the bus anyway. Nobody has explained how."],
+        out:["What happened in those corridors is undocumented, because everyone who witnessed any of it was laughing too hard to be useful. What's known: laundry carts were involved, a door that says DO NOT PROP was propped, and a Muskie was last seen taking the long way around a boiler with real resignation in his posture.",
+             "Sam reaches the lot as the bus is pulling out. He makes the bus anyway. Nobody has explained how, and the driver \u2014 who watched it happen in the mirror \u2014 has declined to be deposed."],
         desk:"Unscheduled halftime performance by an unbudgeted wolf in a hostile building, followed by a pursuit through a corridor system he had not seen before and navigated better than their own mascot. No injuries. No fine, somehow. One Muskie left standing by a loading dock with his hands on his knees.",
         gaz:"STOWAWAY MASCOT PERFORMS UNINVITED, ESCAPES ON FOOT",
         news:"An unaccredited mascot travelling with the visiting club performed during the halftime interval without authorisation, drawing sustained applause from the home crowd. A pursuit through the arena's service corridors followed. The visiting mascot reached the team coach unassisted. The home club has requested that the matter be considered closed.",
         mood:'pleased' },
       missed:{ fx:{buzz:9, morale:-4, cred:-2},
-        out:["The bit lands. The exit does not. Sam clears the tunnels, loses the Muskie somewhere near the compressor room, steps out into the lot with his arms up in triumph \u2014 and watches our tail lights turn onto the highway without him.",
+        out:["Sam clears the tunnels \u2014 loses the Muskie somewhere near the compressor room \u2014 and steps out into the lot with his arms up in triumph, holding the pose, waiting for the applause of a parking lot. Which is empty. Because that is our tail lights turning onto the highway without him.",
              "He walked. Not all of it; a woman hauling feed picked him up outside Bemidji and drove him ninety of the hundred and ninety miles, on the condition that he keep the head on, which he did, the entire way, out of what he later described as professionalism."],
         desk:"Wolf: arrived home under his own power at four in the morning, in costume, having been driven most of it by a stranger who has since sent a Christmas card addressed to Sam personally. He is not sorry. He has never once been sorry. That is the entire problem and the entire appeal.",
         gaz:"MASCOT MISSES TEAM BUS, ARRIVES HOME BY OTHER MEANS",
         news:"An unaccredited mascot travelling with the visiting club failed to reach the team coach following an unauthorised halftime performance and returned home separately, a journey of approximately 190 miles. He is reported to have remained in costume throughout. The club has declined to clarify its policy on the matter, there being none.",
         mood:'dry' },
       lose:{ fx:{cash:-400, buzz:7, cred:-5, morale:-2},
-        out:["The bit lands. The escape does not. The Muskie corners him by the loading dock with the unhurried patience of an animal who has done this before and knows every door, and the two of them are found by arena security in a standoff that neither party has been willing to characterise since.",
+        out:["The Muskie corners him by the loading dock with the unhurried patience of an animal who has done this before and knows every door, and the two of them are found by arena security in a standoff that neither party has been willing to characterise since.",
              "There is a fine. There is a form. Sam signed the form with a paw print, and the league has accepted the paw print, and I would like that fact preserved somewhere it cannot be quietly deleted."],
         desk:"Fine: $400, for an unaccredited performer in a restricted corridor. He was caught because he stopped to take a bow at the top of the tunnel with a Muskie in open pursuit, which tells you everything about him and most of what you need to know about why we keep him.",
         gaz:"STOWAWAY MASCOT DETAINED AFTER HALFTIME INCURSION",
         news:"An unaccredited mascot travelling with the visiting club performed during the halftime interval without authorisation and was subsequently detained by arena staff following a pursuit through service corridors. A fine was issued. The visiting club's representative signed the citation on the mascot's behalf, or, by one account, did not.",
         mood:'dry' } } },
+
+  { id:'assoc_rumor', title:'THE EXPANSION RUMOR', mood:'grim', once:true,
+    setup:[
+      "A rumor reached the diner before it reached my desk, which tells you it's either completely false or completely true. The Association \u2014 the big one, the one that doesn't advertise \u2014 is looking to expand. The state has been earmarked. And the version going around says they'd rather license an existing club than build one from dirt.",
+      "Which would put every team in this league in a beauty pageant nobody has officially announced, judged by people nobody has officially met. The man with the legal pad has been seen twice this month. He ordered pie. He watched the room. He wrote one thing.",
+      "If any of it's real, boss, it comes down to one word: credibility. Ours needs to be unimpeachable, and I've seen our books, so I'd start now."],
+    choices:[
+      { t:"Chase it. Publicly. Declare the ambition.", sub:"Say the quiet league loud.",
+        fx:{buzz:9, cred:-4},
+        out:["You give the Gazette a quote about 'belonging at the highest level,' and the town splits evenly between pride and the specific northern horror of being seen wanting something. The league office calls to ask what you know. The answer is nothing. It takes forty minutes to say it.",
+             "In Row A, the Scout writes one line and underlines it. Nobody has ever seen him underline."],
+        desk:"Ambition: declared, in print, on the record. The town is thrilled and mortified in equal measure, which up here is the natural resting state. If this costs us, it costs us honest.",
+        gaz:"OWNER DECLARES TOP-LEAGUE AMBITION; TOWN BRACES",
+        news:"Ownership has publicly stated the club's ambition to join the Association, responding to reports that the state has been earmarked for expansion and that an existing franchise may be licensed. League officials declined comment. A man in a grey suit attended the following home game and was observed to underline something.", mood:'dry', flag:'assocRumor' },
+      { t:"Say nothing. Build quietly.", sub:"Let the work talk. It's from here, it knows how.",
+        fx:{cred:6},
+        out:["You decline all comment, which in this town is the loudest possible statement of intent. The work gets quieter and better. The books get cleaner. Sandra begins preparing, unprompted, a folder whose label she will not show you.",
+             "The Scout keeps coming. He has started staying through the fourth quarter. Whatever the pageant is, we appear to be in it."],
+        desk:"Comment: none given, everywhere. Meanwhile everything in this building that can be straightened is being straightened. If men with legal pads are grading us, they'll find the arithmetic done and the floors swept. That part I can control, so that part is handled.",
+        gaz:"CLUB DECLINES COMMENT ON EXPANSION TALK, REPEATEDLY",
+        news:"The club has declined to comment on reports linking the region to Association expansion, doing so with a consistency observers describe as pointed. Internal operations are understood to have tightened. The man in the grey suit has begun remaining for entire games.", mood:'base', flag:'assocRumor' },
+      { t:"Dismiss it. We know who we are.", sub:"Rumors don't shovel the walk.",
+        fx:{morale:5, buzz:-3},
+        out:["You call it diner talk, and the town relaxes the way a town does when it's told it doesn't have to audition. The team plays loose. The pie at the diner returns to normal pie.",
+             "The Scout comes one more time, watches a half, and leaves before the buzzer for the first time anyone can remember. He left the pad closed the whole night."],
+        desk:"Rumor: dismissed. Whatever door that was, we've elected not to knock, and there's a dignity in that I intend to keep believing in. The closed pad is on my mind more than I'll be admitting in writing.",
+        gaz:"OWNER CALLS EXPANSION TALK 'DINER TALK'; DINER OFFENDED",
+        news:"Ownership has dismissed reports of Association expansion interest as rumor. The team's play has since been described as noticeably relaxed. The man in the grey suit attended one further fixture, departing before its conclusion with his legal pad unopened.", mood:'base', flag:'assocRumor' } ] },
+
+  { id:'estate_bequest', title:'THE ESTATE', mood:'base', once:true, minSeason:2,
+    setup:[
+      "Arvid Lindqvist \u2014 row J, seat 4, thirty-one seasons, never missed a Tuesday \u2014 passed in his sleep in the off-season, and his lawyer was at my desk before the thaw. Arvid had no family and, it turns out, considerably more timber money than anyone who darned his own mittens had any right to.",
+      "He left it all to the club. Two million dollars. One condition, in language his lawyer says Arvid dictated personally: every cent goes into the building. 'The team has a soul,' the will says. 'Give it a body to match.'",
+      "So that's the question, boss, and Arvid's watching from somewhere with his arms crossed: what kind of body?"],
+    choices:[
+      { t:"All of it. The full renovation.", sub:"8,000 seats. Done right. Done once.",
+        fx:{cred:12, buzz:6}, flag:'premiumArena', stamp:'bequestWeek',
+        out:["The good firm comes up from the Cities and works like the money is watching. Eight thousand seats. Real heat in the concourse. Wiring that a possum could not defeat with a decade of free evenings \u2014 the contractor pest-proofed the walls personally after hearing the fuse box story, out of what he called professional respect.",
+             "Opening night of the new building, the crowd stands for a plaque by the doors: ARVID LINDQVIST, ROW J, SEAT 4. His seat \u2014 the original, the actual chair \u2014 is bolted beside it, roped off, permanently empty. Nobody suggested it. Everybody built it."],
+        desk:"Two million dollars, spent to the cent, receipts filed in a binder I intend to be buried with. Capacity: 8,000. The building finally matches the team, which was Arvid's whole instruction. His chair faces the court. It has the best sightline in the house. That was on purpose.",
+        gaz:"SHACK REBORN: 8,000 SEATS, ONE CHAIR ROPED OFF",
+        news:"The club has completed a full renovation of the arena funded by the estate of Arvid Lindqvist, a season-ticket holder of thirty-one years. Capacity rises to 8,000. The late Mr. Lindqvist's original seat has been preserved beside a commemorative plaque. The contractor is understood to have pest-proofed the electrical systems at no additional charge.", mood:'pleased' },
+      { t:"Do it cheap. Bank the difference where possible.", sub:"A firm from out past Hibbing. Very reasonable. Very.",
+        fx:{cred:-8, cash:9000}, flag:'shoddyArena', stamp:'bequestWeek',
+        out:["The cheap firm's trucks have three different company names on them, freshly painted over two others. The work is fast, loud, and approximately level. Through what our new accountant calls 'administrative efficiencies' \u2014 and what Arvid's lawyer calls, in a letter I've been asked to read aloud to you, 'creative' \u2014 some money finds its way back to the operating account.",
+             "The new seats are in. Several face slightly away from the court. The firm says this is 'within tolerance.' They have not said whose."],
+        desk:"Renovation: complete, in the sense that the firm has left. The lawyer's letter is in the drawer. Arvid's plaque went up \u2014 the firm hung it, and I'll be straightening it myself, weekly, which I suspect is now a permanent duty. I'd write more but the new lights just flickered in a way I've been told is also within tolerance.",
+        gaz:"ARENA RENOVATION COMPLETE; SEVERAL SEATS FACE WRONG WAY",
+        news:"The club has completed arena works funded by the Lindqvist estate, employing a contractor whose vehicles display multiple company names. A portion of the bequest is understood to have returned to club operations through what documents term administrative efficiencies. Some new seating faces marginally away from the court, which the contractor states is within tolerance.", mood:'grim' } ] },
+
+  { id:'techco_sponsor', title:'THE COMPUTER PEOPLE', mood:'pleased', once:true,
+    needs:'premiumArena', notBefore:{flag:'bequestWeek', plus:3},
+    setup:[
+      "Three men in identical grey blazers toured the renovated building this morning, taking notes on machines the size of hymnals. Tamarack Data Systems. They make business computers in an old creamery near the Cities and they are, their card says, 'the future of northern commerce,' which is a bold claim for a card.",
+      "They want to be our first corporate sponsor. Their name on the new scoreboard, a terminal in the ticket office, and \u2014 they were very excited about this part \u2014 'the first computerized box score in league history.'",
+      "The check is $7,500. The catch, as far as I can find one, is that we'd owe the future a small favor, and the future wears matching blazers."],
+    choices:[
+      { t:"Sign it. Welcome to the future.", sub:"$7,500 and a terminal.",
+        fx:{cash:7500, buzz:8},
+        out:["The scoreboard now reads TAMARACK DATA SYSTEMS PRESENTS, and the terminal in the ticket office hums like something dreaming. It has crashed twice, both times during Tiny's free throws, which the Tamarack men insist is coincidence and Tiny insists is respect.",
+             "The first computerized box score in league history prints out four feet long and is wrong about one rebound. Walt Sikma reads it, says 'my binder is faster,' and is, to date, correct."],
+        desk:"Sponsorship: signed, $7,500, our first. The terminal and I have reached an understanding: it does the future, I do the present, and we split the filing. The Tamarack men send their regards weekly, by computer, which takes visibly longer than the phone.",
+        gaz:"COMPUTER FIRM SPONSORS ARENA; MACHINE ALREADY HAS OPINIONS",
+        news:"Tamarack Data Systems has become the club's first corporate sponsor in a $7,500 agreement including scoreboard naming and the installation of a computer terminal. The league's first computerized box score was produced at the following fixture, measuring four feet and containing one error. Broadcaster Walt Sikma has stated his binder remains faster.", mood:'pleased' },
+      { t:"Decline. The scoreboard says LUMBERJACKS.", sub:"Some things aren't for sale. Most things. Some things.",
+        fx:{cred:4, buzz:-2},
+        out:["You decline politely and the Tamarack men accept it the way the future accepts anything: by noting it. The scoreboard stays ours. The ticket office stays paper. The town approves in the deep, silent way it approves of anything that costs money on principle.",
+             "A week later a hand-typed letter arrives: 'When you're ready.' No signature. Excellent margins."],
+        desk:"$7,500: declined, on the grounds that Arvid didn't buy this building a body so we could sell the forehead. I stand by it and so does the town, and if that's not accounting, it's something the accounting exists to protect.",
+        gaz:"CLUB DECLINES SPONSORSHIP; SCOREBOARD REMAINS SCOREBOARD",
+        news:"The club has declined a sponsorship approach from Tamarack Data Systems, retaining an unsponsored scoreboard. The decision is understood to have been made on principle. A follow-up letter from the firm consisted of three words and no signature.", mood:'base' } ] },
+
+  { id:'shoddy_repairs', title:'WITHIN TOLERANCE', mood:'grim', once:true,
+    needs:'shoddyArena', notBefore:{flag:'bequestWeek', plus:3},
+    setup:[
+      "The renovation has begun renovating itself. This week alone: a ceiling panel descended gently onto section 114 during warmups, like a leaf, if leaves were four feet square. The hot water is now a rumor. And the door to the new concourse opens outward, inward, and \u2014 as of Tuesday \u2014 diagonally.",
+      "The firm is not answering the number on their truck. Any of the numbers. Any of the trucks.",
+      "A local crew \u2014 real ones, men Arvid actually knew \u2014 will fix the worst of it for $1,800. They've asked me to pass along, verbatim, that they 'saw the wiring and would like to speak to someone about what they saw.'"],
+    choices:[
+      { t:"Pay the local crew. Fix it right.", sub:"$1,800 and an apology to the building.",
+        fx:{cash:-1800, morale:-3, cred:3},
+        out:["The local crew works evenings and mutters the whole time, a sound like a hymn if hymns were about junction boxes. They fix the ceiling, the water, and the diagonal door, and they leave the wiring photographs with Sandra 'for the file, and for court, if it comes to that.'",
+             "On the way out, the foreman straightens Arvid's plaque without being asked, holds it a second longer than the job required, and says 'shoulda called us first.' Everyone already knew that. Now it's been said."],
+        desk:"Repairs to the repairs: $1,800, paid to men who fixed it like the building was a neighbor, because it is. The photographs are in the drawer with the lawyer's letter. The drawer is getting heavy, boss. Drawers like that always fill from one decision.",
+        gaz:"LOCAL CREW REPAIRS RENOVATION; PHOTOGRAPHS TAKEN",
+        news:"A local crew has corrected multiple defects in the recent arena renovation at a cost of $1,800, including a descended ceiling panel and a door described as opening diagonally. The original contractor could not be reached at any listed number. Photographs of the electrical work were retained by the club.", mood:'base' },
+      { t:"Live with it. It adds character.", sub:"The diagonal door is a conversation piece.",
+        fx:{morale:-6, buzz:3},
+        out:["The building settles into its flaws the way the town settles into February: with commentary. Section 114 brings umbrellas now, as a bit. The diagonal door becomes a minor attraction \u2014 visiting fans photograph it, and one Bismarck man got briefly stuck and described it afterward, admiringly, as 'a wrestler of a door.'",
+             "The team, who shower at home now, have said nothing, in a way that says everything."],
+        desk:"Repairs: declined. The Shack has entered its eccentric period. I've relabeled the maintenance column 'ongoing negotiations' because that's what it is now, weekly, forever. Arvid's plaque tilted again overnight. I fixed it. I'll keep fixing it. Somebody in this arrangement has to be level.",
+        gaz:"ARENA'S FLAWS DECLARED 'CHARACTER'; UMBRELLAS SIGHTED INDOORS",
+        news:"The club has elected not to correct defects arising from its recent renovation. Section 114 patrons have adopted umbrellas. The concourse door, which opens diagonally, has become a photographic attraction for visiting supporters, one of whom described it as a wrestler of a door. Players are understood to be showering at home.", mood:'dry' } ] },
 
   { id:'lutefisk_night', venue:'home', when:'game', title:'LUTEFISK NIGHT', mood:'dry', scene:'lutefisk',
     setup:[
@@ -2211,15 +2328,23 @@
   function buildDeck(){
     deck=[]; deckPos=0;
     var mains = STORY.filter(function(st){
-      return st.id!=='tiny_openmic' && !st.needs && !(st.once && S.flags['done_'+st.id]);
+      return st.id!=='tiny_openmic' && !st.needs && !(st.once && S.flags['done_'+st.id])
+        && (!st.minSeason || S.season>=st.minSeason);
     });
     var arena  = mains.filter(function(st){return st.id==='arena_condemned';});
     var possum = mains.filter(function(st){return st.id==='possum_fusebox';});
-    var rest   = mains.filter(function(st){return st.id!=='arena_condemned' && st.id!=='possum_fusebox';});
+    var bequest= mains.filter(function(st){return st.id==='estate_bequest';});
+    var rest   = mains.filter(function(st){return st.id!=='arena_condemned' && st.id!=='possum_fusebox' && st.id!=='estate_bequest';});
     for(var i=rest.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=rest[i]; rest[i]=rest[j]; rest[j]=t; }
+    /* Stories the player has EVER seen deal last: a new season deals every
+       fresh story before any repeat. Stable sort keeps the shuffle otherwise. */
+    var ever=S.doneEver||{};
+    rest.sort(function(a,b){ return (ever[a.id]?1:0)-(ever[b.id]?1:0); });
     /* Fuse box fires week 2, right after the opener \u2014 an early-ownership
-       problem, not a random mid-season one. Pinned like arena_condemned. */
-    var head = (S.season===1) ? [STORY[0]].concat(possum) : [];
+       problem, not a random mid-season one. Pinned like arena_condemned.
+       The estate bequest opens season 2 the same way. */
+    var head = (S.season===1) ? [STORY[0]].concat(possum)
+             : bequest; /* empty once played — pins at the head of any later season until it fires */
     deck = head.concat(rest.slice(0, Math.ceil(rest.length/2)), arena, rest.slice(Math.ceil(rest.length/2)));
   }
   function nextStory(){
@@ -2238,6 +2363,7 @@
       if(!st.needs || !S.flags[st.needs]) return false;
       if(S.done[st.id]) return false;
       if(st.once && S.flags['done_'+st.id]) return false;
+      if(st.minSeason && S.season<st.minSeason) return false;
       if(st.notBefore && S.tw < (S.flags[st.notBefore.flag]||0) + st.notBefore.plus) return false;
       return true;
     });
@@ -2354,9 +2480,13 @@
      run them for you.                                          */
   function applyLedger(games, home, won, po, grace){
     var gate=0, costs=ECON.PAYROLL;
+    /* The estate's arena, both versions: 8,000 seats sells more of everything;
+       the cheap firm's work invoices you a little every single week, forever. */
+    if(S.flags.shoddyArena) costs += 250;
     if(home){
       for(var g=0; g<games; g++){
         var take = ECON.HOME_BASE + S.buzz*ECON.BUZZ_K + S.cred*ECON.CRED_K + (won?ECON.WIN_K:0);
+        if(S.flags.premiumArena) take = take*1.30;
         if(po) take = take*ECON.PO_HOME;
         gate += take;
       }
@@ -2624,18 +2754,6 @@
     proceedWithChoice({ fx:{}, out:outcome.out, desk:outcome.desk,
       gaz:outcome.gaz, news:outcome.news, mood:outcome.mood, scene:outcome.scene });
   }
-  /* ---------- SAM'S TUNNEL ESCAPE ----------
-     Single attempt, no retry loop: win or lose, both outcomes are written.
-     Launched from the decision card the same way the fuse box is. */
-  function startSamTunnel(){
-    phase='samtunnel';
-    openMinigame('sam-tunnel-escape.html');
-  }
-  function resolveSam(outcome){
-    proceedWithChoice({ fx:outcome.fx||{}, out:outcome.out, desk:outcome.desk,
-      gaz:outcome.gaz, news:outcome.news, mood:outcome.mood, scene:outcome.scene });
-  }
-
   /* One listener for every minigame. Deliberately does NOT require a specific
      e.data.type \u2014 only that a win/lose result arrived while a minigame phase
      is active \u2014 so a game whose internal id differs still resolves. */
@@ -2656,13 +2774,28 @@
     } else if(phase==='samtunnel'){
       closeMinigame();
       var o = current && current.samOutcomes;
-      if(!o) return;
-      /* Three distinct endings: escaped, caught by the Muskie, or made it out
-         but the bus had already gone. The minigame sends reason on a loss. */
+      if(!o){ el.next.style.display=''; return; }
+      /* Three endings: escaped, caught by the Muskie, or made it out to find
+         the bus gone. Resolves post-game: fx apply, the escape plays as its
+         own beats, and the desk note gets Sandra's addendum. */
       var pick = (d.result==='win') ? o.win
                : (d.reason==='missed') ? (o.missed || o.lose)
                : o.lose;
-      resolveSam(pick);
+      var fx = pick.fx||{};
+      S.cash += fx.cash||0;
+      S.morale=clamp(S.morale+(fx.morale||0));
+      S.buzz=clamp(S.buzz+(fx.buzz||0));
+      S.cred=clamp(S.cred+(fx.cred||0));
+      phase='sequence';
+      var st = pick.out.map(function(p,idx){
+        return {kind:'text', text:p, scene: idx===0?'samtunnel':null};
+      });
+      runSequence(st, dash, function(){
+        el.scroll.innerHTML += '<p>'+pick.desk+'</p>';
+        phase='outcome';
+        el.next.style.display='';
+        render(); saveGame();
+      }, dash);
     }
   });
 
@@ -2676,7 +2809,7 @@
     var ch=current.choices[i];
     if(!ch) return;
     if(current.special==='possum' && i===0){ startPossumLoop(); return; }
-    if(current.special==='samtunnel' && i===0){ startSamTunnel(); return; }
+    if(current.special==='samtunnel' && i===0){ S.flags.samPending=true; }
     proceedWithChoice(ch);
   }
 
@@ -2684,6 +2817,8 @@
     phase='sequence';
     if(!current.playoff && !current.opener){
       S.done[current.id]=true;
+      S.doneEver = S.doneEver||{};
+      S.doneEver[current.id]=true;
       if(current.once) S.flags['done_'+current.id]=true;
     }
     if(ch.flag){
@@ -2845,7 +2980,7 @@
              holiday, once, in her own register. */
           if(!current.grace && !isPO && S.flags['done_grace_1'] && !S.flags.sandraReturned){
             S.flags.sandraReturned=true;
-            brief.push("First week back, in case anyone's counting, and someone always is. I saw the sun. Confirmed it still works. I sat in a chair that wasn't this one and thought about none of you, which took more effort than I'll admit. Grace left the desk immaculate and a note that just says 'you're welcome.' I've filed it under things I'll deal with never.");
+            brief.push("First week back. I saw the sun. It's still up there, doing its one job, which puts it ahead of most of the league office. I understand you survived a week of Grace. She'll have told you that reflects well on her. Let her have it \u2014 it's cheaper than the alternative, and I say that as the person who priced the alternative. The desk is immaculate and smells faintly of being judged. Good to be home.");
           }
           if(S.cash<0){
             S.debtWeeks++;
@@ -2870,6 +3005,18 @@
             setNextBtn('SEASON RECAP \u25B6', won?'Bring the Cup.':'Close the book right.');
           } else {
             setNextBtn('NEXT WEEK \u25B6', won ? "Winner's coffee tastes the same. Drink it anyway." : "Sandra says: shake it off.");
+          }
+          /* THE STOWAWAY, part two: if Sam performed at halftime, his escape
+             plays as a post-game event \u2014 the score is settled, the desk note
+             is up, and now he has to get out of their building. NEXT WEEK
+             stays hidden until the tunnel run resolves. */
+          if(S.flags.samPending && !isPO){
+            S.flags.samPending=false;
+            el.next.style.display='none';
+            render();
+            phase='samtunnel';
+            openMinigame('sam-tunnel-escape.html');
+            return;
           }
           el.next.style.display='';
           render();
@@ -3022,10 +3169,10 @@
         "I have raised this with him twice. The first time he agreed with me. The second time he agreed with me again, warmly, and then the conversation was over and I could not tell you how it ended.",
         "Plays thirty minutes a night and has never asked to come out. The young fellas go to him before they go to Hank. Hank knows. Hank has never once mentioned it. That's the arrangement, it works, and I'd rather not be the one who examines it."
       ]},
-    { who:'import', tab:'IMPORT', thick:'\u25AE', name:'THE IMPORT', meta:'Forward \u2014 The Prodigy',
+    { who:'import', tab:'IMPORT', thick:'\u25AE', name:'THE IMPORT', meta:'Point Guard \u2014 The Prodigy',
       intro:"\u201CAnd that's the Import. Eighteen years old. Professional since he was thirteen, apparently.\n\nThe paperwork names a country. I've looked it up twice \u2014 once with the office atlas, once with a better atlas I bought with my own money.\n\nSpeaks no English. Not a word. Not hello. Fourteen months here, and he has never once been confused about anything that was happening.\u201D",
       file:[
-        "THE IMPORT. Forward. Eighteen years old. Professional since thirteen, according to a document I have now read four times and do not fully accept.",
+        "THE IMPORT. Point guard. Eighteen years old. Professional since thirteen, according to a document I have now read four times and do not fully accept.",
         "His name is on the contract. It is fourteen letters and nobody in this organization has attempted it out loud, including me, and I type for a living.",
         "Country of origin: stated on three documents, spelled three ways. I have consulted the office atlas and then a second atlas, purchased at my own expense, on a Saturday. The place may exist. I am not currently prepared to go further than that.",
         "Speaks no English. Understands every single thing that happens in this building. I know this because I said something unkind about the coffee within earshot and he laughed. He has never let on since. Neither have I. We're square.",
