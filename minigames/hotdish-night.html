@@ -7,31 +7,50 @@
 <style>
   :root{ --bg:#20252c; --amber:#e2b45b; --amberdim:#ae8650; --cream:#efe6d3;
          --green:#6f9565; --red:#a94d3f; }
-  html,body{margin:0;height:100%;background:var(--bg);}
+  /* This runs inside the parent game's overlay iframe, which is a fixed
+     853x1844 CSS box \u2014 not a device viewport. Authoring against
+     device-width left the board at its 520px max-width, pinned to the top,
+     with 14px chrome text sitting in a box twice the size it was drawn for.
+     So: one fixed design box at the canvas's native width, scaled as a unit
+     to fit whatever frame it lands in. Every authored px keeps its intended
+     proportion, and the board fills the frame. Same model the parent uses. */
+  html,body{margin:0;height:100%;background:var(--bg);overflow:hidden;}
   body{font-family:"Courier New",Courier,monospace;color:var(--amber);
-    display:flex;justify-content:center;align-items:flex-start;
-    padding:calc(8px + env(safe-area-inset-top)) 7px calc(12px + env(safe-area-inset-bottom));
-    min-height:100%;touch-action:manipulation;-webkit-user-select:none;user-select:none;}
-  .wrap{width:100%;max-width:520px;}
+    display:flex;justify-content:center;align-items:center;
+    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    touch-action:manipulation;-webkit-user-select:none;user-select:none;}
+  /* The design box is taller than its contents on purpose. The frame is a
+     0.46 aspect and the board is 0.67, so the board is width-bound \u2014 it can
+     get no larger. The spare height goes into breathing room between the
+     narration, the pan and the HUD instead of a dead letterbox, which fills
+     the frame without shrinking anything. */
+  #fit{flex:0 0 auto;width:484px;height:864px;transform-origin:50% 50%;}
+  .wrap{width:484px;height:864px;display:flex;flex-direction:column;
+    justify-content:space-between;padding:14px 0;box-sizing:border-box;}
+  #foot{display:flex;flex-direction:column;}
+  /* Fixed height, not min-height: narration runs one to three lines and a
+     shifting box would slide the pan under the player's thumb mid-drop. */
   #narr{background:#181b20;color:#f4efe5;font-weight:700;font-size:14px;line-height:1.4;
-    padding:10px 13px;min-height:42px;border:2px solid #574735;
-    box-shadow:inset 0 0 0 1px #272c33;}
-  #stage{margin-top:8px;}
-  canvas#c{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;
+    padding:10px 13px;height:82px;box-sizing:border-box;border:2px solid #574735;
+    box-shadow:inset 0 0 0 1px #272c33;display:flex;align-items:center;}
+  #stage{margin:0;}
+  canvas#c{display:block;width:480px;height:560px;image-rendering:pixelated;image-rendering:crisp-edges;
     border:2px solid #574735;background:#1d232b;box-shadow:0 6px 20px rgba(0,0,0,.35);}
-  #hud{margin-top:7px;display:flex;justify-content:space-between;align-items:center;
+  #hud{margin-top:0;display:flex;justify-content:space-between;align-items:center;
     font-size:13px;color:var(--amberdim);letter-spacing:1px;}
   #hud b{color:var(--amber);font-weight:700;}
-  #hint{margin-top:5px;text-align:center;font-size:13px;color:#b79360;}
+  #hint{margin-top:7px;text-align:center;font-size:13px;color:#b79360;}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div id="fit"><div class="wrap">
   <div id="narr"></div>
   <div id="stage"><canvas id="c" width="480" height="560"></canvas></div>
-  <div id="hud"><span>LETTERS <b id="hLet">0/11</b></span><span>CROOKED <b id="hMiss">0/3</b></span></div>
-  <div id="hint">Tap to drop the letter when it's over its slot.</div>
-</div>
+  <div id="foot">
+    <div id="hud"><span>LETTERS <b id="hLet">0/11</b></span><span>CROOKED <b id="hMiss">0/3</b></span></div>
+    <div id="hint">Tap to drop the letter when it's over its slot.</div>
+  </div>
+</div></div>
 <script>
 /* ============================================================
    HOTDISH NIGHT — the tot layer.
@@ -92,12 +111,12 @@ var li=0;                  /* current letter index */
 var placed=[];             /* {ch, x, y, off, bad} */
 var misses=0;
 function speedForLetter(index){
-  /* First three are steady and forgiving. From letter four onward the
-     original speed is increased by 25%, which makes the full sequence
-     approximately 20% harder overall while preserving a learnable opening. */
-  if(index===0) return 1.55;
-  if(index===1) return 1.75;
-  if(index===2) return 1.95;
+  /* The opening three letters stay calm and learnable. From letter four,
+     use the old pace multiplied by 1.25, then let the modulation below add
+     a small late-game surge without becoming random or unfair. */
+  if(index===0) return 1.45;
+  if(index===1) return 1.68;
+  if(index===2) return 1.90;
   return (1.6+index*0.22)*1.25;
 }
 var slider={x:PAN_X, dir:1, speed:speedForLetter(0), phase:0};
@@ -121,14 +140,35 @@ function press(){
   if(state===ST_OVEN){ pullNow(); return; }
   if(state===ST_END){ report(); return; }
 }
-cv.addEventListener('touchstart',function(e){e.preventDefault();press();},{passive:false});
-cv.addEventListener('mousedown',press);
+/* Taps land anywhere in the frame, not just on the board. Once the design box
+   is scaled there is margin around it, and a tap into that margin used to do
+   nothing \u2014 which reads as the game having frozen. press() takes no
+   coordinates, so there is nothing to map through the transform. */
+document.addEventListener('touchstart',function(e){e.preventDefault();press();},{passive:false});
+document.addEventListener('mousedown',press);
 window.addEventListener('keydown',function(e){ if(e.code==='Space'){e.preventDefault();press();} });
+
+/* ---------- fit the design box to the frame ---------- */
+var FIT_W=484, FIT_H=864, fitEl=document.getElementById('fit');
+function fitToFrame(){
+  var cs=getComputedStyle(document.body);
+  var availW=document.documentElement.clientWidth
+           - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  var availH=document.documentElement.clientHeight
+           - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  var k=Math.min(availW/FIT_W, availH/FIT_H);
+  fitEl.style.transform='scale('+k+')';
+}
+window.addEventListener('resize',fitToFrame);
+window.addEventListener('orientationchange',fitToFrame);
+fitToFrame();
 
 /* ---------- drop resolution ---------- */
 function beginDrop(){
   var target=slotX(li);
   var off=Math.round(slider.x-target);
+  /* Keep the original landing tolerance. Difficulty comes from the paced
+     speed ramp and late-game surges, not from making the target feel dishonest. */
   var bad=Math.abs(off)>Math.floor(LW*0.45);
   drop={ch:WORD[li], x:slider.x, y:SLIDER_Y, vy:0, targetY:SLOT_Y, off:off, bad:bad};
   state=ST_DROP;
@@ -153,7 +193,8 @@ function settleDrop(){
       hint.textContent="Tap to PULL when the bar is in the golden zone.";
     }
   } else {
-    slider.speed=speedForLetter(li);    /* calm opening, then 25% faster */
+    slider.speed=speedForLetter(li);          /* easy opening, then faster */
+    slider.phase=0;
     slider.x=(li%2)?PAN_X+PAN_W-LW:PAN_X; slider.dir=(li%2)?-1:1;
     state=ST_PLAY;
   }
@@ -292,8 +333,18 @@ function drawStaticKitchen(){
   rect(123,84,234,4,P.woodHi,bgx); rect(122,218,236,6,P.wood1,bgx);
   line(bgx,148,100,206,158,'rgba(108,128,145,.14)',2);
   line(bgx,266,96,330,160,'rgba(108,128,145,.12)',2);
-  /* No snow or frost particles are baked into the static background.
-     Every visible flake is animated in drawSnow(), so nothing can appear stuck. */
+  /* Frost is confined to the inside corners of the four glass panes.
+     No loose white pixels are baked onto curtains, frame, wall or mullions. */
+  var frostPanes=[[128,90,108,57],[243,90,109,57],[128,156,108,59],[243,156,109,59]];
+  for(var fp=0;fp<frostPanes.length;fp++){
+    var pr=frostPanes[fp], px=pr[0], py=pr[1], pw=pr[2], ph=pr[3];
+    for(var fr=0;fr<8;fr++){
+      var left=(fr&1)===0;
+      var fx=left?px+1+((fr*5)%10):px+pw-3-((fr*4)%10);
+      var fy=py+ph-2-((fr*7)%15);
+      rect(fx,fy,1+(fr%2),1,(fr%2)?'#81909c':'#aeb9c1',bgx);
+    }
+  }
 
   /* Heavy curtains with folds, light-facing edges and irregular hems. */
   poly(bgx,[[102,75],[140,75],[137,224],[131,219],[124,225],[116,219],[108,225]],'#7a3f38');
@@ -521,20 +572,20 @@ function drawDish(){
   line(cx,PAN_X+Math.round(PAN_W*.08),nearY-1,PAN_X+Math.round(PAN_W*.38),nearY-1,'#ffffff',1);
 }
 function drawSnow(){
-  /* Each pane gets its own animated snow field and clipping rectangle.
-     This keeps every flake moving and prevents snow crossing the timber frame. */
+  /* Animate snow separately inside each glass pane. This prevents flakes
+     from ever crossing the timber frame, mullions, curtains or backsplash. */
   var panes=[[128,90,108,57],[243,90,109,57],[128,156,108,59],[243,156,109,59]];
-  var tt=last*.030;
-  for(var pane=0;pane<panes.length;pane++){
-    var pr=panes[pane], px=pr[0], py=pr[1], pw=pr[2], ph=pr[3];
-    cx.save();
-    cx.beginPath(); cx.rect(px,py,pw,ph); cx.clip();
-    for(var i=0;i<12;i++){
-      var id=pane*17+i;
-      var x=px+((id*43+tt*(0.70+(id%4)*0.18))%pw);
-      var y=py+((id*31+tt*(0.58+(id%5)*0.15))%ph);
-      var flake=(id%3===0)?'#d9e1e6':'#9facb7';
-      rect(x,y,(id%7===0)?2:1,(id%4===0)?3:2,flake);
+  var tt=last*.028;
+  for(var p=0;p<panes.length;p++){
+    var pr=panes[p], px=pr[0], py=pr[1], pw=pr[2], ph=pr[3];
+    cx.save(); cx.beginPath(); cx.rect(px,py,pw,ph); cx.clip();
+    for(var i=0;i<11;i++){
+      var id=i+p*13;
+      var drift=tt*(0.72+(id%4)*0.16);
+      var fall=tt*(0.50+(id%5)*0.12);
+      var x=px+((id*37+drift)%pw);
+      var y=py+((id*29+fall)%ph);
+      rect(x,y,(id%7===0)?2:1,(id%4===0)?3:2,(id%3===0)?'#d9e1e6':'#9facb7');
     }
     cx.restore();
   }
@@ -637,17 +688,18 @@ function tick(ts){
   if(shakeT>0) shakeT-=dt;
   if(state===ST_PLAY){
     slider.phase += dt;
+    /* The first three letters move like a metronome. Later letters breathe:
+       one slow pulse plus a smaller high-frequency pulse. The result feels
+       less predictable while always remaining continuous and readable. */
     var pace=1;
-    /* Letters 1-3 are metronomic. Later letters gently accelerate and ease
-       within each pass, making their timing less predictable without jumps. */
     if(li>=3){
       var late=(li-2)/8;
-      pace += Math.sin(slider.phase*(2.2+late*.8)+li*.71)*(0.04+late*.035);
-      if(li>=6) pace += Math.sin(slider.phase*5.0+li*1.11)*0.025;
+      pace += Math.sin(slider.phase*(2.1+late*.9)+li*.73)*(0.045+late*.055);
+      if(li>=6) pace += Math.sin(slider.phase*5.1+li*1.17)*0.045;
     }
     slider.x += slider.dir*slider.speed*pace*(dt*60);
-    if(slider.x<PAN_X){ slider.x=PAN_X; slider.dir=1; }
-    if(slider.x>PAN_X+PAN_W-LW){ slider.x=PAN_X+PAN_W-LW; slider.dir=-1; }
+    if(slider.x<PAN_X){ slider.x=PAN_X; slider.dir=1; slider.phase+=0.17; }
+    if(slider.x>PAN_X+PAN_W-LW){ slider.x=PAN_X+PAN_W-LW; slider.dir=-1; slider.phase+=0.17; }
   }
   if(state===ST_DROP && drop){
     drop.vy += 900*dt; drop.y += drop.vy*dt;
