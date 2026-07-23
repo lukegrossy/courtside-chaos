@@ -39,6 +39,12 @@
   .screen{position:absolute; inset:0; opacity:0; pointer-events:none;
     transition:opacity .65s ease; background:#000;}
   .screen.on{opacity:1; pointer-events:auto;}
+  /* The minigame overlay must paint above every screen, not just the ones that
+     happen to precede it in the DOM. Sam's tunnel escape launches while #dash
+     is still lit, and #dash is declared after #mgOverlay — without this the
+     overlay opened underneath the dashboard with NEXT already hidden, which
+     left the player with no way forward. */
+  #mgOverlay{z-index:60;}
 
   .tap{position:absolute; left:0; right:0; bottom:56px; text-align:center;
     font-family:"Courier New",monospace; color:rgba(238,230,210,.34);
@@ -270,19 +276,18 @@
     background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.6) 22%, rgba(0,0,0,.72) 50%, rgba(0,0,0,.6) 78%, rgba(0,0,0,0) 100%);
     opacity:0; transition:opacity .25s;}
   .caw.textmode .cawreadband{opacity:1;}
+  /* ONE narrative type size. Every prose beat — storyline text, character
+     card, tip-off card — reads at the same weight, so consecutive screens no
+     longer step up and down in size. 38/54 is the largest that still clears
+     the tap line in cardmode, where the block starts at y978.
+     The old .captionmode (a bottom subtitle strip for text laid over art) is
+     gone: runSequence now splits every text+scene step into a clean text
+     screen and a full-bleed art screen, so prose is never over a picture and
+     the strip had nothing left to do. */
   .caw .cawtxt{position:absolute; left:90px; right:90px; top:50%; transform:translateY(-50%);
     font-family:Georgia,'Times New Roman',serif; font-style:italic; color:#e8e2d4;
-    font-size:40px; line-height:58px; text-align:center; text-shadow:0 3px 18px #000, 0 0 60px rgba(0,0,0,.9);
+    font-size:38px; line-height:54px; text-align:center; text-shadow:0 3px 18px #000, 0 0 60px rgba(0,0,0,.9);
     white-space:pre-line; transition:opacity .25s, top .25s, transform .25s;}
-  /* Establishing shots (tip-off/arena scenes) get the text off the picture
-     entirely — a bottom caption strip, like film subtitles, rather than
-     centered over the artwork. */
-  .caw.captionmode .cawtxt{top:auto; bottom:230px; transform:none;
-    font-size:36px; line-height:50px;}
-  .caw .capband{position:absolute; left:0; right:0; bottom:130px; height:380px;
-    background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(6,5,4,.78) 28%, rgba(6,5,4,.9) 100%);
-    opacity:0; transition:opacity .25s; pointer-events:none;}
-  .caw.captionmode .capband{opacity:1;}
   .caw.scoremode .cawtxt{font-style:normal; font-family:"Courier New",monospace; color:#ffb02e;
     text-shadow:0 0 22px rgba(255,176,46,.55), 0 3px 14px #000; letter-spacing:4px;}
   .caw .cawlabel{position:absolute; left:0; right:0; top:26%; text-align:center;
@@ -315,8 +320,7 @@
   .caw .cawname{top:826px; opacity:0; transition:opacity .3s; z-index:2;}
   .caw .cawmeta{top:884px; opacity:0; transition:opacity .3s; z-index:2;}
   .caw.cardmode .cawcard, .caw.cardmode .cawname, .caw.cardmode .cawmeta{opacity:1;}
-  .caw.cardmode .cawtxt{top:978px; bottom:auto; transform:none;
-    font-size:34px; line-height:52px;}
+  .caw.cardmode .cawtxt{top:978px; bottom:auto; transform:none;}
   .caw.cardmode .cawshade{background:linear-gradient(180deg,
     rgba(0,0,0,.62) 0%, rgba(0,0,0,.25) 26%, rgba(0,0,0,.8) 68%, #000 100%);}
 
@@ -449,7 +453,6 @@
       <video class="cawart" id="cawVid" muted autoplay loop playsinline preload="auto"></video>
       <div class="cawshade"></div>
       <div class="cawreadband"></div>
-      <div class="capband"></div>
       <div class="cawlabel">FINAL</div>
       <div class="pcard cawcard" id="cawCard">
         <img class="pimg" id="cawPort" alt="">
@@ -936,7 +939,7 @@
       } else acc.push(s);
       return acc;
     },[]);
-    var i=-1, from=startScreen||dash;
+    var i=-1, from=startScreen||dash, finished=false;
     function show(step){
       if(step.kind==='gazette'){
         gazHead.textContent=step.head;
@@ -952,7 +955,6 @@
       caw.classList.toggle('scoremode', step.kind==='score');
       caw.classList.toggle('cardmode', step.kind==='card');
       caw.classList.toggle('textmode', step.kind==='text');
-      caw.classList.toggle('captionmode', step.kind==='text' && !!step.caption);
       cawTxt.textContent=step.text||step.line;
       cawArt.classList.remove('show');
       cawVid.classList.remove('show');
@@ -981,9 +983,16 @@
     }
     function screenFor(step){ return step.kind==='gazette'?gazS:caw; }
     function advance(){
+      /* Two taps landing inside the same transition used to run advance()
+         twice past the end: i overshot, steps[i-1] came back undefined, and
+         screenFor(undefined) threw on .kind — which stranded the player on a
+         dead screen. Fast tapping is normal on a phone, so the sequence latches
+         shut instead of trusting listener removal to win the race. */
+      if(finished) return;
       i++;
       if(i>=steps.length){
-        var cur=screenFor(steps[i-1]);
+        finished=true;
+        var cur = steps.length ? screenFor(steps[steps.length-1]) : from;
         cur.removeEventListener('click',advance);
         if(endScreen){ fadeScreens(cur,endScreen,done); }
         else if(done){ done(); }
@@ -1039,12 +1048,12 @@
        out:"You let it ride and the arena becomes a single, terrible, joyful organism. The visitors look rattled. Larry Stokes will hear about this. Larry Stokes hears about everything."},
     b:{t:"Have the organist drown it out.", sub:"Keep the league off your neck.", mod:-0.02, cred:2,
        out:"The organist plays something wholesome over the chant. 119 switches to humming it instead, which is somehow worse, and technically legal."}},
-   {stamp:'HALFTIME \u2022 THE ORGAN',
-    sit:"The organist has requested \u2014 in writing, passed hand to hand down the row \u2014 permission to play 'the forbidden one.' Nobody will say which song it is. The note is signed 'you know which one.'",
-    a:{t:"Approve the forbidden one.", sub:"You do not know which one.", mod:0.06, buzz:4,
-       out:"It's not a song so much as a dare. The building recognizes it in two notes and loses its mind. The refs check the rulebook, find nothing about organs, and play on, visibly shaken."},
-    b:{t:"Deny it.", sub:"Some doors stay closed.", mod:0.0, cred:1,
-       out:"The organist plays the anthem of a country that no longer exists, in protest. Three fans stand out of instinct. The forbidden one keeps."}},
+   {stamp:'HALFTIME \u2022 THE STEP LADDER',
+    sit:"A man from the plow department has carried a step ladder onto the floor at halftime and is changing a bulb over the north basket. He did not ask. He has been up there four minutes. Nobody on either bench has said a word, which tells you this has happened before.",
+    a:{t:"Let him finish.", sub:"The bulb has been out since November.", mod:0.03, morale:2,
+       out:"He finishes at his own speed, folds the ladder, and carries it off to an ovation he does not acknowledge. The north basket is, for the first time this season, lit. Both teams shoot better under it and neither will admit that's why."},
+    b:{t:"Get the ladder off my floor.", sub:"There's a game happening.", mod:0.0, cred:2,
+       out:"He comes down without argument, which is worse. The bulb stays out. Every shot at that end for the rest of the night happens in a light the visitors keep glancing up at, and we know the dark better than they do."}},
    {stamp:'2ND QUARTER \u2022 FREE THROW',
     sit:"The opposing star is at the line and Section 119 has unveiled, without approval, a forty-foot banner of what appears to be his childhood dentist. There's a story there. Nobody knows it. The star clearly does.",
     a:{t:"Let the banner stand.", sub:"Psychological warfare found us.", mod:0.09, cred:-2,
@@ -1138,7 +1147,7 @@
        out:"Sam emerges at halftime to the total bafflement of a road crowd that has never seen anything like him, because there is nothing like him. By the fourth quarter their own fans are chanting for him. Their mascot files a formal complaint. Their mascot is a walleye. The complaint is not taken seriously."},
     b:{t:"He watches from the bench in street clothes.", sub:"Policy. Also his hamstrings.", mod:0.03, morale:2,
        out:"Sam sits at the end of the bench in a borrowed blazer looking like a nineteenth assistant coach, and somehow this is funnier than any stunt. He starts waving a towel in the fourth. The towel wave spreads. Even in civilian dress, the man moves buildings."}},
-   {stamp:'3RD QUARTER \u2022 THE MEN\u2019S ROOM',
+   {stamp:'3RD QUARTER \u2022 THE MEN\'S ROOM',
     sit:"It's the third quarter and Hank has begun looking around their arena with rising urgency. He doesn't know where the men's room IS here. The whole bench is watching him the way you watch weather. The fourth-quarter plan hangs in the balance.",
     a:{t:"Have an usher escort him. Immediately.", sub:"Protect the ritual at all costs.", mod:0.08,
        out:"A veteran usher, who asks no questions and appears to understand everything, leads Hank into the concourse. Hank returns nine minutes later with the fourth-quarter plan and the usher's flashlight, which the usher insists he keep. The flashlight rides home on the dashboard, facing forward."},
@@ -1196,14 +1205,14 @@
     "MAN BUYS SECOND FLANNEL, DENIES EXCESS","ICE AUGER LOCATED IN OTHER SHED",
     "KID SHOVELS DRIVEWAY, OVERCHARGES","GRANDMOTHER WINS RAFFLE SHE RAN",
     "STREETLIGHT FLICKERS; ROMANTIC TO SOME","TOWN CLOCK OFF BY SIX MINUTES, LOVED",
-    "FROZEN PIPE THAWS; NEIGHBOUR TAKES CREDIT","VFW PANCAKE FEED DEEMED SUCCESS",
+    "FROZEN PIPE THAWS; NEIGHBOR TAKES CREDIT","VFW PANCAKE FEED DEEMED SUCCESS",
     "SNOWBANK NOW TALLER THAN MAILBOX","LOCAL DOG ELECTED, UNOFFICIALLY",
     "MAN WARMS CAR TWENTY MINUTES, DRIVES BLOCK","LEFTOVER FISH FRY, HALF PRICE",
     "COFFEE POT REPLACED; MORALE UP","CHRISTMAS LIGHTS STILL UP, DEFENDED",
     "PLOW BLADE HITS SAME CURB AGAIN","WOMAN KNITS FASTER THAN ANYONE, HUMBLE"
   ];
   /* The sidebar is where a living town leaks through. Base pool is
-     evergreen local colour; the rest gets earned by things you did.     */
+     evergreen local color; the rest gets earned by things you did.     */
   function fillerPool(){
     var p=FILLERS.slice(), f=S.flags;
     if(f.blob) p.push("BLOB VANDALIZED; BLOB FINE","TOURISTS PHOTOGRAPH BLOB, ASK NOTHING","SCULPTOR DECLINES TO EXPLAIN, AGAIN");
@@ -1340,7 +1349,7 @@
         out:["You stand next to Hank at practice and decline a cup of water in front of the team. It's the most coaching-adjacent thing you've ever done and Hank nods at you exactly once, which witnesses describe as 'emotional, for him.'",
              "Bootleg COMFORT IS THE ENEMY shirts appear downtown within the week. Hank does not see a dime and calls the lost revenue 'a lesson in thirst.'"],
         desk:"Fainting incidents: 2. Wins: also coming. I don't make the correlations, I just file them.",
-        gaz:"LOCAL COACH DECLARES WAR ON WATER", news:"Coach Hank Willis has posted a locker room manifesto titled COMFORT IS THE ENEMY, restricting players to what he terms earned sips. Two players fainted at practice, which Willis characterised as progress. The team doctor characterised it as dehydration. Willis characterised the team doctor as comfortable.", mood:'dry' },
+        gaz:"LOCAL COACH DECLARES WAR ON WATER", news:"Coach Hank Willis has posted a locker room manifesto titled COMFORT IS THE ENEMY, restricting players to what he terms earned sips. Two players fainted at practice, which Willis characterized as progress. The team doctor characterized it as dehydration. Willis characterized the team doctor as comfortable.", mood:'dry' },
       { t:"Overrule him. Mandatory water breaks.", sub:"The doctor is begging.",
         fx:{morale:7, cred:8, buzz:-4},
         out:["You institute water breaks. Hank complies in the most Hank way possible: he stands at the cooler timing each player's sip with a stopwatch and writing something in a small notebook nobody has ever read.",
@@ -1378,6 +1387,43 @@
              "At the unveiling the crowd cheers, the banner catches a draft, and Ricky's face billows in a way that will feature in local nightmares for a generation."],
         desk:"Banner: $400. Square footage of face: considerable. Hank looked at it for a long time and said 'that's a lot of confidence.' High praise, from him.",
         gaz:"LARGEST LEGALLY PERMITTED BANNER UNFURLED; FACE VAST", news:"In lieu of bronze, the club commissioned a banner, which Ricky Malone negotiated to the maximum dimensions the rafters can legally support. The banner is largely face. At the unveiling it caught a draught and billowed. Witnesses describe the effect as something they expect to carry with them.", mood:'dry' } ] },
+
+  /* THE FORBIDDEN ONE. Originally gated a rhythm minigame behind "Approve
+     it": the minigame asked players to learn note-timing AND a hidden-meter
+     restraint skill in one 50-60s unrepeatable shot, and the joke ("nobody
+     will say which song it is") was already fully delivered by the prose.
+     Stripped back to a plain three-way decision \u2014 the "Approve it" outcome
+     below is the old minigame-win copy, folded straight in. */
+  { id:'forbidden_one', venue:'home', title:'THE FORBIDDEN ONE', mood:'dry', once:true,
+    setup:[
+      "The organist has put in a request. In writing. Passed hand to hand down the row and across two sections before it got to me, so at minimum forty people have read it and not one of them will look at me.",
+      "He is asking permission to play the forbidden one. He does not say which song it is. Nobody says which song it is. The note is signed 'you know which one,' which I want on the record that I do not.",
+      "What I do know is that Stokes has somebody in the building tonight. He always does when it's worth it. Your call, boss."],
+    choices:[
+      { t:'Approve it. Play the forbidden one.', sub:"You do not know which one. Nod anyway.",
+        fx:{buzz:9, cred:-4, morale:4},
+        out:["He gets it out in pieces. Four bars here, something wholesome over the top of it, four bars there \u2014 and the building assembles the rest itself, the way a town assembles a rumor, which is to say instantly and with total confidence.",
+             "By the time anybody official works out what they have been listening to for six minutes, they have been listening to it for six minutes. The refs check the rulebook. There is nothing in the rulebook about organs. They play on, visibly shaken."],
+        desk:"The forbidden one: played, in fragments, by a man who has clearly thought about this for years. The building got there in two notes and stayed there. The league's fella made a note and underlined it, and underlining is not a fine. Buzz is up. Cred is down. I've filed the paper under RESOLVED and I have not written the title, because I still do not know it, and I have stopped experiencing that as a problem.",
+        gaz:"BUILDING RECOGNIZES SOMETHING; NOBODY WILL SAY WHAT",
+        news:"An unnamed selection was performed in fragments on the arena organ during the second half, drawing a sustained response from a capacity home crowd. Officials consulted the rulebook and permitted play to continue, the competition's regulations containing no provision governing organs. No party present would identify the piece for this newspaper, including three who were humming it.",
+        mood:'pleased' },
+      { t:'Deny it.', sub:'Some doors stay closed.',
+        fx:{cred:3, buzz:-2},
+        out:["You deny it, and the organist takes it the way a man takes a verdict he expected. What he plays instead is the national anthem of a country that has not existed since 1918, at half speed, for eleven minutes.",
+             "Three fans stand out of instinct. Nobody can prove anything. The forbidden one keeps \u2014 it has kept this long."],
+        desk:"Request: denied. Response: the anthem of a defunct nation, eleven minutes, no comment offered or invited. The league has nothing on us tonight, which is the whole point and also somehow the least fun version of it. He'll ask again. Men like that ask again.",
+        gaz:"ORGANIST PERFORMS ANTHEM OF DEFUNCT NATION FOR ELEVEN MINUTES",
+        news:"A request submitted in writing by the arena organist was declined by club ownership. The organist subsequently performed, at half tempo and for approximately eleven minutes, the national anthem of a state dissolved in 1918. Three spectators stood. No explanation was sought by the club and none was offered.",
+        mood:'dry' },
+      { t:'Ask him which song it is.', sub:'Somebody should.',
+        fx:{morale:-1},
+        out:["You ask. He looks at you for a moment that goes on considerably longer than a moment, and then he plays something wholesome and unobjectionable for the entire second half.",
+             "At the buzzer he passes the note back down the row to me. Same paper. Same signature. He has added one line: 'You'll know.'"],
+        desk:"You asked. I want it noted that you asked, because I'm the one who has to file what came back. The answer is that there is no answer, the request stands open, and the paper is now in the cabinet under a heading I invented this afternoon. He'll raise it again. I've left room in the folder.",
+        gaz:"ORGANIST DECLINES TO ELABORATE; PLAYS SECOND HALF STRAIGHT",
+        news:"Asked by club ownership to identify a song referred to in writing only as the forbidden one, the arena organist did not answer. The second half was accompanied by conventional selections. The original request was returned to the club office after the game with one line added.",
+        mood:'base' } ] },
 
   { id:'free_cheese', venue:'home',  title:'FREE CHEESE NIGHT', mood:'dry', scene:'cheese',
     setup:[
@@ -1438,7 +1484,7 @@
              news:"Ownership persisted through two unsuccessful attempts before personally completing the removal of a possum family from the arena's fuse box on a third try. The financial cost of the earlier attempts was not disclosed, though this newspaper has guesses.",
              mood:'dry' },
       forced:{ out:["That's three. We stop at three.",
-                    "I'm calling the man with the net. It's the same thousand you could've spent to begin with, before the bleeding started \u2014 except now there's three of them, plus whatever we're calling the thing you did to your hand.\u201D"],
+                    "I'm calling the man with the net. It's the same thousand you could've spent to begin with, before the bleeding started \u2014 except now there's three of them, plus whatever we're calling the thing you did to your hand."],
                desk:"Three tries, three thousand dollars, and a professional on Tuesday anyway. Somewhere the previous owner is laughing, and for once I understand him.",
                gaz:"POSSUM FAMILY EVICTED AFTER OWNER'S THIRD FAILED ATTEMPT",
                news:"A family of possums nesting in the arena's fuse box was ultimately relocated by professional pest control, following three unsuccessful personal attempts by ownership. The cumulative cost of the endeavor has not been made public.",
@@ -1523,7 +1569,7 @@
         out:["You decline on Tiny's behalf. Tiny respects the decision completely and then does the entire commercial as a bit at the Elks Lodge, on a borrowed waterbed, to a standing ovation.",
              "Gary is in the audience. Gary is weeping. Gary says it's better than anything he could have filmed, and closes the showroom for a day 'to think.'"],
         desk:"Commercial: declined. Commercial: performed anyway, live, better. There is a lesson here about Tiny and I decline to learn it.",
-        gaz:"UNMADE COMMERCIAL RECEIVES STANDING OVATION", news:"The club declined a waterbed commercial on Tiny McGee's behalf, citing its status as an athletics organisation. McGee subsequently performed the entire commercial as a bit at the Elks Lodge on a borrowed waterbed. The showroom's owner was present, wept, and closed for a day to think.", mood:'dry' } ] },
+        gaz:"UNMADE COMMERCIAL RECEIVES STANDING OVATION", news:"The club declined a waterbed commercial on Tiny McGee's behalf, citing its status as an athletics organization. McGee subsequently performed the entire commercial as a bit at the Elks Lodge on a borrowed waterbed. The showroom's owner was present, wept, and closed for a day to think.", mood:'dry' } ] },
 
   { id:'hank_missing_hour', venue:'home',  title:"HANK'S MISSING HOUR", mood:'grim',
     setup:[
@@ -1561,7 +1607,7 @@
         out:["The lights drop at halftime, the spotlight finds row F, and Ernie Kowalski \u2014 mid-sip \u2014 becomes the first man in league history to be immortalized while holding a thermos. He stands, waves the thermos, and the building comes apart.",
              "He's given the microphone. He critiques the modern pick-and-roll for six full minutes. It's the greatest speech anyone here has ever heard. His number ascends to the rafters while he tells the opposing coach, personally, to 'watch the baseline.'"],
         desk:"Ceremony cost: $1,200. Ernie's speech: unbudgeted, priceless. He has requested 'a word' about our defense. I've scheduled it, God help me.",
-        gaz:"MAN IMMORTALIZED MID-SIP; CRITIQUES DEFENSE FROM RAFTERS' SHADOW", news:"Ernie 'The Stilt' Kowalski has become the first man in league history immortalised while holding a thermos, the ceremony having been conducted as a surprise on a Tuesday. Handed the microphone, Kowalski critiqued the modern pick-and-roll for six minutes and advised the visiting coach, personally, to watch the baseline.", mood:'pleased' },
+        gaz:"MAN IMMORTALIZED MID-SIP; CRITIQUES DEFENSE FROM RAFTERS' SHADOW", news:"Ernie 'The Stilt' Kowalski has become the first man in league history immortalized while holding a thermos, the ceremony having been conducted as a surprise on a Tuesday. Handed the microphone, Kowalski critiqued the modern pick-and-roll for six minutes and advised the visiting coach, personally, to watch the baseline.", mood:'pleased' },
       { t:"Tell him first. Do it proper.", sub:"He's earned a heads-up.", when:'game',
         fx:{buzz:5, morale:6, cred:6, cash:-1200},
         out:["You visit row F \u2014 at his house, which is decorated substantially in row F memorabilia \u2014 and tell him. Ernie says 'about time,' then asks if he can bring 'a few people.' The few people turn out to be the entire 1961 roster, four of whom are alive, all four of whom show up in blazers.",
@@ -1673,7 +1719,7 @@
         out:["Word spreads through the storm the old way. They arrive on foot, on skis, one man on what is later confirmed to be a snowmobile with a sidecar full of grandchildren. Everyone who walks in walks in free, and everyone walked, so the gate is zero and the building is somehow half full.",
              "The team plays like it owes these people personally, because it does. Hank permits earned sips 'for weather.' It is the closest he has come to public tenderness."],
         desk:"Gate: $0. Attendance: 400-odd, arrival methods various, one sidecar. Hank authorized weather sips. I've noted the date. Some numbers matter more than the ones with dollar signs, though do not quote me in the ledger.",
-        gaz:"MAN ARRIVES BY SIDECAR; DESCRIBES GAME AS 'WORTH IT'", news:"The club opened its doors free to anyone arriving on foot during the blizzard. They came on foot, on skis, and in one confirmed case by snowmobile with a sidecar of grandchildren. Gate receipts were zero. The building was half full. Coach Willis authorised sips 'for weather.'", mood:'pleased', flag:'blizzardGame' } ] },
+        gaz:"MAN ARRIVES BY SIDECAR; DESCRIBES GAME AS 'WORTH IT'", news:"The club opened its doors free to anyone arriving on foot during the blizzard. They came on foot, on skis, and in one confirmed case by snowmobile with a sidecar of grandchildren. Gate receipts were zero. The building was half full. Coach Willis authorized sips 'for weather.'", mood:'pleased', flag:'blizzardGame' } ] },
 
   { id:'mascot_draft', title:'THE MASCOT DRAFT', mood:'dry',
     setup:[
@@ -1736,7 +1782,7 @@
         out:["You submit to the full Grace program. It saves money, tightens operations, and reorganizes the sponsor files by 'reliability, then penmanship.' She works through lunch. She works through YOUR lunch, somehow.",
              "On Friday she closes her rival ledger, unties the ribbon, and \u2014 in full view of the office \u2014 files your page under RESOLVED. It's the most frightening act of forgiveness in franchise history. Sandra returns to find the office 'aggressively improved' and takes one personal day to process it."],
         desk:"Recommendations: adopted, all. Page: resolved. I don't hold grudges, I hold RECORDS, and today the record improved. \u2014 G.",
-        gaz:"OFFICE 'AGGRESSIVELY IMPROVED'; WITNESSES SHAKEN", news:"The club has adopted all three recommendations submitted by Grace during the secretary's absence. Sponsor files have been reorganised by reliability, then penmanship. On Friday Grace closed her ledger, untied its ribbon, and filed the ownership's page under RESOLVED in full view of the office.", mood:'pleased' },
+        gaz:"OFFICE 'AGGRESSIVELY IMPROVED'; WITNESSES SHAKEN", news:"The club has adopted all three recommendations submitted by Grace during the secretary's absence. Sponsor files have been reorganized by reliability, then penmanship. On Friday Grace closed her ledger, untied its ribbon, and filed the ownership's page under RESOLVED in full view of the office.", mood:'pleased' },
       { t:"Hear them. Adopt one. Diplomatically.", sub:"Meet the ledger halfway.",
         fx:{cash:1500, cred:3},
         out:["You adopt her best recommendation and decline the others with the care of a man defusing something. Grace evaluates the diplomacy, decides it's 'growth, of a kind,' and awards you a provisional pencil check in the rival ledger.",
@@ -1838,7 +1884,7 @@
              "Then the Muskie comes off the baseline at a dead sprint, and Sam goes into the tunnels, and that is the last anyone has seen of either of them. The game resumes. The game, incredibly, is the less interesting thing in the building."],
         desk:"Halftime: performed, uninvited, triumphant. Current wolf status: somewhere in their service corridors with a Muskie in pursuit, while the bus idles and the driver checks his watch in a way that has legal implications. I'll update this note when there's something to update it with.",
         gaz:"UNINVITED MASCOT STEALS HALFTIME; WHEREABOUTS UNKNOWN",
-        news:"An unaccredited mascot travelling with the visiting club performed during the halftime interval without authorisation, drawing sustained applause from a home crowd. The performer then entered the arena's service corridors, pursued by the home club's mascot. At press time neither had emerged.",
+        news:"An unaccredited mascot traveling with the visiting club performed during the halftime interval without authorization, drawing sustained applause from a home crowd. The performer then entered the arena's service corridors, pursued by the home club's mascot. At press time neither had emerged.",
         mood:'dry' },
       { t:"One lap of the floor, then back on the bus.", sub:"A compromise nobody will enjoy.",
         fx:{buzz:4, morale:3},
@@ -1846,7 +1892,7 @@
              "He does not sulk. He would like it noted that he does not sulk. He sat facing forward the entire time, which is somehow worse."],
         desk:"One lap, permitted. Wolf: compliant, and disappointed in a way that requires no words and produces no complaints, which is the most effective form of it. He has left the thermos in my office. I don't know what that means yet.",
         gaz:"VISITING MASCOT MAKES BRIEF, UNSCHEDULED APPEARANCE",
-        news:"An unaccredited visiting mascot completed a single circuit of the floor during a break in play before returning to the team bus. The home club's mascot was not made available for comment. Officials declined to characterise the incident.",
+        news:"An unaccredited visiting mascot completed a single circuit of the floor during a break in play before returning to the team bus. The home club's mascot was not made available for comment. Officials declined to characterize the incident.",
         mood:'dry' },
       { t:"Back in the trunk. He rides home.", sub:"He will take this personally.",
         fx:{morale:-6, cred:2},
@@ -1862,21 +1908,21 @@
              "Sam reaches the lot as the bus is pulling out. He makes the bus anyway. Nobody has explained how, and the driver \u2014 who watched it happen in the mirror \u2014 has declined to be deposed."],
         desk:"Unscheduled halftime performance by an unbudgeted wolf in a hostile building, followed by a pursuit through a corridor system he had not seen before and navigated better than their own mascot. No injuries. No fine, somehow. One Muskie left standing by a loading dock with his hands on his knees.",
         gaz:"STOWAWAY MASCOT PERFORMS UNINVITED, ESCAPES ON FOOT",
-        news:"An unaccredited mascot travelling with the visiting club performed during the halftime interval without authorisation, drawing sustained applause from the home crowd. A pursuit through the arena's service corridors followed. The visiting mascot reached the team coach unassisted. The home club has requested that the matter be considered closed.",
+        news:"An unaccredited mascot traveling with the visiting club performed during the halftime interval without authorization, drawing sustained applause from the home crowd. A pursuit through the arena's service corridors followed. The visiting mascot reached the team coach unassisted. The home club has requested that the matter be considered closed.",
         mood:'pleased' },
       missed:{ fx:{buzz:9, morale:-4, cred:-2},
         out:["Sam clears the tunnels \u2014 loses the Muskie somewhere near the compressor room \u2014 and steps out into the lot with his arms up in triumph, holding the pose, waiting for the applause of a parking lot. Which is empty. Because that is our tail lights turning onto the highway without him.",
              "He walked. Not all of it; a woman hauling feed picked him up outside Bemidji and drove him ninety of the hundred and ninety miles, on the condition that he keep the head on, which he did, the entire way, out of what he later described as professionalism."],
         desk:"Wolf: arrived home under his own power at four in the morning, in costume, having been driven most of it by a stranger who has since sent a Christmas card addressed to Sam personally. He is not sorry. He has never once been sorry. That is the entire problem and the entire appeal.",
         gaz:"MASCOT MISSES TEAM BUS, ARRIVES HOME BY OTHER MEANS",
-        news:"An unaccredited mascot travelling with the visiting club failed to reach the team coach following an unauthorised halftime performance and returned home separately, a journey of approximately 190 miles. He is reported to have remained in costume throughout. The club has declined to clarify its policy on the matter, there being none.",
+        news:"An unaccredited mascot traveling with the visiting club failed to reach the team coach following an unauthorized halftime performance and returned home separately, a journey of approximately 190 miles. He is reported to have remained in costume throughout. The club has declined to clarify its policy on the matter, there being none.",
         mood:'dry' },
       lose:{ fx:{cash:-400, buzz:7, cred:-5, morale:-2},
-        out:["The Muskie corners him by the loading dock with the unhurried patience of an animal who has done this before and knows every door, and the two of them are found by arena security in a standoff that neither party has been willing to characterise since.",
+        out:["The Muskie corners him by the loading dock with the unhurried patience of an animal who has done this before and knows every door, and the two of them are found by arena security in a standoff that neither party has been willing to characterize since.",
              "There is a fine. There is a form. Sam signed the form with a paw print, and the league has accepted the paw print, and I would like that fact preserved somewhere it cannot be quietly deleted."],
         desk:"Fine: $400, for an unaccredited performer in a restricted corridor. He was caught because he stopped to take a bow at the top of the tunnel with a Muskie in open pursuit, which tells you everything about him and most of what you need to know about why we keep him.",
         gaz:"STOWAWAY MASCOT DETAINED AFTER HALFTIME INCURSION",
-        news:"An unaccredited mascot travelling with the visiting club performed during the halftime interval without authorisation and was subsequently detained by arena staff following a pursuit through service corridors. A fine was issued. The visiting club's representative signed the citation on the mascot's behalf, or, by one account, did not.",
+        news:"An unaccredited mascot traveling with the visiting club performed during the halftime interval without authorization and was subsequently detained by arena staff following a pursuit through service corridors. A fine was issued. The visiting club's representative signed the citation on the mascot's behalf, or, by one account, did not.",
         mood:'dry' } } },
 
   { id:'hotdish_night', venue:'home', title:'HOTDISH NIGHT', mood:'base', rest:true, special:'hotdish',
@@ -1892,14 +1938,14 @@
              "It's good. It's genuinely good. It is also, everyone quietly notes, not your kitchen, and up here the difference between hosting and attending is a distinction people keep in the same drawer as their baptism records."],
         desk:"Hotdish Night: executed, basement, dignified. Eighty dollars, two urns, zero incidents. The team went home warm. The only note in the suggestion box \u2014 we had a suggestion box, I run a tight basement \u2014 said 'next year the house,' unsigned, in handwriting I've already matched to Tiny.",
         gaz:"TEAM HOTDISH SUPPER HELD AT CHURCH; URNS PRAISED",
-        news:"The club marked its open week with a team hotdish supper in a church basement, organised by club secretary Sandra. The event was described as warm and well-run. An anonymous suggestion regarding next year's venue was submitted and is understood to be under review.", mood:'base' },
+        news:"The club marked its open week with a team hotdish supper in a church basement, organized by club secretary Sandra. The event was described as warm and well-run. An anonymous suggestion regarding next year's venue was submitted and is understood to be under review.", mood:'base' },
       { t:"Skip it. Rest means rest.", sub:"Everyone gets a week off. Including the oven.",
         fx:{morale:-8, buzz:-3},
         out:["The dark week passes dark. Everyone rests, technically. But the phone calls had gone out, and the town had heard 'hotdish' before it heard 'cancelled,' and there is no force in the North quite like a casserole that was promised and not produced.",
              "Tiny refers to the week, in perpetuity, as 'the hunger.' Mrs. Kowalczyk plays something minor-key at the next home game and looks at your seats while she does it. The team wins anyway, out of spite, which works exactly once."],
         desk:"Hotdish Night: cancelled before it began, which the town has processed as a casserole-shaped hole in the calendar. I've fielded eleven calls, one condolence card, and a tot recipe mailed anonymously 'for next year.' There will have to be a next year, boss. This is bigger than both of us now.",
         gaz:"HOTDISH NIGHT CANCELLED; TOWN IN QUIET MOURNING",
-        news:"An anticipated team hotdish supper did not take place during the club's open week. No official explanation was offered. A recipe was mailed to the club offices anonymously. Local sentiment has been characterised as disappointed but patient, in the regional tradition.", mood:'grim' } ],
+        news:"An anticipated team hotdish supper did not take place during the club's open week. No official explanation was offered. A recipe was mailed to the club offices anonymously. Local sentiment has been characterized as disappointed but patient, in the regional tradition.", mood:'grim' } ],
     hotdishOutcomes:{
       win:{ fx:{cash:-150, morale:12, buzz:4, cred:2}, when:null,
         out:["Sunday night, your house holds the entire franchise. Three hotdishes deep \u2014 the classic, one with wild rice for the sophisticates, and the centerpiece: yours, its tots spelling LUMBERJACKS in eleven golden letters, which nobody will stop photographing and which Hank has inspected twice, letter by letter, nodding like a man auditing a miracle.",
@@ -1907,7 +1953,7 @@
              "Sam does the dishes. In costume. Nobody asked. The sleeves did not survive."],
         desk:"Hotdish Night, year one, is in the books: $150 in groceries against returns I have no column for. The centerpiece spelled LUMBERJACKS and was photographed more than the Cup would be. Leftovers: none, on account of the Import. The tradition is now annual \u2014 the team decided it on the way out the door, and traditions up here don't ask twice.",
         gaz:"OWNER'S HOTDISH SPELLS TEAM NAME; TRADITION DECLARED ANNUAL",
-        news:"With no fixture scheduled, club ownership hosted the full roster for a tater tot hotdish supper at the owner's residence, the centerpiece of which spelled LUMBERJACKS in arranged tots. It was photographed extensively before being consumed entirely. The event was declared annual by consensus before departure, a mechanism this region recognises as binding.", mood:'pleased' },
+        news:"With no fixture scheduled, club ownership hosted the full roster for a tater tot hotdish supper at the owner's residence, the centerpiece of which spelled LUMBERJACKS in arranged tots. It was photographed extensively before being consumed entirely. The event was declared annual by consensus before departure, a mechanism this region recognizes as binding.", mood:'pleased' },
       lose:{ fx:{cash:-150, morale:7, buzz:3},
         out:["The centerpiece comes out of the oven saying something. What it says is not LUMBERJACKS. The team gathers around the pan in respectful silence, tilting their heads in unison like a flock changing direction, until Tiny \u2014 who has been waiting his whole life for this \u2014 pronounces it 'SLUMBERJACKS' and the kitchen comes apart.",
              "They eat every tot of it. Loyally. Seconds, even, of the crooked letters specifically, which the Import points at before taking. Hank declares the burnt corner 'the only part cooked with conviction' and eats it standing up, facing the door. The night, against the casserole's best efforts, lands anyway.",
@@ -2028,10 +2074,10 @@
       { t:"Concourse only. Ventilated.", sub:"Contained. In theory.",
         fx:{cash:1200, buzz:4, cred:2}, when:'game',
         out:["The compromise works exactly the way compromises do: the smell gets out anyway, only slower, so that nobody can point to the moment it arrived. By the third quarter it is simply a fact about the building, like the cold, and everyone has stopped mentioning it.",
-             "The Sons of Norway are politely wounded. They serve beautifully. They thank you, warmly, twice. And they will remember this in the way organisations founded in 1895 remember things \u2014 accurately, and for a very long time."],
+             "The Sons of Norway are politely wounded. They serve beautifully. They thank you, warmly, twice. And they will remember this in the way organizations founded in 1895 remember things \u2014 accurately, and for a very long time."],
         desk:"Containment: attempted. The smell reached the rafters by the third and the Sons of Norway reached their own conclusions by the fourth. Both are now permanent.",
         gaz:"LUTEFISK 'CONTAINED'; SMELL DESCRIBED AS AMBIENT",
-        news:"The club restricted the Sons of Norway's Lutefisk Night service to a ventilated concourse. The measure delayed rather than prevented the odour's distribution. By the third quarter it was reported to be general throughout the arena. The Sons of Norway thanked the club warmly, twice, and are understood to have made a note.",
+        news:"The club restricted the Sons of Norway's Lutefisk Night service to a ventilated concourse. The measure delayed rather than prevented the odor's distribution. By the third quarter it was reported to be general throughout the arena. The Sons of Norway thanked the club warmly, twice, and are understood to have made a note.",
         mood:'dry' },
       { t:"Decline, politely.", sub:"They're founded in 1895. They'll understand.",
         fx:{buzz:-8, cred:3, cash:-1500}, when:'game',
@@ -2040,7 +2086,7 @@
              "Sandra attended the supper. Sandra will not be drawn on which side she was on."],
         desk:"Gate: our lowest. Their supper: standing room. The smell travelled two blocks in still air, which I have written down and underlined, because someone in the future is going to want to know that.",
         gaz:"RIVAL SUPPER OUTDRAWS BASKETBALL; SMELL TRAVELS TWO BLOCKS",
-        news:"The club declined the Sons of Norway's Lutefisk Night proposal. The organisation proceeded independently, holding a supper in the church hall at the same hour as the fixture and charging nothing. Attendance at the arena was the season's lowest. The odour is confirmed to have reached the building regardless, a distance of two blocks in still air.",
+        news:"The club declined the Sons of Norway's Lutefisk Night proposal. The organization proceeded independently, holding a supper in the church hall at the same hour as the fixture and charging nothing. Attendance at the arena was the season's lowest. The odor is confirmed to have reached the building regardless, a distance of two blocks in still air.",
         mood:'grim' } ] },
 
   { id:'vern_missing', venue:'home', title:'THE MAN ON THE ICE', mood:'grim', scene:'ice', once:true,
@@ -2066,7 +2112,7 @@
              "The locker stays shut. The room dresses around it. Nobody says his name, which is not the same as nobody thinking it."],
         desk:"Roster: unchanged. League: informed. Calls taken this week: nineteen. Calls put through to you: none. You didn't need them and I didn't need you to have them. That's the job.",
         gaz:"CLUB DECLINES TO FILL ROSTER PLACE",
-        news:"The club has declined to fill the roster place of Vern Aho, missing eleven days following a blizzard on the lake. A league spokesman confirmed the roster stands. The club secretary has handled all enquiries and declined to characterize them.",
+        news:"The club has declined to fill the roster place of Vern Aho, missing eleven days following a blizzard on the lake. A league spokesman confirmed the roster stands. The club secretary has handled all inquiries and declined to characterize them.",
         mood:'base', flag:'vernNoCeremony', stamp:'vernWeek' },
       { t:"Sign a replacement. It's what he'd want.", sub:"Vern would be the first to say it.",
         fx:{cash:-2200, morale:-5, cred:2},
@@ -2202,9 +2248,9 @@
 
   { id:'radio_deal', title:'THE VOICE OF THE JACKS', mood:'base', scene:'radio',
     setup:[
-      "KDLH is dropping us. The station manager says basketball 'doesn't move product like the polka hour,' and he has charts, and I'll be honest with ya, the charts are compelling.",
-      "Which orphans Walt Sikma, who has called every Lumberjacks game since 1966 from a card table at center court, into a microphone that \u2014 and I learned this Tuesday \u2014 has not been plugged into anything since 1981.",
-      "Walt doesn't know that last part. Walt prepares four hours for every broadcast. The question on the desk is our radio situation. The question under the question is Walt."],
+      "KTMB is dropping us. The station manager says basketball 'doesn't move product like the polka hour,' and he has charts, and I'll be honest with ya, the charts are compelling.",
+      "Which brings me to the microphone. I said I'd tell you about the microphone. It has not been plugged into anything since 1981, and I found that out on a Tuesday, from a man holding a ladder.",
+      "Walt doesn't know. Five years of Fridays, prepared to the minute, into a dead line. The question on the desk is our radio situation. The question under the question is Walt."],
     choices:[
       { t:'Buy the airtime ourselves. Walt broadcasts.', sub:'$2,400. The games deserve a voice.',
         fx:{cash:-2400, cred:6, buzz:5, morale:3},
@@ -2252,7 +2298,7 @@
 
   { id:'the_crate', venue:'home', when:'game', title:'THE CRATE', mood:'base', scene:'crate',
     setup:[
-      "The laundry service froze. Not figuratively \u2014 the truck, the pipes, and one employee's mustache, all of it, solid, outside Two Harbors. Our uniforms are inside that truck and will remain there until what the driver is calling 'a thaw event.'",
+      "The laundry service froze. Not figuratively \u2014 the truck, the pipes, and one employee's mustache, all of it, solid, outside Bemidji. Our uniforms are inside that truck and will remain there until what the driver is calling 'a thaw event.'",
       "The game is Friday. However. In clearing the equipment room \u2014 for reasons, or possibly because of reasons, I've agreed not to reopen \u2014 somebody found a crate. Stenciled: LUMBERJACKS, 1961. Inside: a full set of wool uniforms from the year this team won everything. Ernie Kowalski's actual jersey is folded on top, the number long since hanging in the rafters, the cloth itself apparently just in a box this whole time.",
       "The wool has opinions. The moths have made contributions. And Ernie, informed by means nobody will admit to, is already in the parking lot."],
     choices:[
@@ -2273,7 +2319,7 @@
         out:["The league does not love this. The fine arrives faster than any correspondence the league has ever produced, hand-delivered, possibly pre-written. Commissioner Stokes appends a personal note that reads, in full: 'A laundry truck.'",
              "The makeup date lands, through no scheduling malice anyone can prove, on the anniversary of Lutefisk Night. The equipment room has been notified. The equipment room, per Sandra, 'remembers.'"],
         desk:"Fine: $1,500, hand-delivered, suspiciously ready. Stokes's note is three words and I've filed it under correspondence I intend to outlive. The makeup date is what it is. The equipment room remembers.",
-        gaz:"GAME POSTPONED PENDING 'THAW EVENT'; LEAGUE UNAMUSED", news:"Friday's fixture was postponed after the club's uniforms were stranded in a frozen laundry vehicle outside Two Harbors, pending what the driver termed a thaw event. A league fine arrived by hand within the day. Commissioner Stokes attached a personal note reading, in its entirety, 'A laundry truck.'", mood:'grim' } ] },
+        gaz:"GAME POSTPONED PENDING 'THAW EVENT'; LEAGUE UNAMUSED", news:"Friday's fixture was postponed after the club's uniforms were stranded in a frozen laundry vehicle outside Bemidji, pending what the driver termed a thaw event. A league fine arrived by hand within the day. Commissioner Stokes attached a personal note reading, in its entirety, 'A laundry truck.'", mood:'grim' } ] },
 
   { id:'arena_reckoning', title:'THE ASTERISK COMES DUE', mood:'grim', scene:'arena', needs:'asteriskSeason', once:true,
     setup:[
@@ -2703,6 +2749,28 @@
        the dashboard flips to Grace \u2014 her card follows, in her own voice.
        This runs ahead of everything so the player is never cold-opened on a
        stranger at Sandra's desk. */
+    /* First time a supporting character turns up, Sandra introduces them
+       BEFORE her setup note about them — the note assumes the player already
+       knows who they are. Previously the card was prepended to the post-choice
+       reel, so Walt got introduced after the decision had already been made
+       about him and after the setup had covered the same biography. The core
+       cast is handled at Week Zero and never cards again. */
+    /* S.met.sandra is only set once the player has actually entered the game
+       (__enterGame / a restored save). The dashboard is built once at boot,
+       behind the splash, with current=STORY[0] — without this guard that boot
+       pass would fire a cast card into an unseen screen and mark the character
+       met before the intro had run. */
+    if(current && !current.grace && S.met && S.met.sandra){
+      var castWho = castOf(current);
+      if(castWho && !S.met[castWho]){
+        var cc = castCard(castWho);
+        if(cc){
+          S.met[castWho]=true;
+          runSequence([cc], dash, function(){ presentWeekBody(); }, dash);
+          return;
+        }
+      }
+    }
     if(current && current.grace && !S.met['grace']){
       S.met['grace']=true;
       var handoff={kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
@@ -2733,7 +2801,7 @@
   function beginWeek(){
     pendingRoute=null;
     /* the quiet page comes due */
-    if(S.stage==='regular' && S.flags.arenaDoomed && S.flags.doomWeek && S.week>=S.flags.doomWeek){ runFire(); return; }
+    if(S.stage==='regular' && S.flags.arenaDoomed && S.flags.doomWeek && S.tw>=S.flags.doomWeek){ runFire(); return; }
     if(S.stage==='semi' || S.stage==='final'){
       current = (S.stage==='semi') ? makeSemi() : makeFinal();
       S.venue = current.venue==='home' ? 'HOME' : 'ROAD';
@@ -2894,7 +2962,7 @@
     }
     if(ch.flag){
       S.flags[ch.flag]=true;
-      if(ch.flag==='arenaDoomed'){ S.flags.doomWeek = S.week + 2 + Math.floor(Math.random()*3); }
+      if(ch.flag==='arenaDoomed'){ S.flags.doomWeek = S.tw + 2 + Math.floor(Math.random()*3); }
     }
     /* records WHEN this fired, so a sequel can be held back N weeks */
     if(ch.stamp){ S.flags[ch.stamp] = S.tw; }
@@ -2953,7 +3021,7 @@
         ? 'GAME NIGHT.\nLUMBERJACKS vs '+FOELIST[0]+'.\nThe Shack fills. The lights hum. Tip-off.'
         : 'ROAD TRIP.\nLUMBERJACKS at '+FOELIST[0]+'.\nSix hours of highway. One bus. No survivors of the card game. Tip-off.';
     }
-    var tip = {kind:'text', text: tipText, caption: GAMES<=1,
+    var tip = {kind:'text', text: tipText,
       scene: GAMES>1 ? null
            : isPO ? (current.playoff==='final'?'tipoff_final':'tipoff_playoff')
            : (home ? 'tipoff_home' : 'tipoff_road')};
@@ -2961,13 +3029,6 @@
       return {kind:'text', text:par, scene: idx===0?(ch.scene||current.scene):null};
     });
     var steps = (when==='game') ? [tip].concat(outs) : outs.concat([tip]);
-    /* First time a supporting character turns up, Sandra introduces them.
-       The core four are handled at Week Zero and never card again.     */
-    var castWho = castOf(current);
-    if(castWho && !S.met[castWho]){
-      var cc = castCard(castWho);
-      if(cc){ S.met[castWho]=true; steps = [cc].concat(steps); }
-    }
 
     runSequence(steps, null, function(){
       /* Mid-game: owner call from courtside */
