@@ -586,7 +586,7 @@
     var scale=Math.min(availW/STAGE_W, availH/STAGE_H);
     phone.style.width=(STAGE_W*scale)+'px';
     phone.style.height=(STAGE_H*scale)+'px';
-    stage.style.transform='scale('+scale+')';
+    stage.style.transform='scale3d('+scale+','+scale+',1)';
   }
   window.addEventListener('resize',fit);
   window.addEventListener('orientationchange',function(){setTimeout(fit,120);});
@@ -792,6 +792,55 @@
     wrap.classList.toggle('scrolled-end', atEnd || !scrollable);
   }
   sc.addEventListener('scroll',check); window.addEventListener('resize',check); check();
+
+  /* ---------- TOUCH DRAG-SCROLL ----------
+     iOS WebKit does not always build a scrolling node for an overflow
+     element inside a transform-scaled ancestor: touchmove fires, scrollTop
+     never moves, and the pane is inert to the finger while still scrolling
+     programmatically. Drive it ourselves, converting finger pixels into
+     content pixels through the live stage scale, and preventDefault so the
+     native path stays out of the way. Setting scrollTop still fires the
+     scroll event, so the arrow/fade indicators keep working untouched. */
+  function stageScale(){
+    var m=getComputedStyle(stage).transform;
+    if(!m || m==='none') return 1;
+    var n=m.match(/matrix3?d?\(([^)]+)\)/);
+    return n ? (parseFloat(n[1].split(',')[0])||1) : 1;
+  }
+  function dragScroll(el){
+    if(!el) return;
+    var y0=0,t0=0,live=false,vy=0,lastY=0,lastT=0,raf=null;
+    el.addEventListener('touchstart',function(e){
+      if(e.touches.length!==1) return;
+      if(raf){ cancelAnimationFrame(raf); raf=null; }
+      live=true; y0=e.touches[0].clientY; t0=el.scrollTop;
+      lastY=y0; lastT=Date.now(); vy=0;
+    },{passive:true});
+    el.addEventListener('touchmove',function(e){
+      if(!live || e.touches.length!==1) return;
+      var max=el.scrollHeight-el.clientHeight; if(max<=0) return;
+      var y=e.touches[0].clientY, s=stageScale()||1;
+      el.scrollTop=Math.max(0,Math.min(max,t0+(y0-y)/s));
+      var now=Date.now(), dt=now-lastT;
+      if(dt>0){ vy=((lastY-y)/s)/dt; lastY=y; lastT=now; }
+      if(e.cancelable) e.preventDefault();
+    },{passive:false});
+    el.addEventListener('touchend',function(){
+      live=false;
+      var max=el.scrollHeight-el.clientHeight;
+      if(max<=0 || Math.abs(vy)<0.05) return;
+      var v=vy*16;
+      (function glide(){
+        v*=0.94;
+        if(Math.abs(v)<0.3){ raf=null; return; }
+        var n=Math.max(0,Math.min(max,el.scrollTop+v));
+        if(n===el.scrollTop){ raf=null; return; }
+        el.scrollTop=n; raf=requestAnimationFrame(glide);
+      })();
+    },{passive:true});
+  }
+  dragScroll(sc);
+  dragScroll(document.getElementById('foTxt'));
 })();
 </script>
 <script>
