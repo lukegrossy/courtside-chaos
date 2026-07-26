@@ -213,7 +213,7 @@
     font-family:"Arial Black",sans-serif; color:#e8e2d4; font-size:64px; line-height:70px;
     letter-spacing:1px; text-shadow:0 3px 16px #000;}
   .dsub{position:absolute; left:80px; right:80px; top:352px; text-align:center;
-    font-family:Georgia,serif; font-style:italic; color:#9a927f; font-size:26px;}
+    font-family:Georgia,serif; font-style:italic; color:#9a927f; font-size:34px;}
   /* The cards are painted into decision.webp — these divs must sit centred
      on them. Measured off the rendered screen: the painted cards occupy
      stage y 471-830, 896-1258, 1345-1706. Do not move these to close gaps. */
@@ -240,8 +240,8 @@
   #decide.two .d2{top:1318px; transform:rotate(-3.03deg);}
   /* ---- in-game moment screen ---- */
   .mstamp{position:absolute; left:40px; right:40px; top:112px; text-align:center;}
-  .mstamp .mper{display:block; font-family:"Courier New",monospace; color:#c9862b;
-    font-size:23px; letter-spacing:9px; text-shadow:0 0 14px rgba(255,176,46,.4);}
+  .mstamp .mper{display:block; font-family:"Courier New",monospace; font-weight:bold; color:#c9862b;
+    font-size:27px; letter-spacing:9px; text-shadow:0 0 14px rgba(255,176,46,.4);}
   .mstamp .mttl{display:block; margin-top:16px;
     font-family:"Arial Black",sans-serif; color:#ffb02e;
     font-size:52px; line-height:58px; letter-spacing:2px;
@@ -2186,10 +2186,10 @@
         fx:{morale:8, buzz:7, cred:-4, cash:-900},
         out:["The banner comes down in front of a full house, which is a thing no building has ever done before and no building should have to do twice.",
              "Vern watches it descend with no expression whatsoever, takes it under one arm like a rolled rug, and goes to get changed. The ovation goes eleven minutes. He is already on the floor by minute three, stretching, visibly wishing they would stop.",
-             "He scores twenty-two. Somebody in Section 119 shouts 'PRESUMED BY WHO' and forty people answer him."],
+             "Somebody in Section 119 shouts 'PRESUMED BY WHO' and forty people answer him before the ball is even up."],
         desk:"Number: retired. Number: unretired. There is no paperwork for unretiring a number, so I have invented some, and it is now the official paperwork of this league whether they know it or not. It lives in a drawer marked VERN, which is now a drawer.",
         gaz:"RETIRED NUMBER UNRETIRED; HOLDER ANNOYED IT TOOK THIS LONG",
-        news:"The club has lowered the retired number of Vern Aho at his request, Aho having returned from a cousin's residence in Ely where the telephone was out. The banner was removed in front of a capacity crowd. Aho carried it to the dressing room himself and scored twenty-two points. A chant developed. The league has not yet responded to the club's paperwork, which the club invented.",
+        news:"The club has lowered the retired number of Vern Aho at his request, Aho having returned from a cousin's residence in Ely where the telephone was out. The banner was removed in front of a capacity crowd. Aho carried it to the dressing room himself. A chant developed. The league has not yet responded to the club's paperwork, which the club invented.",
         mood:'pleased', flag:'vernBack' },
       { t:"It stays up. Give him a new number.", sub:"The ceremony happened. People cried.",
         fx:{cred:7, morale:-5, buzz:2},
@@ -3187,7 +3187,7 @@
              holiday, once, in her own register. */
           if(!current.grace && !isPO && S.flags['done_grace_1'] && !S.flags.sandraReturned){
             S.flags.sandraReturned=true;
-            brief.push("First week back. I saw the sun. It's still up there, doing its one job, which puts it ahead of most of the league office. I understand you survived a week of Grace. She'll have told you that reflects well on her. Let her have it \u2014 it's cheaper than the alternative, and I say that as the person who priced the alternative. The desk is immaculate and smells faintly of being judged. Good to be home.");
+            brief.unshift("First week back. I saw the sun \u2014 it's still up there, doing its one job, which puts it ahead of most of the league office. Before anything else: I gather you survived a week of Grace. She'll have said it reflects well on her, and you should let her have it, because it's cheaper than the alternative and I'm the one who priced the alternative. She refiled the whole cabinet alphabetical-inside-chronological, which is a small act of violence I've spent the morning undoing, and she took her ledger home with her the way she does, so you needn't go looking for it. The desk is immaculate and smells faintly of being judged. Good to be home. Now \u2014 bring me up to speed on what I missed.");
           }
           if(S.cash<0){
             S.debtWeeks++;
