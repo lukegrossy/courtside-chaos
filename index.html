@@ -1037,6 +1037,13 @@
       cawArt.classList.remove('show');
       cawVid.classList.remove('show');
       cawVid.pause();
+      if(step.kind!=='score'){
+        /* the slam animation ends with fill-mode:forwards (opacity:1, settled
+           scale) so it stays visible until explicitly cleared — otherwise the
+           last game's stamp keeps showing on every screen after it. */
+        cawStamp.classList.remove('slam');
+        caw.classList.remove('shakeGo');
+      }
       if(step.kind==='score'){
         cawRecord.textContent = 'RECORD   '+(step.record||'');
         var stampColor = step.won ? '#3f7d34' : '#9a3826';
