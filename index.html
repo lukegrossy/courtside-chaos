@@ -277,6 +277,31 @@
     background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.6) 22%, rgba(0,0,0,.72) 50%, rgba(0,0,0,.6) 78%, rgba(0,0,0,0) 100%);
     opacity:0; transition:opacity .25s;}
   .caw.textmode .cawreadband{opacity:1;}
+
+  /* ---- post-game result stamp (score screen only) ----
+     cawtxt is vertically centred and can run up to 4 lines (NIGHT tag +
+     2 team lines) so the stamp+record sit at a fixed offset low enough to
+     clear that worst case, well above the bottom .tap label (bottom:56px). */
+  .cawrecord{position:absolute; left:0; right:0; top:1180px; text-align:center;
+    font-family:"Courier New",monospace; font-weight:700; color:#ffb02e;
+    font-size:24px; letter-spacing:3px; text-shadow:0 0 18px rgba(255,176,46,.4);
+    opacity:0;}
+  .caw.scoremode .cawrecord{opacity:1;}
+  .stampCanvasReal{position:absolute; left:50%; top:1260px; width:320px; height:auto;
+    margin-left:-160px; opacity:0; transform:rotate(-7deg) scale(2.6); filter:blur(1px);
+    pointer-events:none;}
+  .stampCanvasReal.slam{ animation:stampSlam .3s cubic-bezier(.32,0,.24,1) forwards; }
+  @keyframes stampSlam{
+    0%{ transform:rotate(-7deg) scale(2.6); opacity:0; filter:blur(3px); }
+    60%{ transform:rotate(-7deg) scale(.98); opacity:1; filter:blur(0); }
+    100%{ transform:rotate(-7deg) scale(1); opacity:1; filter:blur(0); }
+  }
+  .caw.shakeGo{ animation:cawShake .26s linear; }
+  @keyframes cawShake{
+    0%,100%{ transform:translate(0,0); }
+    25%{ transform:translate(-5px,2px); } 50%{ transform:translate(4px,-3px); }
+    75%{ transform:translate(-3px,-2px); }
+  }
   /* ONE narrative type size. Every prose beat — storyline text, character
      card, tip-off card — reads at the same weight, so consecutive screens no
      longer step up and down in size. 38/54 is the largest that still clears
@@ -462,6 +487,8 @@
       <div class="pname cawname" id="cawName"></div>
       <div class="pmeta cawmeta" id="cawMeta"></div>
       <div class="cawtxt" id="cawTxt"></div>
+      <div class="cawrecord" id="cawRecord"></div>
+      <canvas class="stampCanvasReal" id="cawStamp"></canvas>
       <div class="tap" style="z-index:3;">TAP TO CONTINUE</div>
     </div>
 
@@ -896,7 +923,8 @@
      GIF at assets/cutscenes/{scene}.gif and it appears behind
      the text automatically.                                    */
   var caw=document.getElementById('caw'), cawArt=document.getElementById('cawArt'),
-      cawTxt=document.getElementById('cawTxt'),
+      cawTxt=document.getElementById('cawTxt'), cawRecord=document.getElementById('cawRecord'),
+      cawStamp=document.getElementById('cawStamp'),
       cawCard=document.getElementById('cawCard'), cawPort=document.getElementById('cawPort'),
       cawPlac=document.getElementById('cawPlac'), cawName=document.getElementById('cawName'),
       cawMeta=document.getElementById('cawMeta'),
@@ -1009,6 +1037,20 @@
       cawArt.classList.remove('show');
       cawVid.classList.remove('show');
       cawVid.pause();
+      if(step.kind==='score'){
+        cawRecord.textContent = 'RECORD   '+(step.record||'');
+        var stampColor = step.won ? '#3f7d34' : '#9a3826';
+        drawStamp(cawStamp, step.won?'W':'L', stampColor);
+        cawStamp.classList.remove('slam');
+        void cawStamp.offsetWidth; /* restart animation */
+        caw.classList.remove('shakeGo');
+        void caw.offsetWidth;
+        requestAnimationFrame(function(){
+          cawStamp.classList.add('slam');
+          caw.classList.add('shakeGo');
+        });
+        if(step.won) winSting(); else lossSting();
+      }
       if(step.kind==='card'){
         cawName.textContent=step.name||'';
         cawMeta.textContent=step.meta||'';
@@ -1080,6 +1122,112 @@
     var margin=2+Math.floor(Math.random()*14);       /* 2-15   */
     var them=won?us-margin:us+margin;
     return {foe:FOES[Math.floor(Math.random()*FOES.length)], us:us, them:them};
+  }
+
+  /* ---------- POST-GAME RESULT STAMP (canvas-drawn ink mark) ----------
+     A hand-jittered but UNBROKEN double-line border (no gap chance — a
+     broken border read as a rendering bug, not a stylistic choice), an
+     uneven/dropout ink fill on the glyph, and a faint offset double-strike
+     ghost behind it, the way a real rubber stamp misses on the second
+     press. Sits on the FINAL score screen only. */
+  function jitterRect(ctx, x, y, w, h, jig){
+    var pts = [];
+    function edge(x0,y0,x1,y1,n){
+      for(var i=0;i<=n;i++){
+        var t=i/n;
+        var px=x0+(x1-x0)*t, py=y0+(y1-y0)*t;
+        var nx=(y1-y0), ny=-(x1-x0); var len=Math.hypot(nx,ny)||1;
+        nx/=len; ny/=len;
+        var d=(Math.random()*2-1)*jig;
+        pts.push([px+nx*d, py+ny*d]);
+      }
+    }
+    edge(x,y,x+w,y,10);
+    edge(x+w,y,x+w,y+h,7);
+    edge(x+w,y+h,x,y+h,10);
+    edge(x,y+h,x,y,7);
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0],pts[0][1]);
+    for(var k=1;k<pts.length;k++) ctx.lineTo(pts[k][0],pts[k][1]);
+    ctx.closePath();               /* closePath, not a chance-based gap — always complete */
+    ctx.stroke();
+  }
+  function drawStamp(canvasEl, letter, color){
+    var W=1040, H=520;
+    canvasEl.width=W; canvasEl.height=H;
+    var ctx=canvasEl.getContext('2d');
+    ctx.clearRect(0,0,W,H);
+    function stampPass(alpha, ox, oy, rot){
+      ctx.save();
+      ctx.globalAlpha=alpha;
+      ctx.translate(W/2+ox, H/2+oy);
+      ctx.rotate(rot*Math.PI/180);
+      ctx.translate(-W/2,-H/2);
+      ctx.strokeStyle=color; ctx.lineWidth=15; ctx.lineJoin='round';
+      jitterRect(ctx, 90, 90, W-180, H-180, 2.5);
+      ctx.lineWidth=6; ctx.globalAlpha=alpha*0.5;
+      jitterRect(ctx, 96, 96, W-192, H-192, 1.5);
+      ctx.globalAlpha=alpha;
+      ctx.fillStyle=color;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.font='900 340px "Courier New", monospace';
+      ctx.fillText(letter, W/2, H/2+18);
+      ctx.globalCompositeOperation='destination-out';
+      for(var i=0;i<70;i++){
+        ctx.globalAlpha=Math.random()*0.28;
+        var rx=W/2+(Math.random()*2-1)*W*0.32, ry=H/2+(Math.random()*2-1)*H*0.34;
+        var r=Math.random()*6+2;
+        ctx.beginPath(); ctx.arc(rx,ry,r,0,7); ctx.fill();
+      }
+      ctx.globalCompositeOperation='source-over';
+      ctx.restore();
+    }
+    stampPass(0.12, 14+Math.random()*10, -10-Math.random()*8, -1.6); /* faint ghost miss-print */
+    stampPass(0.94, 0, 0, 0);                                        /* the real hit */
+  }
+
+  var stampActx=null;
+  function stampAudioCtx(){ if(!stampActx) stampActx=new (window.AudioContext||window.webkitAudioContext)(); return stampActx; }
+  function stampTone(ac, freq, start, dur, type, gain){
+    var o=ac.createOscillator(), g=ac.createGain();
+    o.type=type||'square'; o.frequency.setValueAtTime(freq, ac.currentTime+start);
+    g.gain.setValueAtTime(0.0001, ac.currentTime+start);
+    g.gain.exponentialRampToValueAtTime(gain||0.18, ac.currentTime+start+0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+start+dur);
+    o.connect(g); g.connect(ac.destination);
+    o.start(ac.currentTime+start); o.stop(ac.currentTime+start+dur+0.02);
+  }
+  function stampThud(ac, start, gainScale){
+    gainScale = gainScale===undefined ? 1 : gainScale;
+    var b=ac.createBuffer(1, ac.sampleRate*0.09, ac.sampleRate);
+    var d=b.getChannelData(0);
+    for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+    var src=ac.createBufferSource(); src.buffer=b;
+    var f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=340;
+    var g=ac.createGain(); g.gain.setValueAtTime(0.5*gainScale, ac.currentTime+start);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+start+0.09);
+    src.connect(f); f.connect(g); g.connect(ac.destination);
+    src.start(ac.currentTime+start);
+  }
+  function winSting(){
+    var ac=stampAudioCtx();
+    stampThud(ac, 0.02, 0.35);
+    stampTone(ac, 988.0, 0.05, 0.10, 'square', 0.22);   /* B5 */
+    stampTone(ac, 1318.5, 0.13, 0.30, 'square', 0.24);  /* E6, rings out — coin-pickup style ding */
+  }
+  function lossSting(){
+    var ac=stampAudioCtx();
+    stampThud(ac, 0.02, 0.6);
+    var o=ac.createOscillator(), g=ac.createGain();
+    o.type='triangle';
+    o.frequency.setValueAtTime(150, ac.currentTime+0.05);
+    o.frequency.exponentialRampToValueAtTime(52, ac.currentTime+0.5);
+    g.gain.setValueAtTime(0.0001, ac.currentTime+0.05);
+    g.gain.exponentialRampToValueAtTime(0.30, ac.currentTime+0.08);
+    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.55);
+    o.connect(g); g.connect(ac.destination);
+    o.start(ac.currentTime+0.05); o.stop(ac.currentTime+0.58);
+    stampTone(ac, 70, 0.05, 0.45, 'sine', 0.16);        /* sub layer for weight */
   }
 
   /* ---------- GAME-NIGHT OWNER CALLS ----------
@@ -3117,8 +3265,8 @@
           var nightTag = GAMES>1 ? ('NIGHT '+(g+1)+' OF '+GAMES+'\n\n') : '';
           scoreSteps.push({kind:'score', line: nightTag + (home
             ? 'LUMBERJACKS '+gsc.us+'\n'+gFoe+' '+gsc.them
-            : gFoe+' '+gsc.them+'\nLUMBERJACKS '+gsc.us)
-            +'\n\n'+(gWon?'W':'L')+'  \u2022  '+S.wins+'-'+S.losses+(home?'':'  \u2022  ROAD')});
+            : gFoe+' '+gsc.them+'\nLUMBERJACKS '+gsc.us),
+            won: gWon, record: S.wins+'-'+S.losses+(home?'':'  \u2022  ROAD')});
         }
         var won = swingW>swingL;
         S.lastWon = won; S.showResultStamp = true;
