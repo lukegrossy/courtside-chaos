@@ -46,6 +46,10 @@
      overlay opened underneath the dashboard with NEXT already hidden, which
      left the player with no way forward. */
   #mgOverlay{z-index:60;}
+  /* Minigames must not cross-fade in over a visible dashboard: the .screen
+     opacity transition would show Sandra's recap underneath for its whole
+     duration. This snaps the overlay on instantly instead. */
+  #mgOverlay.instant{transition:none;}
 
   .tap{position:absolute; left:0; right:0; bottom:56px; text-align:center;
     font-family:"Courier New",monospace; color:rgba(238,230,210,.34);
@@ -898,14 +902,22 @@
      tired, grim. Grace: assets/portraits/grace/base.png       */
   var portrait = document.getElementById('portrait');
   var BASE_SRC = portrait.src;
-  function setPortrait(who, mood){
+  function setPortrait(who, mood, noOverride){
     var m = mood||'base', i=0;
+    /* HOLIDAY HARD OVERRIDE: for her first week back from the week off, Sandra
+       is in the shirt no matter what the week throws at her. The joke is that
+       her wardrobe is the one thing not reacting, so the story mood is ignored
+       entirely rather than blended \u2014 a shirt that blinked in and out with mood
+       would read as a bug, not a bit.
+       noOverride is set by the fallback path below: without it, a missing
+       holiday asset would re-enter here, re-apply the override, and spin. */
+    if(who==='sandra' && !noOverride && S && S.flags && S.flags.sandraHoliday) m='holiday';
     (function tryNext(){
       if(i>=PORTRAIT_EXTS.length){
         /* A missing MOOD used to drop straight to Sandra's face \u2014 which is
            how Grace ended up wearing Sandra's portrait. Fall back to the
            character's own base first; only then to the painted master. */
-        if(m!=='base') setPortrait(who,'base');
+        if(m!=='base') setPortrait(who,'base',true);
         else portrait.src = BASE_SRC;
         return;
       }
@@ -1901,7 +1913,7 @@
         desk:"Funds raised: real, receipted. Ricky's speech: about Ricky, per tradition, but pointed at the sick kids like a hose. Progress comes in strange shapes here.",
         gaz:"CHARITY DOES CHARITY; STAR TAKES QUESTIONS ABOUT SELF", news:"Following pre-gala paperwork arranged by the club, the Ricky Malone Foundation named the children's hospital as beneficiary in advance. Malone signed everything, delighted, having assumed charities handled themselves. Real money was raised, on purpose. Malone's remarks ran twenty minutes and concerned Malone.", mood:'pleased' } ] },
 
-  { id:'blizzard_game', venue:'home',  title:'THE BLIZZARD GAME', mood:'alarmed', scene:'blizzard',
+  { id:'blizzard_game', venue:'home',  title:'THE BLIZZARD GAME', mood:'alarmed', scene:'blizzard', sceneIsTipoff:true,
     setup:[
       "The forecast says fourteen inches by tip-off and the forecast has been underselling all winter. The visiting team is already here \u2014 their bus made it in this morning and their coach has been standing in our parking lot letting the snow accumulate on him, which their players say 'means yes.'",
       "The league says the game's our call. Half the staff can't get in. The other half is already here and refuses to leave, because of course they are. The concession stand has soup enough for two hundred, tops.",
@@ -2003,6 +2015,29 @@
 
   { id:'northern_swing', venue:'road', games:3, foes:['FARGO','THUNDER BAY','BISMARCK'],
     tip:'THE NORTHERN SWING.', title:'THE NORTHERN SWING', mood:'dry', scene:'roadtrip',
+    /* THE SWING IS A SAGA: three nights, three separate owner calls, played in
+       order so each can call back to the last. Night one is a logistics
+       failure, night two is physical misery, night three is delirium that
+       turns, quietly, into the warmest thing that happens all season. */
+    saga:[
+      {stamp:'PREGAME \u2022 THE EQUIPMENT TRUCK',
+       sit:"The bus made it. The equipment truck did not. It's in Detroit Lakes with a transmission and a driver who says 'she's done, boss' in a tone of real grief. What we have in this building: twelve men, Hank, and their coats. What we do not have: uniforms. Fargo has offered us their alternate set. Their alternate set says FARGO on it. Their equipment manager offered this with a straight face and I want it on the record that I believe he meant it kindly.",
+       a:{t:"Wear their jerseys.", sub:"It's laundry, not a loyalty oath.", mod:0.02, buzz:6, cred:-3,
+          out:"We play the whole night dressed as Fargo. Their crowd cannot decide who to boo and settles, eventually, on booing nobody, which is worse. Two of our men say the jerseys are better made. I have asked them not to repeat that at home."},
+       b:{t:"Tape over the wordmark. Forty dollars.", sub:"Their laundry man's whole evening.", mod:0.01, cash:-40, morale:3,
+          out:"The tape holds for a quarter and a half. After that we become Fargo gradually, letter by letter, in front of everyone, and not one official stops play to address it. By the fourth we are unambiguously Fargo. Their laundry man watches from the tunnel with his arms folded, a man whose work was always going to be temporary."}},
+      {stamp:'3RD QUARTER \u2022 THE HEAT',
+       sit:"Their boiler is not broken. Their boiler is thriving. It is eighty-four degrees on this floor, the crowd is in shirtsleeves in the dead of winter, and there is condensation on the glass of the concession case. Hank has forbidden fluids. He calls it the discipline. Two of our men are the color of paper. Their trainer \u2014 theirs, not ours \u2014 has quietly set a water cooler at the end of our bench the way a man leaves food out for a stray.",
+       a:{t:"Override Hank. Out loud.", sub:"In front of everyone. In front of him.", mod:0.03, morale:5, cred:-4,
+          out:"You overrule him from the stands, audibly, and twelve men drink water in a hurry like it's a jailbreak. Hank does not argue and does not look at you. He writes something in the notebook. The team plays the fourth like men who have been given permission for something, which they have."},
+       b:{t:"Say nothing. Let their trainer keep doing it.", sub:"Cowardice, technically.", mod:0.02, morale:3, buzz:2,
+          out:"The cooler stays. Our men drift toward it one at a time, casually, as if hydrating were something that had simply occurred to each of them independently. Hank sees all of it and permits all of it and comments on none of it. Their trainer never once looks over. There are three men in this arrangement protecting each other's dignity and not one of them will ever mention it."}},
+      {stamp:'4TH QUARTER \u2022 THE SCOREBOARD',
+       sit:"Their scoreboard has died. Not flickering \u2014 died, with a sound. Nobody in this building knows the score. Both benches have been keeping it on paper and the papers disagree by four. Their PA man has just asked, into a live microphone, whether anyone present can 'talk.' Tiny McGee has stood up. Tiny McGee has been awake for four days, has six hours of material, and has been handed a public address system in a building that has never met him.",
+       a:{t:"Give him the microphone.", sub:"God help North Dakota.", mod:0.04, buzz:16, morale:8,
+          out:"He calls the last five minutes straight and the entire hostile building comes apart. He credits a Bismarck guard's footwork with such specificity that the man nods mid-possession. Both teams finish playing to a room that has forgotten which side it's on. Their general manager asks for Tiny's number afterward \u2014 not to complain. To book him."},
+       b:{t:"Absolutely not. We're guests here.", sub:"Someone has to be the adult.", mod:0.01, cred:4, morale:-4,
+          out:"Tiny sits back down. The last five minutes are played in a silence you could hang a coat on, both benches shouting numbers at each other across the floor to reconstruct a score nobody trusts. It is the correct decision. It is also the only genuinely boring thing that happened all week, and Tiny has not brought it up once, which is how I know."}}],
     setup:[
       "Three road games in four nights. Fargo, then Thunder Bay, then Bismarck, which the schedule-maker \u2014 and I've met him, he giggled \u2014 calls 'the Northern Swing.' One bus. Twelve players, Hank, and a driver who has pre-filed a grievance 'for whatever Malone does.'",
       "The motel situation is two stars falling to one as we go west. Tiny has prepared six hours of bus material. Ricky has called shotgun for a vehicle that does not have a shotgun seat, and is prepared to litigate.",
@@ -2991,12 +3026,29 @@
     phase='setup'; pendingRoute=null;
     S.showResultStamp = false;
     el.noteh.textContent = current.title;
+    /* SANDRA'S WEEK BACK: arm the holiday portrait on her first week back at
+       the desk after Grace covered, and let it expire once the absolute week
+       counter moves past it. S.tw is used deliberately (never resets across
+       seasons) so the window can't be reopened by a season rollover. */
+    if(!current.grace && S.flags['done_grace_1'] && !S.flags.sandraHolidayDone){
+      S.flags.sandraHolidayDone = true;
+      S.flags.sandraHoliday = true;
+      S.flags.sandraHolidayWeek = S.tw;
+    } else if(S.flags.sandraHoliday && S.tw !== S.flags.sandraHolidayWeek){
+      S.flags.sandraHoliday = false;   /* one week only \u2014 the shirt goes away */
+    }
     if(current.grace){
       setPortrait('grace', 'base');
     } else {
       setPortrait('sandra', current.mood||'base');
     }
     setNote(current.setup);
+    /* probeArt gives a cold video 1200ms to become playable, then silently
+       falls back to a .webp still \u2014 and for a video-only scene that means the
+       art step auto-skips and the player sees no cutscene at all. Warm this
+       week's scene as soon as the week opens so it's cached well before the
+       sequence asks for it. */
+    if(current.scene) preloadVideo(current.scene);
     el.next.style.display='none';
     el.call.style.display='';
     updateBlotter();
@@ -3050,11 +3102,15 @@
      whose id differs from what's assumed here still resolves correctly).
      Which game is running is tracked by `phase`, not by the message. */
   function openMinigame(file){
+    var ov=document.getElementById('mgOverlay');
     document.getElementById('mgFrame').src = 'minigames/'+file;
-    document.getElementById('mgOverlay').classList.add('on');
+    ov.classList.add('instant');
+    ov.classList.add('on');
   }
   function closeMinigame(){
-    document.getElementById('mgOverlay').classList.remove('on');
+    var ov=document.getElementById('mgOverlay');
+    ov.classList.remove('on');
+    ov.classList.remove('instant');
     document.getElementById('mgFrame').src = 'about:blank';
   }
 
@@ -3226,55 +3282,112 @@
         ? 'GAME NIGHT.\nLUMBERJACKS vs '+FOELIST[0]+'.\nThe Shack fills. The lights hum. Tip-off.'
         : 'ROAD TRIP.\nLUMBERJACKS at '+FOELIST[0]+'.\nSix hours of highway. One bus. No survivors of the card game. Tip-off.';
     }
-    var tip = {kind:'text', text: tipText,
-      scene: GAMES>1 ? null
-           : isPO ? (current.playoff==='final'?'tipoff_final':'tipoff_playoff')
-           : (home ? 'tipoff_home' : 'tipoff_road')};
+    /* A story that IS the game night (the blizzard) replaces the generic
+       tip-off rather than decorating an outcome paragraph after it \u2014 there's
+       no ordinary game night to tip off from. Stories whose art illustrates
+       an event layered on a normal night (chainsaws, the wedding) keep the
+       tip-off and show their scene on the first outcome beat as before. */
+    var tipScene;
+    if(GAMES>1) tipScene = null;
+    else if(isPO) tipScene = (current.playoff==='final'?'tipoff_final':'tipoff_playoff');
+    else if(when==='game' && current.sceneIsTipoff && current.scene) tipScene = current.scene;
+    else tipScene = (home ? 'tipoff_home' : 'tipoff_road');
+    var storySceneUsedAsTip = (tipScene === current.scene && !!current.scene);
+    var tip = {kind:'text', text: tipText, scene: tipScene};
     var outs = ch.out.map(function(par,idx){
-      return {kind:'text', text:par, scene: idx===0?(ch.scene||current.scene):null};
+      var sc = ch.scene || (storySceneUsedAsTip ? null : current.scene);
+      return {kind:'text', text:par, scene: idx===0 ? sc : null};
     });
     var steps = (when==='game') ? [tip].concat(outs) : outs.concat([tip]);
 
-    runSequence(steps, null, function(){
-      /* Mid-game: owner call from courtside */
+    /* Mid-game owner call(s).
+       A SAGA story (the Northern Swing) carries one moment PER NIGHT and
+       resolves each game between them, so every night of the trip gets its
+       own disaster and can call back to the last. Everything else plays a
+       single moment and resolves the week's games together, exactly as
+       before. Both paths converge on finishWeek(). */
+    var sagaMoments = (current.saga && current.saga.length && GAMES>1) ? current.saga : null;
+
+    function showMomentUI(mo){
       /* 'HALFTIME \u2022 THE ORGAN' renders as two lines: period over title.
-         Split at display time so the moment data stays untouched.        */
-      var _sp = String(moment.stamp).split('\u2022');
+         Split at display time so the moment data stays untouched. */
+      var _sp = String(mo.stamp).split('\u2022');
       if(_sp.length === 2){
         mStamp.innerHTML = '<span class="mper">'+_sp[0].trim()+'</span>'
                          + '<span class="mttl">'+_sp[1].trim()+'</span>';
       } else {
-        mStamp.innerHTML = '<span class="mttl">'+String(moment.stamp).trim()+'</span>';
+        mStamp.innerHTML = '<span class="mttl">'+String(mo.stamp).trim()+'</span>';
       }
-      mSit.textContent = moment.sit;
-      mCards[0].querySelector('.txt').textContent=moment.a.t;
-      mCards[0].querySelector('.sub').textContent=moment.a.sub;
-      mCards[1].querySelector('.txt').textContent=moment.b.t;
-      mCards[1].querySelector('.sub').textContent=moment.b.sub;
+      mSit.textContent = mo.sit;
+      mCards[0].querySelector('.txt').textContent=mo.a.t;
+      mCards[0].querySelector('.sub').textContent=mo.a.sub;
+      mCards[1].querySelector('.txt').textContent=mo.b.t;
+      mCards[1].querySelector('.sub').textContent=mo.b.sub;
+    }
+    function applyMoment(m){
+      S.cash += m.cash||0;
+      S.morale=clamp(S.morale+(m.morale||0));
+      S.buzz=clamp(S.buzz+(m.buzz||0));
+      S.cred=clamp(S.cred+(m.cred||0));
+      return 0.16 + S.morale*0.0035 + S.buzz*0.0015 + (fx.wins?0.12:0) + (m.mod||0)
+           + (home?0.04:-0.04) + (S.flags.rosterEdge?0.025:0);
+    }
+    function resolveGame(g, p){
+      var gFoe = FOELIST[g % FOELIST.length];
+      var gWon = Math.random() < p;
+      if(gWon){ S.wins++; } else { S.losses++; }
+      S.streak = gWon ? (S.streak>0?S.streak+1:1) : (S.streak<0?S.streak-1:-1);
+      var gsc = gameScore(gWon);
+      S.last = (gWon?'W ':'L ')+gsc.us+'-'+gsc.them+(home?'':' @');
+      var nightTag = GAMES>1 ? ('NIGHT '+(g+1)+' OF '+GAMES+'\n\n') : '';
+      return {won:gWon, gsc:gsc, step:{kind:'score', line: nightTag + (home
+        ? 'LUMBERJACKS '+gsc.us+'\n'+gFoe+' '+gsc.them
+        : gFoe+' '+gsc.them+'\nLUMBERJACKS '+gsc.us),
+        won: gWon, record: S.wins+'-'+S.losses+(home?'':'  \u2022  ROAD')}};
+    }
+
+    runSequence(steps, null, function(){
+      if(sagaMoments){
+        var sw=0, sl=0;
+        (function runNight(g){
+          var mo = sagaMoments[g % sagaMoments.length];
+          showMomentUI(mo);
+          momentChoice=function(pick){
+            var m = pick===0?mo.a:mo.b;
+            var p = applyMoment(m);
+            var r = resolveGame(g, p);
+            if(r.won) sw++; else sl++;
+            var nightSteps=[{kind:'text', text:m.out, scene:null}, r.step];
+            if(g+1 < GAMES){
+              /* back to the moment screen for the next night's call */
+              runSequence(nightSteps, null, function(){ runNight(g+1); }, momentS);
+            } else {
+              finishWeek(sw, sl, nightSteps, r.gsc);
+            }
+          };
+          fadeScreens(caw, momentS);
+        })(0);
+        return;
+      }
+      showMomentUI(moment);
       momentChoice=function(pick){
         var m = pick===0?moment.a:moment.b;
-        S.cash += m.cash||0;
-        S.morale=clamp(S.morale+(m.morale||0));
-        S.buzz=clamp(S.buzz+(m.buzz||0));
-        S.cred=clamp(S.cred+(m.cred||0));
-        var p = 0.16 + S.morale*0.0035 + S.buzz*0.0015 + (fx.wins?0.12:0) + m.mod
-              + (home?0.04:-0.04) + (S.flags.rosterEdge?0.025:0);
-
+        var p = applyMoment(m);
         /* Resolve every game this week carries. */
-        var swingW=0, swingL=0, scoreSteps=[];
+        var swingW=0, swingL=0, scoreSteps=[], gsc=null;
         for(var g=0; g<GAMES; g++){
-          var gFoe = FOELIST[g % FOELIST.length];
-          var gWon = Math.random() < p;
-          if(gWon){ S.wins++; swingW++; } else { S.losses++; swingL++; }
-          S.streak = gWon ? (S.streak>0?S.streak+1:1) : (S.streak<0?S.streak-1:-1);
-          var gsc = gameScore(gWon);
-          S.last = (gWon?'W ':'L ')+gsc.us+'-'+gsc.them+(home?'':' @');
-          var nightTag = GAMES>1 ? ('NIGHT '+(g+1)+' OF '+GAMES+'\n\n') : '';
-          scoreSteps.push({kind:'score', line: nightTag + (home
-            ? 'LUMBERJACKS '+gsc.us+'\n'+gFoe+' '+gsc.them
-            : gFoe+' '+gsc.them+'\nLUMBERJACKS '+gsc.us),
-            won: gWon, record: S.wins+'-'+S.losses+(home?'':'  \u2022  ROAD')});
+          var r = resolveGame(g, p);
+          if(r.won) swingW++; else swingL++;
+          gsc = r.gsc;
+          scoreSteps.push(r.step);
         }
+        finishWeek(swingW, swingL,
+          [{kind:'text', text:m.out, scene:null}].concat(scoreSteps), gsc);
+      };
+      fadeScreens(caw, momentS);
+    }, decideS);
+
+    function finishWeek(swingW, swingL, headSteps, gsc){
         var won = swingW>swingL;
         S.lastWon = won; S.showResultStamp = true;
 
@@ -3287,7 +3400,7 @@
         var gazNewsTxt = isPO ? (won?ch.newsW:ch.newsL) : (ch.news||'');
         var gazDateTxt = (isPO && current.playoff==='final' && won) ? 'SOUVENIR EDITION' : null;
 
-        var steps2=[{kind:'text', text:m.out, scene:null}].concat(scoreSteps);
+        var steps2 = headSteps.slice();
         if(isPO && current.playoff==='final' && won){
           steps2.push({kind:'text', scene:'cup',
             text:'THE TIMBER CUP.\n\nForty pounds of brass and lake-country history, handed over at center court by Ernie Kowalski, because it was never going to be anyone else.\n\nUp here: champions.'});
@@ -3375,17 +3488,18 @@
           if(S.flags.samPending && !isPO){
             S.flags.samPending=false;
             el.next.style.display='none';
-            render();
             phase='samtunnel';
+            /* Overlay goes up FIRST — render() repaints Sandra's recap, and
+               painting that before the cover meant a visible flash of the
+               dashboard on the way into the tunnel run. */
             openMinigame('sam-tunnel-escape.html');
+            render();
             return;
           }
           el.next.style.display='';
           render();
         }, momentS);
-      };
-      fadeScreens(caw, momentS);
-    }, decideS);
+    }
   }
 
   /* ---------- SEASON RECAP & THE NEXT YEAR ---------- */
@@ -3728,6 +3842,29 @@
     /* the four tip-off cutscenes are used almost every week \u2014 warm them now
        instead of racing a cold load the first time a game night needs one */
     ['tipoff_home','tipoff_road','tipoff_playoff','tipoff_final'].forEach(preloadVideo);
+    /* Dashboard portrait swaps were showing the PREVIOUS emotion until the
+       new file finished downloading \u2014 read as a glitch. Warming every mood
+       up front makes each swap a cache hit, so it changes in one frame. */
+    ['base','dry','alarmed','pleased','tired','grim','holiday'].forEach(function(m){
+      var i=0;
+      (function tryNext(){
+        if(i>=PORTRAIT_EXTS.length) return;
+        var url='assets/portraits/sandra/'+m+'.'+PORTRAIT_EXTS[i++];
+        var p=new Image();
+        p.onerror=tryNext;
+        p.src=url;
+      })();
+    });
+    (function(){
+      var i=0;
+      (function tryNext(){
+        if(i>=PORTRAIT_EXTS.length) return;
+        var url='assets/portraits/grace/base.'+PORTRAIT_EXTS[i++];
+        var p=new Image();
+        p.onerror=tryNext;
+        p.src=url;
+      })();
+    })();
   }
   setTimeout(preloadCast, 600);
 
