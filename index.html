@@ -2015,6 +2015,13 @@
 
   { id:'northern_swing', venue:'road', games:3, foes:['FARGO','THUNDER BAY','BISMARCK'],
     tip:'THE NORTHERN SWING.', title:'THE NORTHERN SWING', mood:'dry', scene:'roadtrip',
+    /* Per-night cutscenes, indexed by night. `scene` above already plays the
+       gas-station shot once on the budget-choice outcome, so night 2 \u2014 the
+       Thunder Bay leg, the midnight fan-belt night in canon \u2014 gets the
+       highway shot and the other two stay art-free. Deliberately not one per
+       night: repeating the same two clips three times reads as a loop, not a
+       trip. Any entry can be null. */
+    nightScenes:[null, 'roadtrip_bus', null],
     /* THE SWING IS A SAGA: three nights, three separate owner calls, played in
        order so each can call back to the last. Night one is a logistics
        failure, night two is physical misery, night three is delirium that
@@ -3049,6 +3056,11 @@
        week's scene as soon as the week opens so it's cached well before the
        sequence asks for it. */
     if(current.scene) preloadVideo(current.scene);
+    if(current.nightScenes){
+      for(var ns=0; ns<current.nightScenes.length; ns++){
+        if(current.nightScenes[ns]) preloadVideo(current.nightScenes[ns]);
+      }
+    }
     el.next.style.display='none';
     el.call.style.display='';
     updateBlotter();
@@ -3357,7 +3369,8 @@
             var p = applyMoment(m);
             var r = resolveGame(g, p);
             if(r.won) sw++; else sl++;
-            var nightSteps=[{kind:'text', text:m.out, scene:null}, r.step];
+            var nightScene = (current.nightScenes && current.nightScenes[g]) || null;
+            var nightSteps=[{kind:'text', text:m.out, scene:nightScene}, r.step];
             if(g+1 < GAMES){
               /* back to the moment screen for the next night's call */
               runSequence(nightSteps, null, function(){ runNight(g+1); }, momentS);
@@ -3842,6 +3855,10 @@
     /* the four tip-off cutscenes are used almost every week \u2014 warm them now
        instead of racing a cold load the first time a game night needs one */
     ['tipoff_home','tipoff_road','tipoff_playoff','tipoff_final'].forEach(preloadVideo);
+    /* The opening sequence plays on the coldest cache the game ever sees, and
+       a video that misses probeArt's window auto-skips silently \u2014 which is
+       exactly how the blizzard scene went missing. Warm these too. */
+    ['intro_arrival','intro_files','intro_numbers','intro_cred'].forEach(preloadVideo);
     /* Dashboard portrait swaps were showing the PREVIOUS emotion until the
        new file finished downloading \u2014 read as a glitch. Warming every mood
        up front makes each swap a cache hit, so it changes in one frame. */
