@@ -1087,6 +1087,7 @@
       cawArt.classList.remove('show');
       cawVid.classList.remove('show');
       cawVid.pause();
+      if(step.scene==='tipoff_home') playCrowdMuffled();
       if(step.kind!=='score'){
         /* the slam animation ends with fill-mode:forwards (opacity:1, settled
            scale) so it stays visible until explicitly cleared — otherwise the
@@ -1384,6 +1385,43 @@
     g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
     src.connect(bp); bp.connect(g); g.connect(ac.destination);
     src.start(t0);
+  }
+
+  /* ---------- REAL AUDIO FILES (crowd variations) ----------
+     Everything above this line is synthesized \u2014 no files, zero weight.
+     Convincing crowd murmur turned out to be past what pure synthesis can
+     do, so these three are real recordings, muffled/distant on purpose so
+     they read as "heard through a wall," not close-up. Same cold-load
+     discipline as the video assets: decode once, cache the AudioBuffer,
+     and fail silently (no sound, not a broken game) if a clip is missing
+     or slow \u2014 exactly what probeArt already does for cutscene art. */
+  var CROWD_FILES = ['crowd_muffled.mp3','crowd_muffled_2.mp3','crowd_muffled_3.mp3'];
+  var crowdBuffers = {};
+  function loadSfxFile(path){
+    if(crowdBuffers[path]) return crowdBuffers[path];   // returns the in-flight/decoded promise
+    var p = fetch('assets/sfx/'+path)
+      .then(function(r){ if(!r.ok) throw new Error('sfx 404: '+path); return r.arrayBuffer(); })
+      .then(function(buf){ return sfxAudioCtx().decodeAudioData(buf); })
+      .catch(function(e){ return null; });   // missing/broken file plays silently, never breaks the game
+    crowdBuffers[path] = p;
+    return p;
+  }
+  function preloadCrowd(){ CROWD_FILES.forEach(loadSfxFile); }
+
+  var lastCrowdIdx = -1;
+  function playCrowdMuffled(){
+    var idx;
+    do{ idx = Math.floor(Math.random()*CROWD_FILES.length); }
+    while(CROWD_FILES.length>1 && idx===lastCrowdIdx);
+    lastCrowdIdx = idx;
+    loadSfxFile(CROWD_FILES[idx]).then(function(buf){
+      if(!buf) return;    // file missing or still mid-download on a cold cache \u2014 skip, don't stall
+      var ac=sfxAudioCtx();
+      var src=ac.createBufferSource(); src.buffer=buf;
+      var g=ac.createGain(); g.gain.value=0.5;
+      src.connect(g); g.connect(ac.destination);
+      src.start();
+    });
   }
 
   /* ---------- GAME-NIGHT OWNER CALLS ----------
@@ -4005,6 +4043,10 @@
        a video that misses probeArt's window auto-skips silently \u2014 which is
        exactly how the blizzard scene went missing. Warm these too. */
     ['intro_arrival','intro_files','intro_numbers','intro_cred'].forEach(preloadVideo);
+    /* Crowd variations for the home tip-off \u2014 same cold-load reasoning as
+       the video preloads above: a fetch+decode that only starts when the
+       sound is actually needed would race the moment it's meant to land in. */
+    preloadCrowd();
     /* Dashboard portrait swaps were showing the PREVIOUS emotion until the
        new file finished downloading \u2014 read as a glitch. Warming every mood
        up front makes each swap a cache hit, so it changes in one frame. */
