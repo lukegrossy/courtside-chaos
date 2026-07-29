@@ -101,7 +101,8 @@
      If the frame art changes again, re-measure before touching these.   */
   #dash .window{position:absolute; left:39px; top:334px; width:772px; height:488px; overflow:hidden; z-index:3;
     box-shadow: inset 0 0 0 2px rgba(0,0,0,.45), inset 0 0 14px 6px rgba(0,0,0,.4);}
-  #dash .window img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 18%;}
+  #dash .window img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 18%;
+    transition:opacity .25s;}
   #dash .frame{position:absolute; left:0; top:0; width:853px; height:1844px; z-index:2; pointer-events:none;}
   #dash .ui{position:absolute; left:0; top:0; width:853px; height:1844px; z-index:4;}
   #dash .ui > *{position:absolute;}
@@ -902,6 +903,7 @@
      tired, grim. Grace: assets/portraits/grace/base.png       */
   var portrait = document.getElementById('portrait');
   var BASE_SRC = portrait.src;
+  var portraitFadeToken = 0;
   function setPortrait(who, mood, noOverride){
     var m = mood||'base', i=0;
     /* HOLIDAY HARD OVERRIDE: for her first week back from the week off, Sandra
@@ -912,21 +914,39 @@
        noOverride is set by the fallback path below: without it, a missing
        holiday asset would re-enter here, re-apply the override, and spin. */
     if(who==='sandra' && !noOverride && S && S.flags && S.flags.sandraHoliday) m='holiday';
+    var myToken = ++portraitFadeToken;
     (function tryNext(){
       if(i>=PORTRAIT_EXTS.length){
         /* A missing MOOD used to drop straight to Sandra's face \u2014 which is
            how Grace ended up wearing Sandra's portrait. Fall back to the
            character's own base first; only then to the painted master. */
         if(m!=='base') setPortrait(who,'base',true);
-        else portrait.src = BASE_SRC;
+        else applyPortrait(BASE_SRC, myToken);
         return;
       }
       var url='assets/portraits/'+who+'/'+m+'.'+PORTRAIT_EXTS[i++];
       var probe=new Image();
-      probe.onload=function(){ portrait.src=url; };
+      probe.onload=function(){ applyPortrait(url, myToken); };
       probe.onerror=tryNext;
       probe.src=url;
     })();
+  }
+  function applyPortrait(url, token){
+    /* A newer setPortrait call has already superseded this one \u2014 don't let a
+       slow-resolving earlier request clobber whatever's currently loading. */
+    if(token !== portraitFadeToken) return;
+    if(portrait.getAttribute('src')===url) return; /* already showing this mood, nothing to dip for */
+    /* Same house technique used for every other content swap in the game:
+       dip to invisible, swap the src once nothing's on screen to jump-cut,
+       fade back in. Previously this was a bare .src= assignment \\u2014 a hard,
+       un-eased cut that read as a glitch even once the wrong-mood flash
+       (a separate, already-fixed bug) stopped happening. */
+    portrait.style.opacity = 0;
+    setTimeout(function(){
+      if(token !== portraitFadeToken) return;
+      portrait.src = url;
+      portrait.style.opacity = '';
+    }, 260);
   }
 
   /* ---------- CUTAWAY SEQUENCE RUNNER ----------
@@ -974,7 +994,15 @@
   function preloadVideo(scene){
     if(videoCache[scene]) return videoCache[scene];
     var v=document.createElement('video');
-    v.muted=true; v.preload='auto'; v.src='assets/cutscenes/'+scene+'.mp4'; v.load();
+    v.muted=true; v.preload='auto';
+    /* If this scene has no real .mp4 (most stills don't), the 404 fires and
+       is consumed here, silently, before probeArt ever gets a chance to
+       attach its own onerror \\u2014 browsers don't replay a past error event
+       to a handler attached after the fact. Recording it explicitly lets
+       probeArt recognize an already-failed preload instead of waiting out
+       its full cold-load timeout for a video that will never arrive. */
+    v.onerror=function(){ v._failed=true; };
+    v.src='assets/cutscenes/'+scene+'.mp4'; v.load();
     videoCache[scene]=v;
     return v;
   }
@@ -994,6 +1022,7 @@
       p.onerror=function(){ if(!settled){ settled=true; cb(null); } };
       p.src=iurl;
     }
+    if(v._failed){ tryImage(); return; }
     /* canplay fires as soon as the current frame is decoded \u2014 a much lower bar
        than canplaythrough, which waits until the browser thinks the whole clip
        can play without stalling. On a cold real-network load, canplaythrough can
@@ -3021,7 +3050,7 @@
     if(current && current.grace && !S.met['grace']){
       S.met['grace']=true;
       var handoff={kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
-        text:"\u201CI'm taking a week. I have not taken a week since 1981, so don't make it weird.\n\nWhile I'm gone, Grace is at this desk. She held it before I did \u2014 retired, allegedly \u2014 and she is very good, and she will tell you so herself, at length, with citations.\n\nBe civil. She keeps her own ledger, and hers has no eraser. See you in a week.\u201D"};
+        text:"\u201CThat's me, then \u2014 out the door for real this time. Grace is at this desk. She held it before I did, retired, allegedly, and she will tell you so herself, at length, with citations.\n\nBe civil. She keeps her own ledger, and hers has no eraser.\n\nSee you in a week.\u201D"};
       var gcc=castCard('grace');
       var steps=gcc ? [handoff, gcc] : [handoff];
       runSequence(steps, dash, function(){ presentWeekBody(); }, dash);
