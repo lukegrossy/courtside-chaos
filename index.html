@@ -1245,7 +1245,23 @@
   }
 
   var stampActx=null;
-  function sfxAudioCtx(){ if(!stampActx) stampActx=new (window.AudioContext||window.webkitAudioContext)(); return stampActx; }
+  function sfxAudioCtx(){
+    if(!stampActx){
+      stampActx=new (window.AudioContext||window.webkitAudioContext)();
+      /* Same iOS unlock startMusic() already relies on: play a silent buffer
+         inside the user gesture, then resume. Without this a freshly created
+         context can sit 'suspended' indefinitely \u2014 every sound through it
+         is silent, with no error thrown, nothing visible to debug from the
+         outside. This was missing here even though the music engine already
+         knew to do it. */
+      try{
+        var ub=stampActx.createBuffer(1,1,22050), us=stampActx.createBufferSource();
+        us.buffer=ub; us.connect(stampActx.destination); us.start(0);
+      }catch(e){}
+    }
+    if(stampActx.state==='suspended') stampActx.resume();
+    return stampActx;
+  }
   function stampTone(ac, freq, start, dur, type, gain){
     var o=ac.createOscillator(), g=ac.createGain();
     o.type=type||'square'; o.frequency.setValueAtTime(freq, ac.currentTime+start);
