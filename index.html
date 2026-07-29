@@ -817,11 +817,9 @@
     });
   }
   cutS.addEventListener('click',function(){
-    if(window.__tapTick) window.__tapTick();
     go(cutS,quote,function(){ stopMusic(2.2); stopSnow(); });   // theme fades into the black
   });
   quote.addEventListener('click',function(){
-    if(window.__tapTick) window.__tapTick();
     if(window.__enterGame) window.__enterGame(quote);
     else go(quote,dash);
   });
@@ -1123,8 +1121,24 @@
           if(!res){ if(step.artOnly) advance(); return; }
           if(res.type==='video'){
             cawVid.src=res.url; cawVid.currentTime=0;
-            cawVid.play().catch(function(){});
+            var playPromise = cawVid.play();
             cawVid.classList.add('show');
+            if(playPromise && playPromise.catch){
+              playPromise.catch(function(){
+                /* probeArt confirming a separate probe element COULD play this
+                   clip doesn't guarantee the real, visible element actually
+                   starts \u2014 a real, timing-dependent gap, worse on a reused
+                   element across a long session. Silently swallowing this
+                   left a blank video box on screen with nothing ever
+                   rendered. Fall back to the still instead, so there's
+                   always something to look at. */
+                if(stTok!==seqArtToken) return;
+                cawVid.classList.remove('show');
+                var iurl='assets/cutscenes/'+step.scene+'.webp', p=new Image();
+                p.onload=function(){ if(stTok===seqArtToken){ cawArt.src=iurl; cawArt.classList.add('show'); } };
+                p.src=iurl;
+              });
+            }
           } else {
             cawArt.src=res.url; cawArt.classList.add('show');
           }
@@ -1139,7 +1153,6 @@
          dead screen. Fast tapping is normal on a phone, so the sequence latches
          shut instead of trusting listener removal to win the race. */
       if(finished) return;
-      tapTick();
       i++;
       if(i>=steps.length){
         finished=true;
@@ -1366,25 +1379,6 @@
     ring(0, 0.55);
     ring(0.9, 0.55);
     /* then... nothing. Unanswered \u2014 that's the joke, not a bug. */
-  }
-  function tapTick(){
-    /* Deliberately the quietest, shortest sound in the game \u2014 a passive
-       tap-to-continue happens far more often than any other interaction,
-       so it has to disappear into the background rather than announce
-       itself. Bandpassed (not highpassed like pencilTick) for a rounder,
-       softer edge than a scratch. */
-    var ac=sfxAudioCtx(), t0=ac.currentTime, dur=0.03;
-    var bufLen=Math.max(1, Math.floor(ac.sampleRate*dur));
-    var buf=ac.createBuffer(1, bufLen, ac.sampleRate), d=buf.getChannelData(0);
-    for(var i=0;i<bufLen;i++) d[i]=(Math.random()*2-1)*(1-i/bufLen);
-    var src=ac.createBufferSource(); src.buffer=buf;
-    var bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=2600; bp.Q.value=1.2;
-    var g=ac.createGain();
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.06, t0+0.004);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
-    src.connect(bp); bp.connect(g); g.connect(ac.destination);
-    src.start(t0);
   }
 
   /* ---------- REAL AUDIO FILES (crowd variations) ----------
@@ -4096,11 +4090,6 @@
     S.met={ sandra:true, hank:true, ricky:true, tiny:true, leo:true, import:true, sam:true };
     runSequence(INTRO_STEPS, dash, null, fromScreen);
   };
-  /* tapTick lives in this closure with the rest of the synthesized audio,
-     but the splash/cutscene/quote handlers are a separate top-level script
-     with no access to it \u2014 same cross-closure situation as the three
-     exports above, same fix. */
-  window.__tapTick=function(){ tapTick(); };
 })();
 
 </script>
