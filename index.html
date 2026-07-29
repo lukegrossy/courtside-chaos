@@ -797,10 +797,17 @@
 
   document.getElementById('startbtn').addEventListener('click',function(ev){
     ev.stopPropagation();
+    if(this._introStarted) return;   // a second tap during the title hold used to be
+    this._introStarted = true;       // able to re-fire this whole handler mid-transition
     if(window.__newGame) window.__newGame();   // fresh franchise: clear any save
-    startMusic();               // user gesture unlocks audio
+    startMusic();                // user gesture unlocks audio \u2014 starts right here, on the title
     var _v=document.getElementById('cutvid'); if(_v){ _v.play().catch(function(){}); }
-    go(splash,cutS,startSnow);
+    /* Hold on the title, music already running, for one bar (BAR is defined
+       below with the music engine) before beginning the existing fade into
+       the cutscene \u2014 previously the fade-to-black began in the same instant
+       as the tap, so the music was technically playing under the title for
+       zero perceptible time. */
+    setTimeout(function(){ go(splash,cutS,startSnow); }, BAR*1000);
   });
   var contbtn=document.getElementById('contbtn');
   if(contbtn){
@@ -1235,7 +1242,7 @@
   }
 
   var stampActx=null;
-  function stampAudioCtx(){ if(!stampActx) stampActx=new (window.AudioContext||window.webkitAudioContext)(); return stampActx; }
+  function sfxAudioCtx(){ if(!stampActx) stampActx=new (window.AudioContext||window.webkitAudioContext)(); return stampActx; }
   function stampTone(ac, freq, start, dur, type, gain){
     var o=ac.createOscillator(), g=ac.createGain();
     o.type=type||'square'; o.frequency.setValueAtTime(freq, ac.currentTime+start);
@@ -1258,13 +1265,13 @@
     src.start(ac.currentTime+start);
   }
   function winSting(){
-    var ac=stampAudioCtx();
+    var ac=sfxAudioCtx();
     stampThud(ac, 0.02, 0.35);
     stampTone(ac, 988.0, 0.05, 0.10, 'square', 0.22);   /* B5 */
     stampTone(ac, 1318.5, 0.13, 0.30, 'square', 0.24);  /* E6, rings out — coin-pickup style ding */
   }
   function lossSting(){
-    var ac=stampAudioCtx();
+    var ac=sfxAudioCtx();
     stampThud(ac, 0.02, 0.6);
     var o=ac.createOscillator(), g=ac.createGain();
     o.type='triangle';
@@ -1276,6 +1283,70 @@
     o.connect(g); g.connect(ac.destination);
     o.start(ac.currentTime+0.05); o.stop(ac.currentTime+0.58);
     stampTone(ac, 70, 0.05, 0.45, 'sine', 0.16);        /* sub layer for weight */
+  }
+
+  /* ---------- OFFICE ONE-SHOTS ----------
+     Same technique as the stamp stings above: synthesized, no audio files,
+     zero added weight. Discrete and occasional by design, not a persistent
+     ambient bed \u2014 see setNote() and the phone-ring trigger in presentWeekBody. */
+  function paperRustle(){
+    var ac=sfxAudioCtx(), t0=ac.currentTime;
+    var bursts=[[0,0.09,2200],[0.05,0.07,3400],[0.12,0.10,1800],[0.19,0.06,2800]];
+    bursts.forEach(function(b){
+      var start=b[0], dur=b[1], freq=b[2];
+      var bufLen=Math.max(1, Math.floor(ac.sampleRate*dur));
+      var buf=ac.createBuffer(1, bufLen, ac.sampleRate), d=buf.getChannelData(0);
+      for(var i=0;i<bufLen;i++) d[i]=(Math.random()*2-1);
+      var src=ac.createBufferSource(); src.buffer=buf;
+      var bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=freq; bp.Q.value=0.8;
+      var g=ac.createGain();
+      g.gain.setValueAtTime(0.0001, t0+start);
+      g.gain.exponentialRampToValueAtTime(0.20+Math.random()*0.08, t0+start+0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0+start+dur);
+      src.connect(bp); bp.connect(g); g.connect(ac.destination);
+      src.start(t0+start);
+    });
+  }
+  function pencilTick(){
+    var ac=sfxAudioCtx(), t0=ac.currentTime;
+    [0, 0.07, 0.155].forEach(function(start){
+      var dur=0.04;
+      var bufLen=Math.max(1, Math.floor(ac.sampleRate*dur));
+      var buf=ac.createBuffer(1, bufLen, ac.sampleRate), d=buf.getChannelData(0);
+      for(var j=0;j<bufLen;j++) d[j]=(Math.random()*2-1)*(1-j/bufLen);
+      var src=ac.createBufferSource(); src.buffer=buf;
+      var hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=3200;
+      var g=ac.createGain();
+      g.gain.setValueAtTime(0.0001, t0+start);
+      g.gain.exponentialRampToValueAtTime(0.16, t0+start+0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0+start+dur);
+      src.connect(hp); hp.connect(g); g.connect(ac.destination);
+      src.start(t0+start);
+    });
+  }
+  function distantPhone(){
+    var ac=sfxAudioCtx(), t0=ac.currentTime;
+    var master=ac.createGain(); master.gain.value=0.5;
+    var lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1600;
+    master.connect(lp); lp.connect(ac.destination);
+    function ring(start,dur){
+      var o1=ac.createOscillator(), o2=ac.createOscillator();
+      o1.type='square'; o2.type='square'; o1.frequency.value=950; o2.frequency.value=1050;
+      var g=ac.createGain(); g.gain.setValueAtTime(0.0001, t0+start);
+      o1.connect(g); o2.connect(g); g.connect(master);
+      o1.start(t0+start); o2.start(t0+start);
+      o1.stop(t0+start+dur); o2.stop(t0+start+dur);
+      var pulseLen=0.045, gap=0.02, t=start;
+      while(t < start+dur){
+        g.gain.setValueAtTime(0.0001, t0+t);
+        g.gain.linearRampToValueAtTime(0.24, t0+t+0.006);
+        g.gain.linearRampToValueAtTime(0.0001, t0+t+pulseLen);
+        t += pulseLen+gap;
+      }
+    }
+    ring(0, 0.55);
+    ring(0.9, 0.55);
+    /* then... nothing. Unanswered \u2014 that's the joke, not a bug. */
   }
 
   /* ---------- GAME-NIGHT OWNER CALLS ----------
@@ -2657,11 +2728,12 @@
     if(seasonEl) seasonEl.textContent = S.season;
     updateBlotter();   /* footer RECORD stays in lockstep */
   }
-  function setNote(paras){
+  function setNote(paras, kind){
     el.scroll.innerHTML = paras.map(function(p){ return '<p>'+p+'</p>'; }).join('');
     el.scroll.scrollTop = 0;
     el.wrap.classList.remove('scrolled-end');
     checkScroll();
+    if(kind==='ledger') pencilTick(); else paperRustle();
   }
   function checkScroll(){
     var sc=el.scroll;
@@ -3079,6 +3151,14 @@
       setPortrait('sandra', current.mood||'base');
     }
     setNote(current.setup);
+    /* THE PHONE THAT NOBODY ANSWERS: a rare, unscripted background detail \u2014
+       low odds per week, and gated so it can't cluster, so it stays a thing
+       players notice rather than a thing that happens on a schedule. Nothing
+       in the story ever references it; that's deliberate. */
+    if((S.flags.lastPhoneWeek===undefined || S.tw - S.flags.lastPhoneWeek >= 4) && Math.random() < 0.05){
+      S.flags.lastPhoneWeek = S.tw;
+      distantPhone();
+    }
     /* probeArt gives a cold video 1200ms to become playable, then silently
        falls back to a .webp still \u2014 and for a video-only scene that means the
        art step auto-skips and the player sees no cutscene at all. Warm this
@@ -3287,7 +3367,7 @@
         S.cash -= ECON.PAYROLL;
         var rBrief=[ch.desk,
           "The dark week's books: no gate, because no game. Payroll doesn't rest: "+fmtCash(ECON.PAYROLL)+" out. Some weeks you buy wins. This one we bought something that doesn't fit a column, and I'd pay it again."];
-        setNote(rBrief);
+        setNote(rBrief, 'ledger');
         setPortrait(current.grace?'grace':'sandra', ch.mood||'base');
         el.noteh.textContent='FROM '+(current.grace?"GRACE'S":"SANDRA'S")+' DESK';
         pendingRoute='week';
@@ -3507,7 +3587,7 @@
           } else {
             S.debtWeeks=0;
           }
-          setNote(brief);
+          setNote(brief, 'ledger');
 
           pendingRoute='week';
           if(S.debtWeeks>=3){
@@ -3569,7 +3649,7 @@
         (S.flags.scoutApproved ? "Row A was empty for the finale. On the seat: nothing. Which, from him, reads as applause." :
          "The lake's frozen, the coffee's on, and next season's folder is already labeled."))),
       "See ya in Season "+(S.season+1)+", boss."
-    ]);
+    ], 'ledger');
     el.call.style.display='none';
     setNextBtn('SEASON '+(S.season+1)+' \u25B6','New year. New folder.');
     el.next.style.display='';
@@ -3596,7 +3676,7 @@
     phase='over'; S.stage='over'; current=null; clearSave();
     el.noteh.textContent='THE LAST PAGE';
     setPortrait('sandra','grim');
-    setNote(paras);
+    setNote(paras, 'ledger');
     el.call.style.display='none';
     setNextBtn('START OVER \u25B6','From the top.');
     el.next.style.display='';
