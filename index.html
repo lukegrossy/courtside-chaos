@@ -1386,7 +1386,7 @@
     crowdBuffers[path] = p;
     return p;
   }
-  function preloadCrowd(){ CROWD_FILES.forEach(loadSfxFile); loadSfxFile('rain_bus_loop.mp3'); }
+  function preloadCrowd(){ CROWD_FILES.forEach(loadSfxFile); loadSfxFile('rain_bus_loop.mp3'); loadSfxFile('office_loop.mp3'); }
 
   var lastCrowdIdx = -1;
   function playCrowdMuffled(){
@@ -1460,6 +1460,39 @@
     g.gain.setValueAtTime(g.gain.value, ac.currentTime);
     g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.4);
     setTimeout(function(){ try{ src.stop(); }catch(e){} }, 450);
+  }
+
+  /* OFFICE AMBIENCE: unlike every other trigger above, this isn't tied to a
+     specific story scene \u2014 it should simply be present whenever the
+     dashboard itself is the visible screen, and absent during any
+     full-screen cutaway (decision, moment, gazette, cutscene). Rather than
+     hunt down and instrument every place in the code that shows or hides
+     #dash, watch the element's own class directly \u2014 correct regardless of
+     which code path changed it, and immune to a future transition being
+     added somewhere that forgets to start/stop it explicitly. */
+  var officeLoopSrc=null, officeLoopGain=null;
+  function startOfficeLoop(){
+    if(officeLoopSrc) return;
+    loadSfxFile('office_loop.mp3').then(function(buf){
+      if(!buf) return;
+      if(officeLoopSrc) return;
+      var ac=sfxAudioCtx();
+      var src=ac.createBufferSource(); src.buffer=buf; src.loop=true;
+      var g=ac.createGain(); g.gain.setValueAtTime(0.0001, ac.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.5, ac.currentTime+1.4);  // settle in slowly, not a punctuated cue
+      src.connect(g); g.connect(ac.destination);
+      src.start();
+      officeLoopSrc=src; officeLoopGain=g;
+    });
+  }
+  function stopOfficeLoop(){
+    if(!officeLoopSrc) return;
+    var ac=sfxAudioCtx(), src=officeLoopSrc, g=officeLoopGain;
+    officeLoopSrc=null; officeLoopGain=null;
+    g.gain.cancelScheduledValues(ac.currentTime);
+    g.gain.setValueAtTime(g.gain.value, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.7);
+    setTimeout(function(){ try{ src.stop(); }catch(e){} }, 800);
   }
 
   /* ---------- GAME-NIGHT OWNER CALLS ----------
@@ -2809,6 +2842,9 @@
 
   /* ---------- DOM ---------- */
   var dash=document.getElementById('dash');
+  new MutationObserver(function(){
+    if(dash.classList.contains('on')) startOfficeLoop(); else stopOfficeLoop();
+  }).observe(dash, {attributes:true, attributeFilter:['class']});
   var el={ cash:document.getElementById('stCash'), morale:document.getElementById('stMorale'),
     buzz:document.getElementById('stBuzz'), cred:document.getElementById('stCred'),
     week:document.getElementById('stWeek'), rec:document.getElementById('stRecord'),
