@@ -463,9 +463,10 @@
     <div class="screen" id="cut">
       <div class="art">
         <video id="cutvid" muted autoplay loop playsinline preload="auto"
-          onerror="this.style.display='none'"
+          onerror="var iv=document.getElementById('shackFallback'); if(iv){iv.src='assets/cutscenes/shack.webp'; iv.style.display='block';} this.style.display='none'; var c=document.getElementById('snowc'); if(c)c.style.display='none'; var g=this.parentElement.querySelector('.glow'); if(g)g.style.display='none';"
           oncanplay="var c=document.getElementById('snowc'); if(c)c.style.display='none'; var g=this.parentElement.querySelector('.glow'); if(g)g.style.display='none';">
           <source src="assets/cutscenes/shack.mp4" type="video/mp4"></video>
+        <img id="shackFallback" alt="" style="display:none;">
         <div class="glow" style="left:504px; top:352px;"></div>
         <canvas id="snowc" width="853" height="1844"></canvas>
       </div>
@@ -765,6 +766,21 @@
   }
   /* canvas snowfall (rAF-driven, immune to CSS animation quirks) */
   var snowC=document.getElementById('snowc'), sctx=snowC.getContext('2d');
+  /* The oncanplay/onerror handlers on #cutvid cover a clean success or a
+     clean failure, but not a silent stall \u2014 the video neither erroring nor
+     ever producing a frame, which is the same class of gap that left the
+     tipoff_home cutscene stuck blank in some cases. Here the placeholder
+     itself (falling snow, no building) stays on screen forever instead,
+     which read as "the cutscene zoomed in on just the stars." */
+  setTimeout(function(){
+    var v=document.getElementById('cutvid');
+    if(v && v.readyState<2){
+      var iv=document.getElementById('shackFallback');
+      if(iv){ iv.src='assets/cutscenes/shack.webp'; iv.style.display='block'; }
+      var c=document.getElementById('snowc'); if(c) c.style.display='none';
+      var g=document.querySelector('#cut .glow'); if(g) g.style.display='none';
+    }
+  }, 1800);
   var flakes=[], snowOn=false, lastT=0;
   function initSnow(){
     flakes=[];
@@ -1320,42 +1336,10 @@
   /* ---------- OFFICE ONE-SHOTS ----------
      Same technique as the stamp stings above: synthesized, no audio files,
      zero added weight. Discrete and occasional by design, not a persistent
-     ambient bed \u2014 see setNote() and the phone-ring trigger in presentWeekBody. */
-  function paperRustle(){
-    var ac=sfxAudioCtx(), t0=ac.currentTime;
-    var bursts=[[0,0.09,2200],[0.05,0.07,3400],[0.12,0.10,1800],[0.19,0.06,2800]];
-    bursts.forEach(function(b){
-      var start=b[0], dur=b[1], freq=b[2];
-      var bufLen=Math.max(1, Math.floor(ac.sampleRate*dur));
-      var buf=ac.createBuffer(1, bufLen, ac.sampleRate), d=buf.getChannelData(0);
-      for(var i=0;i<bufLen;i++) d[i]=(Math.random()*2-1);
-      var src=ac.createBufferSource(); src.buffer=buf;
-      var bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=freq; bp.Q.value=0.8;
-      var g=ac.createGain();
-      g.gain.setValueAtTime(0.0001, t0+start);
-      g.gain.exponentialRampToValueAtTime(0.20+Math.random()*0.08, t0+start+0.015);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0+start+dur);
-      src.connect(bp); bp.connect(g); g.connect(ac.destination);
-      src.start(t0+start);
-    });
-  }
-  function pencilTick(){
-    var ac=sfxAudioCtx(), t0=ac.currentTime;
-    [0, 0.07, 0.155].forEach(function(start){
-      var dur=0.04;
-      var bufLen=Math.max(1, Math.floor(ac.sampleRate*dur));
-      var buf=ac.createBuffer(1, bufLen, ac.sampleRate), d=buf.getChannelData(0);
-      for(var j=0;j<bufLen;j++) d[j]=(Math.random()*2-1)*(1-j/bufLen);
-      var src=ac.createBufferSource(); src.buffer=buf;
-      var hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=3200;
-      var g=ac.createGain();
-      g.gain.setValueAtTime(0.0001, t0+start);
-      g.gain.exponentialRampToValueAtTime(0.16, t0+start+0.006);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0+start+dur);
-      src.connect(hp); hp.connect(g); g.connect(ac.destination);
-      src.start(t0+start);
-    });
-  }
+     ambient bed \u2014 see setNote() and the phone-ring trigger in presentWeekBody.
+     paperRustle/pencilTick (the notepad-update sounds) were pulled per
+     feedback that they read as "typewriter noise" rather than texture \u2014
+     the original design is preserved in office_sfx_demo.html if revisited. */
   function distantPhone(){
     var ac=sfxAudioCtx(), t0=ac.currentTime;
     var master=ac.createGain(); master.gain.value=0.5;
@@ -2802,7 +2786,6 @@
     el.scroll.scrollTop = 0;
     el.wrap.classList.remove('scrolled-end');
     checkScroll();
-    if(kind==='ledger') pencilTick(); else paperRustle();
   }
   function checkScroll(){
     var sc=el.scroll;
