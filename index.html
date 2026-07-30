@@ -1103,6 +1103,7 @@
       cawVid.pause();
       if(step.scene==='tipoff_home') playCrowdMuffled();
       if(step.scene==='roadtrip') startRainLoop(); else stopRainLoop();
+      if(step.scene==='cup') startCupWin(); else stopCupWin();
       if(step.kind!=='score'){
         /* the slam animation ends with fill-mode:forwards (opacity:1, settled
            scale) so it stays visible until explicitly cleared — otherwise the
@@ -1428,6 +1429,37 @@
     g.gain.setValueAtTime(g.gain.value, ac.currentTime);
     g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.35);  // fade, not a click
     setTimeout(function(){ try{ src.stop(); }catch(e){} }, 400);
+  }
+
+  /* THE TIMBER CUP: a straight, non-looping playthrough of the full 41s
+     track. Fires at most once a year, so it gets its own player rather
+     than reusing the generic one-shot machinery \u2014 mainly so it can be
+     cut short cleanly (fade instead of a click) if the player taps past
+     the win screen before the track finishes on its own. */
+  var cupSrc=null, cupGain=null;
+  function startCupWin(){
+    if(cupSrc) return;
+    loadSfxFile('timber_cup_win.mp3').then(function(buf){
+      if(!buf) return;
+      if(cupSrc) return;
+      var ac=sfxAudioCtx();
+      var src=ac.createBufferSource(); src.buffer=buf;
+      var g=ac.createGain(); g.gain.setValueAtTime(0.0001, ac.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.6, ac.currentTime+0.5);
+      src.connect(g); g.connect(ac.destination);
+      src.start();
+      cupSrc=src; cupGain=g;
+      src.onended=function(){ if(cupSrc===src){ cupSrc=null; cupGain=null; } };
+    });
+  }
+  function stopCupWin(){
+    if(!cupSrc) return;
+    var ac=sfxAudioCtx(), src=cupSrc, g=cupGain;
+    cupSrc=null; cupGain=null;
+    g.gain.cancelScheduledValues(ac.currentTime);
+    g.gain.setValueAtTime(g.gain.value, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.4);
+    setTimeout(function(){ try{ src.stop(); }catch(e){} }, 450);
   }
 
   /* ---------- GAME-NIGHT OWNER CALLS ----------
@@ -3102,6 +3134,12 @@
   }
   function makeFinal(){
     var foe=S.po.finalFoe, home=S.po.homeFinal, pf=properFoe(foe);
+    /* At 642KB this is far heavier than the crowd/rain clips and plays at
+       most once a season \u2014 not worth eagerly preloading for every player
+       on every boot. Warming it here instead, the moment the final itself
+       begins, gives it the whole game to load before the win screen (if it
+       comes) could possibly need it. */
+    loadSfxFile('timber_cup_win.mp3');
     var deskW="We won the Timber Cup. I typed that sentence with two fingers because my hands were shaking, and I'm leaving that in the record, because the record should know. The Cup is on my desk. Ernie polished it with his sleeve for an hour and told it things, and I stepped out, because some conversations you leave the room for.";
     var deskL="The Cup went home with them. The building stood and clapped for four straight minutes anyway \u2014 for the year, for the whole improbable thing. I've started a folder for next season. It's labeled NEXT, and it's already got a page in it.";
     var gazW='TIMBER CUP COMES HOME';
