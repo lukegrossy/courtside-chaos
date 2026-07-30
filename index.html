@@ -1102,6 +1102,7 @@
       cawVid.classList.remove('show');
       cawVid.pause();
       if(step.scene==='tipoff_home') playCrowdMuffled();
+      if(step.scene==='roadtrip') startRainLoop(); else stopRainLoop();
       if(step.kind!=='score'){
         /* the slam animation ends with fill-mode:forwards (opacity:1, settled
            scale) so it stays visible until explicitly cleared — otherwise the
@@ -1384,7 +1385,7 @@
     crowdBuffers[path] = p;
     return p;
   }
-  function preloadCrowd(){ CROWD_FILES.forEach(loadSfxFile); }
+  function preloadCrowd(){ CROWD_FILES.forEach(loadSfxFile); loadSfxFile('rain_bus_loop.mp3'); }
 
   var lastCrowdIdx = -1;
   function playCrowdMuffled(){
@@ -1400,6 +1401,33 @@
       src.connect(g); g.connect(ac.destination);
       src.start();
     });
+  }
+
+  /* Loops for as long as the roadtrip scene is on screen, stops the moment
+     the player taps past it \u2014 not a one-shot like the crowd sound above. */
+  var rainLoopSrc=null, rainLoopGain=null;
+  function startRainLoop(){
+    if(rainLoopSrc) return;               // already running, nothing to do
+    loadSfxFile('rain_bus_loop.mp3').then(function(buf){
+      if(!buf) return;                    // missing/cold-cache \u2014 fail silent, no loop, no crash
+      if(rainLoopSrc) return;             // a stop() could have raced in while this decoded
+      var ac=sfxAudioCtx();
+      var src=ac.createBufferSource(); src.buffer=buf; src.loop=true;
+      var g=ac.createGain(); g.gain.setValueAtTime(0.0001, ac.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.45, ac.currentTime+0.6);
+      src.connect(g); g.connect(ac.destination);
+      src.start();
+      rainLoopSrc=src; rainLoopGain=g;
+    });
+  }
+  function stopRainLoop(){
+    if(!rainLoopSrc) return;
+    var ac=sfxAudioCtx(), src=rainLoopSrc, g=rainLoopGain;
+    rainLoopSrc=null; rainLoopGain=null;
+    g.gain.cancelScheduledValues(ac.currentTime);
+    g.gain.setValueAtTime(g.gain.value, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.35);  // fade, not a click
+    setTimeout(function(){ try{ src.stop(); }catch(e){} }, 400);
   }
 
   /* ---------- GAME-NIGHT OWNER CALLS ----------
