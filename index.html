@@ -1096,7 +1096,7 @@
       }
       caw.classList.toggle('scoremode', step.kind==='score');
       caw.classList.toggle('cardmode', step.kind==='card');
-      caw.classList.toggle('textmode', step.kind==='text');
+      caw.classList.toggle('textmode', step.kind==='text' && !step.artOnly);
       cawTxt.textContent=step.text||step.line;
       cawArt.classList.remove('show');
       cawVid.classList.remove('show');
