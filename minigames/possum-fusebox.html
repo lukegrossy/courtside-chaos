@@ -30,9 +30,9 @@
     color:#f5f2ea;
     font-family:"Courier New",Courier,monospace;
     font-weight:700;
-    padding:14px 4px 4px;
+    padding:20px 6px 6px;
     line-height:1.5;
-    font-size:15px;
+    font-size:23px;
   }
   .note p{margin:0;}
   .note .stamp{color:#8a3327;font-weight:bold;}
@@ -69,27 +69,27 @@
     background:#14110f;border:2px solid var(--line);border-radius:3px;
   }
   .hud{
-    margin-top:9px;display:flex;justify-content:space-between;align-items:center;
-    font-size:12px;letter-spacing:1px;
+    margin-top:14px;display:flex;justify-content:space-between;align-items:center;
+    font-size:17px;letter-spacing:1px;
   }
   .hud .lab{color:var(--amberdim);}
-  .strikes{display:inline-flex;gap:5px;}
+  .strikes{display:inline-flex;gap:7px;}
   .strikes span{
-    width:15px;height:15px;border:2px solid var(--line);border-radius:2px;
+    width:21px;height:21px;border:2px solid var(--line);border-radius:2px;
     display:inline-block;position:relative;
   }
   .strikes span.hit{border-color:var(--red);background:rgba(214,75,58,.18);}
-  .strikes span.hit::after{content:"✕";position:absolute;inset:-3px 0 0;color:var(--red);text-align:center;font-size:13px;font-weight:bold;}
-  .crate{display:inline-flex;gap:4px;}
+  .strikes span.hit::after{content:"✕";position:absolute;inset:-4px 0 0;color:var(--red);text-align:center;font-size:18px;font-weight:bold;}
+  .crate{display:inline-flex;gap:5px;}
   .crate span{
-    width:14px;height:14px;border:1px solid #5a4a2c;border-radius:2px;background:#221c14;
+    width:19px;height:19px;border:1px solid #5a4a2c;border-radius:2px;background:#221c14;
   }
   .crate span.full{background:#8a7a58;border-color:#a89468;}
   #funds{color:var(--amber);font-weight:bold;}
 
   .hint{
-    margin-top:9px;text-align:center;font-size:11px;letter-spacing:1px;
-    color:var(--amberdim);min-height:14px;
+    margin-top:14px;text-align:center;font-size:16px;letter-spacing:1px;
+    color:var(--amberdim);min-height:19px;
   }
   .hint b.g{color:var(--green);}
   .hint b.r{color:var(--red);}
@@ -140,7 +140,23 @@
 (function(){
   // ---------- audio (tiny, optional) ----------
   var AC=null, muted=false;
-  function actx(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } if(AC&&AC.state==="suspended")AC.resume(); return AC; }
+  function actx(){
+    if(!AC){
+      try{
+        AC=new (window.AudioContext||window.webkitAudioContext)();
+        /* iOS unlock: resume() alone is async and doesn't finish transitioning
+           the context to "running" within this same tick, which is why the
+           very first sound after a cold load was silently dropped and only
+           the second tap onward played anything. Scheduling a silent buffer
+           synchronously, inside the user-gesture call stack, forces WebKit
+           to actually unlock audio right now instead of leaving it pending. */
+        var buf=AC.createBuffer(1,1,22050), src=AC.createBufferSource();
+        src.buffer=buf; src.connect(AC.destination); src.start(0);
+      }catch(e){}
+    }
+    if(AC&&AC.state==="suspended")AC.resume();
+    return AC;
+  }
   function beep(freq,dur,type,vol){
     if(muted) return; var c=actx(); if(!c) return;
     var o=c.createOscillator(), g=c.createGain();
