@@ -344,8 +344,8 @@
     font-family:"Arial Black",sans-serif; font-weight:900; color:#e8e2d4;
     font-size:40px; letter-spacing:7px; text-shadow:0 3px 18px #000;}
   .pmeta{position:absolute; left:0; right:0; text-align:center;
-    font-family:"Courier New",monospace; color:#c9a05a;
-    font-size:23px; letter-spacing:5px;}
+    font-family:"Courier New",monospace; color:#e0b871; font-weight:bold;
+    font-size:30px; letter-spacing:5px; text-shadow:0 2px 10px #000;}
 
   .caw .cawcard{top:352px; opacity:0; transition:opacity .3s; z-index:2;}
   .caw .cawname{top:826px; opacity:0; transition:opacity .3s; z-index:2;}
@@ -1376,6 +1376,13 @@
      and fail silently (no sound, not a broken game) if a clip is missing
      or slow \u2014 exactly what probeArt already does for cutscene art. */
   var CROWD_FILES = ['crowd_muffled.mp3','crowd_muffled_2.mp3','crowd_muffled_3.mp3'];
+  /* Away-night tip-off art. Add the new key here (nothing else) each time
+     another tipoff_road_N.mp4/webp gets locked and committed \u2014 picking
+     only from keys listed here (rather than guessing among N possible
+     slots) means a not-yet-generated variant can never get selected and
+     come up blank. tipoff_road.webp stays the static fallback poster if
+     a chosen video fails to load, independent of this rotation. */
+  var ROAD_TIP_VARIANTS = ['tipoff_road_1','tipoff_road_2'];
   var crowdBuffers = {};
   function loadSfxFile(path){
     if(crowdBuffers[path]) return crowdBuffers[path];   // returns the in-flight/decoded promise
@@ -1826,30 +1833,36 @@
         desk:"Sponsorship: $6,000. Hank's fines: collected in a coffee tin labeled COMFORT TAX. I am not administering the tin.",
         gaz:"THIRST OFFICIALLY SPONSORED; COACH DECLARES PARTIAL VICTORY", news:"A regional electrolyte manufacturer has purchased naming rights to the club's hydration policy under the title The Official Earned Sip. Coach Willis personally approved the slogan, the only sponsorship copy he is known to have read. Two players have since been fined for appearing too refreshed.", mood:'dry' } ] },
 
+  /* THE BLOB. Every branch ends with the same bronze in the same place \u2014
+     the sculptor has one shape in him and no amount of money changes it.
+     What differs is who paid and what it cost us in standing, so all three
+     set `blob` and the statue is permanent canon regardless of the call.
+     (The cutscene sits at storyline level and shows a full-size bronze, so
+     no branch may end without one.) */
   { id:'ricky_statue', title:'RICKY DEMANDS A STATUE', mood:'dry', scene:'statue',
     setup:[
       "Ricky Malone came by the office with a folder of his own, which I take personally. Inside: sketches. Of a statue. Of Ricky.",
       "He has already spoken to a sculptor. The sculptor, I am told, 'only works in momentum.' I asked what that means. Ricky said I 'wouldn't get it.' The quote for the piece is nine thousand dollars.",
-      "For context: Ricky is 26 and we retired zero numbers last decade. But he did score 41 on Thursday, and he knows we know."],
+      "For context: Ricky is 26 and we retired zero numbers last decade. But he did score 41 on Thursday, and he knows we know. He is not asking whether. He is asking how."],
     choices:[
-      { t:"Commission the statue.", sub:"$9,000. He did score 41.",
+      { t:"Pay the nine thousand.", sub:"The full commission. Bronze.",
         fx:{cash:-9000, morale:6, buzz:12, cred:-7},
-        out:["The sculptor delivers on time, which is the last conventional thing that happens. The piece is an abstract bronze mass the sculptor describes as 'momentum itself.' It does not depict Ricky. It does not depict anyone. The town instantly names it the Blob.",
-             "Ricky is furious for a week, then someone photographs a toddler hugging it, and now the Blob is beloved and Ricky claims he 'always saw the vision.' People meet at the Blob. Directions are given via the Blob. It's a landmark now. We paid nine grand for a landmark. Could be worse."],
+        out:["The sculptor delivers on time, which is the last conventional thing that happens. The piece is an abstract bronze mass he describes as 'momentum itself.' It does not depict Ricky. It does not depict anyone. The town names it the Blob before the tarp is fully off.",
+             "Ricky is furious for a week. Then someone photographs a toddler hugging it, and now the Blob is beloved and Ricky claims he always saw the vision. People meet at the Blob. Directions are given via the Blob. We paid nine grand for a landmark. Could be worse."],
         desk:"Statue: delivered. Resemblance to Ricky: zero. Civic affection: total. Filed under VANITY, cross-referenced with MIRACLES.",
         gaz:"BRONZE BLOB UNVEILED; TOWN DECIDES IT'S BEAUTIFUL", news:"A commissioned bronze honoring Ricky Malone was unveiled outside the arena. The sculptor, who works exclusively in momentum, delivered an abstract mass depicting no person. Malone was furious for one week. A photograph of a toddler embracing the piece has since circulated widely. Residents now give directions by it.", mood:'pleased', flag:'blob' },
-      { t:"Tell him no. Flat no.", sub:"We are not a museum.",
-        fx:{morale:-8, cred:6, buzz:2},
-        out:["You say no. Ricky hears 'not yet' and announces to the locker room that the statue is 'in development.' He then practices with a vengeful precision that frightens the ball boys and moves Hank to write something in the notebook.",
-             "The bus driver, asked for comment, said 'good.' It's the first word he's said about Ricky all season."],
-        desk:"Statue: declined. Ricky's response: a week of practice conducted entirely in silence, at full speed, while maintaining eye contact with the office window. Some men respond to adversity. Ricky responds to spite.",
-        gaz:"STAR DENIED STATUE; PRACTICES DESCRIBED AS 'VENGEFUL'", news:"Ownership has declined Ricky Malone's statue proposal. Malone informed the locker room the project was 'in development' and has since conducted a week of practice in complete silence, at full speed, while maintaining eye contact with the front office window. Ball boys have requested reassignment.", mood:'dry' },
-      { t:"Offer a banner instead.", sub:"Cloth is cheaper than bronze.",
-        fx:{cash:-400, morale:3, buzz:4},
-        out:["A banner. Ricky negotiates it up to 'the largest banner the rafters can legally hold,' which turns out to be a real regulation you can look up. It's enormous. It's mostly face.",
-             "At the unveiling the crowd cheers, the banner catches a draft, and Ricky's face billows in a way that will feature in local nightmares for a generation."],
-        desk:"Banner: $400. Square footage of face: considerable. Hank looked at it for a long time and said 'that's a lot of confidence.' High praise, from him.",
-        gaz:"LARGEST LEGALLY PERMITTED BANNER UNFURLED; FACE VAST", news:"In lieu of bronze, the club commissioned a banner, which Ricky Malone negotiated to the maximum dimensions the rafters can legally support. The banner is largely face. At the unveiling it caught a draft and billowed. Witnesses describe the effect as something they expect to carry with them.", mood:'dry' } ] },
+      { t:"Tell him no. Let him pay for it himself.", sub:"Free. Entirely free.",
+        fx:{morale:-4, buzz:14, cred:4},
+        out:["You decline, and Ricky \u2014 who has clearly been holding this in reserve \u2014 announces he'll fund it personally. Then the hardware store puts a jar out. Then the Legion hall. Then the church, which I want on the record I did not authorize and could not have stopped. Nine thousand dollars is raised in eleven days by a town that has never raised nine thousand dollars for anything.",
+             "The sculptor delivers the same piece. Identical. The man has one shape in him and he has now been paid twice to make it. But the plaque lists two hundred and forty donors and does not list the club, and it stands on city land where I cannot move it, dust it, or have opinions about it. Ricky calls it 'the people's statue.' He is not wrong. That's the part that gets me."],
+        desk:"Cost to the club: nothing. Control retained by the club: also nothing. My name is on that plaque. I gave four dollars in a moment of weakness and it is going to outlive me.",
+        gaz:"TOWN FUNDS MALONE BRONZE IN ELEVEN DAYS; CLUB NOT LISTED", news:"After ownership declined to commission it, a bronze honoring Ricky Malone was funded by public subscription in eleven days, with collection jars reported at the hardware store, the Legion hall and one church. The completed piece is identical to the sculptor's original proposal. The plaque names two hundred and forty donors. The club is not among them.", mood:'dry', flag:'blob' },
+      { t:"Counter-offer. Four hundred dollars and season tickets for life.", sub:"He's an artist. Artists are poor.",
+        fx:{cash:-400, morale:4, buzz:9, cred:-2},
+        out:["The sculptor accepts inside a minute, which tells you what season tickets are worth to a man who has been eating standing up since 1979. He also negotiates \u2014 successfully \u2014 for parking.",
+             "The piece is the same abstract bronze mass he was always going to make, because it is the only shape he has, but he now attends every home game and stands beside it during warmups explaining it to anyone who slows down. He has explained it to the same four people eleven times. He has explained it to a dog. The town names it the Blob within the hour and he does not fight this; he says the Blob 'understands momentum better than most of you,' which is either humility or the worst thing anyone has ever said in this county."],
+        desk:"Statue: $400 and a seat in Row K he did not ask to have assigned. He is here every night now. He has opinions about the officiating that are, and I cannot stress this enough, entirely about momentum.",
+        gaz:"SCULPTOR TAKES SEASON TICKETS AS PAYMENT; ATTENDS EVERYTHING", news:"A bronze honoring Ricky Malone was commissioned for four hundred dollars and a lifetime season ticket, terms the sculptor accepted within one minute. He additionally secured parking. He has since attended every home fixture and can be found beside the piece during warmups, explaining it. The work is abstract. The town has named it the Blob.", mood:'dry', flag:'blob' } ] },
 
   /* THE FORBIDDEN ONE. Originally gated a rhythm minigame behind "Approve
      it": the minigame asked players to learn note-timing AND a hidden-meter
@@ -2261,13 +2274,48 @@
 
   { id:'northern_swing', venue:'road', games:3, foes:['FARGO','THUNDER BAY','BISMARCK'],
     tip:'THE NORTHERN SWING.', title:'THE NORTHERN SWING', mood:'dry', scene:'roadtrip',
-    /* Per-night cutscenes, indexed by night. `scene` above already plays the
-       gas-station shot once on the budget-choice outcome, so night 2 \u2014 the
-       Thunder Bay leg, the midnight fan-belt night in canon \u2014 gets the
-       highway shot and the other two stay art-free. Deliberately not one per
-       night: repeating the same two clips three times reads as a loop, not a
-       trip. Any entry can be null. */
-    nightScenes:[null, 'roadtrip_bus', null],
+    /* Per-night interstitials, indexed by night, played BEFORE that night's
+       owner call \u2014 the bus pulls into the next town, THEN the disaster
+       presents itself. Night one needs none: the budget choice above already
+       put us on the road. Nights two and three each open on the bus so the
+       swing reads as a journey with legs rather than three disconnected
+       decisions in a row. Any entry can be null. */
+    nightIntros:[
+      null,
+      {text:"THUNDER BAY.\n\nSix hours northeast, most of it dark. The border guard asks the purpose of our visit and Hank says 'basketball' in a way that invites follow-up questions. There are follow-up questions.", scene:'roadtrip_bus'},
+      {text:"BISMARCK.\n\nThe last leg, and the longest. Nobody has slept properly since Fargo. Tiny's material has moved past comedy into something closer to testimony. The driver has stopped acknowledging Ricky entirely, which both men appear to consider a truce.", scene:'roadtrip_bus'}],
+    /* PREGAME CALLS, one per night after the opener \u2014 the trouble that finds
+       us before tip-off, as distinct from the saga moments, which are the
+       trouble that finds us during the game. Each night draws one at random
+       from its own pool so a second playthrough of the Swing isn't the same
+       three decisions in the same order. Night one has no pool: the budget
+       choice IS its pregame call. */
+    nightPregames:[
+      null,
+      [ {stamp:'PREGAME \u2022 THE EXCHANGE RATE',
+         sit:"The motel wants Canadian. The diner wants Canadian. Hank has been paying in American at a rate he invented in the parking lot and is defending as 'roughly fair.' A woman at the front desk has produced a chart. Hank has produced a different chart. Neither chart is from a bank. Twelve men are standing in a lobby watching two adults negotiate with paper they made themselves.",
+         a:{t:"Settle it at the desk rate. Pay the difference.", sub:"$180. The chart wins.", mod:0.01, cash:-180, cred:3,
+            out:"You pay the difference and the woman at the desk marks it settled in a ledger of her own, which I respect enormously. Hank folds his chart into quarters and puts it in his shirt pocket, where I assume it remains. He does not concede the rate. He concedes the payment. There is, apparently, a difference."},
+         b:{t:"Let Hank finish. He's forty minutes in.", sub:"Free. Costs something else.", mod:0.0, morale:-3, buzz:5,
+            out:"Hank goes another twenty minutes and wins, in the sense that the rate does not change and everyone eventually goes to bed. The lobby empties one man at a time, quietly, the way a room empties when nobody wants to be the one who leaves first. The woman at the desk has our name now. Not the club's name. Ours."}},
+        {stamp:'PREGAME \u2022 THE ANTHEM',
+         sit:"They want both anthems. That's the custom here and nobody warned us. Their PA man asks, politely, whether we've 'brought a tape.' We have not brought a tape. What we have is a bus, and on that bus, a driver who sang in a church choir in 1958 and has mentioned it four times since Detroit Lakes. He has already stood up. He is already clearing his throat. Their PA man is looking at me and I am looking at you.",
+         a:{t:"Send the driver out there.", sub:"He's been waiting twenty-six years.", mod:0.02, morale:7, buzz:8,
+            out:"He walks out to center court in a windbreaker and sings it clean through, no accompaniment, in a voice that has plainly been maintained. Two thousand Canadians stand for a song that is not theirs, sung by a bus driver they will never see again. Ricky Malone is the first man on his feet on our bench and has never once been asked to explain that."},
+         b:{t:"Apologize. Skip ours.", sub:"Nobody will mind. He'll mind.", mod:0.0, cred:2, morale:-5,
+            out:"Their PA man is gracious about it and the building doesn't notice. The driver sits back down and says it's fine, twice, unprompted, which is how you know. He drove the whole way home the next day without the radio on."}} ],
+      [ {stamp:'PREGAME \u2022 THE LAUNDRY',
+         sit:"Nothing has been washed since Fargo. The motel has one machine and it takes quarters we do not have, because the rookie has the quarters, and the rookie is asleep in a chair in the lobby with his mouth open and nobody will wake him \u2014 not out of kindness, I don't think, but because it's become a thing to see. Bismarck's equipment manager has offered his laundry room. He offered it warmly. He also offered it to Fargo last month and Fargo has not stopped talking about it.",
+         a:{t:"Accept. Say thank you twice.", sub:"We owe a favor to a rival.", mod:0.02, morale:6, cred:-3,
+            out:"Twelve men in borrowed sweatpants sit on folding chairs in a rival equipment room at eleven at night watching a dryer turn. Their equipment manager brings out a coffee percolator and does not stay to be thanked. We owe Bismarck a favor now, formally, and I have opened a folder for it, because that is the kind of debt that comes back."},
+         b:{t:"Decline. We'll play in what we've got.", sub:"They'll smell us coming.", mod:0.01, buzz:6, morale:-4,
+            out:"We take the floor in four nights of road. Their crowd works it out around the second quarter and lets us know, at length, with real creativity. Hank calls it an advantage. Two of our men have privately requested that this never be spoken of again, and I have privately agreed, and then written it down."}},
+        {stamp:'PREGAME \u2022 THE PHOTOGRAPHER', req:'blob',
+         sit:"A man from the Bismarck paper wants ten minutes with Ricky before tip-off. Ricky has agreed, which is the problem, because Ricky has decided this is the interview where he explains the statue. He has notes. He has brought the notes with him from home. The photographer thinks he's getting a shooting-guard profile and is instead about to receive nine minutes on the artistic intent of an abstract bronze he has never seen and cannot picture.",
+         a:{t:"Let him talk.", sub:"Buzz is buzz.", mod:0.01, buzz:12, cred:-2,
+            out:"The piece runs Thursday under a headline about 'momentum' and includes, unedited, four hundred words in which Ricky Malone explains sculpture to North Dakota. Three separate people have since driven up to see the statue in person. Two were disappointed. One has come back twice."},
+         b:{t:"Ten minutes, no statue.", sub:"Somebody has to hold the line.", mod:0.02, cred:5, morale:-2,
+            out:"He does the ten minutes straight and gives a genuinely thoughtful interview about defensive footwork, which runs on page six and which he has not mentioned since. The notes went back in his bag. They are still in his bag. I've seen them."}} ]],
     /* THE SWING IS A SAGA: three nights, three separate owner calls, played in
        order so each can call back to the last. Night one is a logistics
        failure, night two is physical misery, night three is delirium that
@@ -2442,14 +2490,14 @@
     hotdishOutcomes:{
       win:{ fx:{cash:-150, morale:12, buzz:4, cred:2}, when:null,
         out:["Sunday night, your house holds the entire franchise. Three hotdishes deep \u2014 the classic, one with wild rice for the sophisticates, and the centerpiece: yours, its tots spelling LUMBERJACKS in eleven golden letters, which nobody will stop photographing and which Hank has inspected twice, letter by letter, nodding like a man auditing a miracle.",
-             "The Import eats in silence, finishes, looks at the empty pan, and says his first full unprompted English sentence on record: 'There is more?' There was more. Leo's contribution sits unopened in the center of the table like a monument. Tiny gives a toast that starts as a bit and lands, by accident, somewhere true \u2014 and for one night in the middle of a long winter, this is just a family that plays basketball.",
+             "The rookie eats in silence, finishes, looks at the empty pan, and says his first full unprompted English sentence on record: 'There is more?' There was more. Leo's contribution sits unopened in the center of the table like a monument. Tiny gives a toast that starts as a bit and lands, by accident, somewhere true \u2014 and for one night in the middle of a long winter, this is just a family that plays basketball.",
              "Sam does the dishes. In costume. Nobody asked. The sleeves did not survive."],
-        desk:"Hotdish Night, year one, is in the books: $150 in groceries against returns I have no column for. The centerpiece spelled LUMBERJACKS and was photographed more than the Cup would be. Leftovers: none, on account of the Import. The tradition is now annual \u2014 the team decided it on the way out the door, and traditions up here don't ask twice.",
+        desk:"Hotdish Night, year one, is in the books: $150 in groceries against returns I have no column for. The centerpiece spelled LUMBERJACKS and was photographed more than the Cup would be. Leftovers: none, on account of the rookie. The tradition is now annual \u2014 the team decided it on the way out the door, and traditions up here don't ask twice.",
         gaz:"OWNER'S HOTDISH SPELLS TEAM NAME; TRADITION DECLARED ANNUAL",
         news:"With no game scheduled, club ownership hosted the full roster for a tater tot hotdish supper at the owner's residence, the centerpiece of which spelled LUMBERJACKS in arranged tots. It was photographed extensively before being consumed entirely. The event was declared annual by consensus before departure, a mechanism this region recognizes as binding.", mood:'pleased' },
       lose:{ fx:{cash:-150, morale:7, buzz:3},
         out:["The centerpiece comes out of the oven saying something. What it says is not LUMBERJACKS. The team gathers around the pan in respectful silence, tilting their heads in unison like a flock changing direction, until Tiny \u2014 who has been waiting his whole life for this \u2014 pronounces it 'SLUMBERJACKS' and the kitchen comes apart.",
-             "They eat every tot of it. Loyally. Seconds, even, of the crooked letters specifically, which the Import points at before taking. Hank declares the burnt corner 'the only part cooked with conviction' and eats it standing up, facing the door. The night, against the casserole's best efforts, lands anyway.",
+             "They eat every tot of it. Loyally. Seconds, even, of the crooked letters specifically, which the rookie points at before taking. Hank declares the burnt corner 'the only part cooked with conviction' and eats it standing up, facing the door. The night, against the casserole's best efforts, lands anyway.",
              "Sam does the dishes. In costume. The sleeves did not survive. Some things are constants."],
         desk:"Hotdish Night, year one: the centerpiece was, spelling-wise, an incident, and is now team lore under a name I refuse to write down twice. They ate all of it anyway, which is the whole town in a sentence. The tradition is annual regardless \u2014 possibly BECAUSE. Next year we practice the letters first.",
         gaz:"TEAM HOTDISH SUPPER HELD; SPELLING DESCRIBED AS 'AMBITIOUS'",
@@ -3061,7 +3109,7 @@
     {who:'ricky', q:"Ricky Malone assessed his own contribution as \u201Cthe story here, if anybody\u2019s writing one.\u201D"},
     {who:'tiny', q:"Tiny McGee delivered a nine-minute review in the concourse afterward. A crowd formed. Very little of it concerned basketball."},
     {who:'leo', q:"Leo James, asked whether the minutes were catching up with him, said he felt fine. He is understood to be forty-nine. This newspaper has agreed not to pursue it."},
-    {who:'import', q:"The club's import was made available to reporters. The session ran four minutes and produced no words. Both parties later described it as productive."},
+    {who:'import', q:"The club's rookie was made available to reporters. The session ran four minutes and produced four words. Both parties later described it as productive."},
     {who:'sam', q:"Mascot Sawdust Sam was unavailable for comment, being in the trainer\u2019s room, as is customary."},
     {who:'ernie', q:"Ernie Kowalski, of Row F, offered an evaluation of the officiating that this newspaper has elected to summarize as unfavorable."},
     {who:'stokes', q:"The league office confirmed it was aware the game had occurred and had no comment at this time, a phrase Commissioner Larry Stokes used four times."},
@@ -3319,9 +3367,11 @@
        week's scene as soon as the week opens so it's cached well before the
        sequence asks for it. */
     if(current.scene) preloadVideo(current.scene);
-    if(current.nightScenes){
-      for(var ns=0; ns<current.nightScenes.length; ns++){
-        if(current.nightScenes[ns]) preloadVideo(current.nightScenes[ns]);
+    if(current.nightIntros){
+      for(var ns=0; ns<current.nightIntros.length; ns++){
+        if(current.nightIntros[ns] && current.nightIntros[ns].scene){
+          preloadVideo(current.nightIntros[ns].scene);
+        }
       }
     }
     el.next.style.display='none';
@@ -3566,7 +3616,7 @@
     if(GAMES>1) tipScene = null;
     else if(isPO) tipScene = (current.playoff==='final'?'tipoff_final':'tipoff_playoff');
     else if(when==='game' && current.sceneIsTipoff && current.scene) tipScene = current.scene;
-    else tipScene = (home ? 'tipoff_home' : 'tipoff_road');
+    else tipScene = (home ? 'tipoff_home' : ROAD_TIP_VARIANTS[Math.floor(Math.random()*ROAD_TIP_VARIANTS.length)]);
     var storySceneUsedAsTip = (tipScene === current.scene && !!current.scene);
     var tip = {kind:'text', text: tipText, scene: tipScene};
     var outs = ch.out.map(function(par,idx){
@@ -3599,13 +3649,20 @@
       mCards[1].querySelector('.txt').textContent=mo.b.t;
       mCards[1].querySelector('.sub').textContent=mo.b.sub;
     }
+    /* Win probability with no moment applied \u2014 pulled out so a pregame
+       call can measure its own contribution (stats already banked into S)
+       and hand that edge forward to the night's in-game call. */
+    function baseWinP(){
+      return 0.16 + S.morale*0.0035 + S.buzz*0.0015 + (fx.wins?0.12:0)
+           + (home?0.04:-0.04) + (S.flags.rosterEdge?0.025:0);
+    }
+    var pregameEdge = 0;
     function applyMoment(m){
       S.cash += m.cash||0;
       S.morale=clamp(S.morale+(m.morale||0));
       S.buzz=clamp(S.buzz+(m.buzz||0));
       S.cred=clamp(S.cred+(m.cred||0));
-      return 0.16 + S.morale*0.0035 + S.buzz*0.0015 + (fx.wins?0.12:0) + (m.mod||0)
-           + (home?0.04:-0.04) + (S.flags.rosterEdge?0.025:0);
+      return baseWinP() + (m.mod||0);
     }
     function resolveGame(g, p){
       var gFoe = FOELIST[g % FOELIST.length];
@@ -3626,22 +3683,58 @@
         var sw=0, sl=0;
         (function runNight(g){
           var mo = sagaMoments[g % sagaMoments.length];
-          showMomentUI(mo);
-          momentChoice=function(pick){
-            var m = pick===0?mo.a:mo.b;
-            var p = applyMoment(m);
-            var r = resolveGame(g, p);
-            if(r.won) sw++; else sl++;
-            var nightScene = (current.nightScenes && current.nightScenes[g]) || null;
-            var nightSteps=[{kind:'text', text:m.out, scene:nightScene}, r.step];
-            if(g+1 < GAMES){
-              /* back to the moment screen for the next night's call */
-              runSequence(nightSteps, null, function(){ runNight(g+1); }, momentS);
-            } else {
-              finishWeek(sw, sl, nightSteps, r.gsc);
-            }
-          };
-          fadeScreens(caw, momentS);
+          /* The night's owner call, once we're in the building. */
+          function askNight(fromScreen){
+            showMomentUI(mo);
+            momentChoice=function(pick){
+              var m = pick===0?mo.a:mo.b;
+              var p = applyMoment(m) + pregameEdge;
+              pregameEdge = 0; /* spent on this night only */
+              var r = resolveGame(g, p);
+              if(r.won) sw++; else sl++;
+              var nightSteps=[{kind:'text', text:m.out}, r.step];
+              if(g+1 < GAMES){
+                runSequence(nightSteps, null, function(){ runNight(g+1); }, momentS);
+              } else {
+                finishWeek(sw, sl, nightSteps, r.gsc);
+              }
+            };
+            fadeScreens(fromScreen, momentS);
+          }
+          /* Pregame call, drawn at random from this night's pool, played
+             between arriving and tipping off. Resolves like a moment but
+             does NOT resolve the game \u2014 its win-probability nudge is
+             banked and handed to the in-game call, so both decisions
+             count toward the same night's result. */
+          function askPregame(fromScreen, then){
+            var pool = (current.nightPregames && current.nightPregames[g]) || null;
+            /* A pregame may name something that only exists on a branch \u2014 the
+               Blob interview reads as nonsense if the statue was never
+               commissioned \u2014 so anything carrying `req` is filtered out
+               unless that flag is actually set. Pools must always leave at
+               least one ungated option or the night quietly loses its call. */
+            if(pool) pool = pool.filter(function(p){ return !p.req || S.flags[p.req]; });
+            if(!pool || !pool.length){ then(fromScreen); return; }
+            var pg = pool[Math.floor(Math.random()*pool.length)];
+            showMomentUI(pg);
+            momentChoice=function(pick){
+              var m = pick===0?pg.a:pg.b;
+              pregameEdge = applyMoment(m) - baseWinP();
+              runSequence([{kind:'text', text:m.out}], null,
+                          function(){ then(momentS); }, momentS);
+            };
+            fadeScreens(fromScreen, momentS);
+          }
+          /* Arrive first: nights after the opener roll the bus into town
+             before the disaster is presented, so each leg reads as travel
+             THEN trouble rather than one more decision on the same screen. */
+          var intro = (current.nightIntros && current.nightIntros[g]) || null;
+          if(intro){
+            runSequence([{kind:'text', text:intro.text, scene:intro.scene}],
+                        null, function(){ askPregame(caw, askNight); }, caw);
+          } else {
+            askPregame(caw, askNight);
+          }
         })(0);
         return;
       }
@@ -3894,7 +3987,7 @@
         "There's no more to the file. I wrote it."
       ]},
     { who:'hank', tab:'HANK', thick:'\u25AE\u25AE', name:'HANK WILLIS', meta:'Head Coach',
-      intro:"\u201CCoach Willis. Wins basketball games. I've stopped asking how.\n\nEvery third quarter he disappears into the men's room. Every fourth quarter we outscore them. I've timed how long he's gone. Knowing the number has not once helped me.\n\nHe's also banned water at practice. Says comfort is the enemy. I write that down. I don't ratify it.\u201D",
+      intro:"\u201CCoach Willis. Wins basketball games. I've stopped asking how.\n\nEvery third quarter he disappears into the men's room. I've timed how long he's gone. Knowing the number has not once helped me.\n\nHe's also banned water at practice. Says comfort is the enemy. I write that down. I don't ratify it.\u201D",
       file:[
         "WILLIS, HANK. Head coach. Hired 1979. Record: better than this roster has any business posting.",
         "Method: unestablished. Every third quarter he leaves for the men's room and returns with the plan that wins the fourth. I have never seen him write it down. I have checked. Twice.",
@@ -3921,13 +4014,18 @@
         "I have raised this with him twice. The first time he agreed with me. The second time he agreed with me again, warmly, and then the conversation was over and I could not tell you how it ended.",
         "Plays thirty minutes a night and has never asked to come out. The young fellas go to him before they go to Hank. Hank knows. Hank has never once mentioned it. That's the arrangement, it works, and I'd rather not be the one who examines it."
       ]},
-    { who:'import', tab:'IMPORT', thick:'\u25AE', name:'THE IMPORT', meta:'Point Guard \u2014 The Prodigy',
-      intro:"\u201CAnd that's the Import. Eighteen years old. Professional since he was thirteen, apparently.\n\nThe paperwork names a country. I've looked it up twice \u2014 once with the office atlas, once with a better atlas I bought with my own money.\n\nSpeaks no English. Not a word. Not hello. Fourteen months here, and he has never once been confused about anything that was happening.\u201D",
+    /* THE ROOKIE \u2014 formerly two separate characters (the Import and the
+       rookie of the gas-station story), now one man. The internal key stays
+       'import' purely so assets/portraits/import/ keeps resolving; rename
+       the folder and this key together if it ever bothers you. */
+    { who:'import', tab:'ROOKIE', thick:'\u25AE', name:'THE ROOKIE', meta:'Point Guard \u2014 The Prodigy',
+      intro:"\u201CAnd that's the rookie. Eighteen years old. Professional since he was thirteen, apparently.\n\nThe paperwork names a country. I've looked it up twice \u2014 once with the office atlas, once with a better atlas I bought with my own money.\n\nBarely speaks English. Fourteen months here, and he has never once been confused about anything that was happening.\u201D",
       file:[
-        "THE IMPORT. Point guard. Eighteen years old. Professional since thirteen, according to a document I have now read four times and do not fully accept.",
+        "THE ROOKIE. Point guard. Eighteen years old. Professional since thirteen, according to a document I have now read four times and do not fully accept.",
         "His name is on the contract. It is fourteen letters and nobody in this organization has attempted it out loud, including me, and I type for a living.",
         "Country of origin: stated on three documents, spelled three ways. I have consulted the office atlas and then a second atlas, purchased at my own expense, on a Saturday. The place may exist. I am not currently prepared to go further than that.",
-        "Speaks no English. Understands every single thing that happens in this building. I know this because I said something unkind about the coffee within earshot and he laughed. He has never let on since. Neither have I. We're square.",
+        "Barely speaks English. Understands every single thing that happens in this building. I know this because I said something unkind about the coffee within earshot and he laughed. He has never let on since. Neither have I. We're square.",
+        "Left at a filling station outside Brainerd for ninety minutes and did not once telephone to complain about it, which told the room more than fourteen months of practice had.",
         "Filed next to Leo James, which I did not plan and cannot now undo. One of them may be sixty. One of them may be twelve. The paperwork is equally confident about both. I have stopped opening these two folders on the same day."
       ]},
     { who:'sam', tab:'SAM', thick:'\u25AE\u25AE\u25AE\u25AE\u25AE\u25AE', name:'SAWDUST SAM', meta:'Mascot \u2014 Injured',
@@ -3997,7 +4095,7 @@
     {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
      text:"She's at the door before you are, holding a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CWelcome to the Lumberjack Shack. I'm Sandra \u2014 I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those. I'll let you pick which.\u201D"},
     {kind:'text', scene:'intro_files',
-     text:"The tour takes eleven minutes.\n\nThe arena smells like woodsmoke and old rubber. The lights over the court need a full minute to come up, and she waits through it without comment, because that's just the minute. There's a longer list of things like that \u2014 things the previous owner appeared to negotiate around instead of fix. She doesn't itemize it now.\n\nOn the way out she taps a folder on the desk. It's thicker than the rest. It says SAM.\n\n\u201CDon't ask. It's load-bearing.\u201D"},
+     text:"The tour takes eleven minutes.\n\nThe arena smells like woodsmoke and old rubber. The lights over the court need a full minute to come up, and she waits through it without comment, because that's just the minute. There's a longer list of things like that \u2014 things the previous owner appeared to negotiate around instead of fix. She doesn't itemize it now."},
     {kind:'text',
      text:"\u201CRight. The people.\n\nYou'll meet all of 'em whether you plan to or not \u2014 better we do it here, where nobody's bleeding and I control the order.\u201D\n\nShe starts with the coach."},
     castCard('hank'),
@@ -4117,7 +4215,7 @@
     }
     /* the four tip-off cutscenes are used almost every week \u2014 warm them now
        instead of racing a cold load the first time a game night needs one */
-    ['tipoff_home','tipoff_road','tipoff_playoff','tipoff_final'].forEach(preloadVideo);
+    ['tipoff_home','tipoff_playoff','tipoff_final'].concat(ROAD_TIP_VARIANTS).forEach(preloadVideo);
     /* The opening sequence plays on the coldest cache the game ever sees, and
        a video that misses probeArt's window auto-skips silently \u2014 which is
        exactly how the blizzard scene went missing. Warm these too. */
