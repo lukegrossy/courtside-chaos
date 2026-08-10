@@ -72,7 +72,11 @@
 
   /* CUTSCENE */
   #cut .art{position:absolute; inset:0; overflow:hidden;}
-  #cut .art img{position:absolute; inset:0; width:100%; height:100%;
+  /* img AND video must share this: styling only the img left #cutvid
+     unsized until its metadata arrived, so every tip-off rendered at the
+     browser's default video box and then snapped to full-bleed \u2014 the
+     "jump" on the home/away cutscenes. */
+  #cut .art img, #cut .art video{position:absolute; inset:0; width:100%; height:100%;
     object-fit:cover; object-position:center top;}
   .glow{position:absolute; width:300px; height:340px; pointer-events:none;
     background:radial-gradient(closest-side, rgba(255,233,180,.34), rgba(255,233,180,0) 72%);
@@ -627,17 +631,37 @@
     return {x:(parseFloat(s.paddingLeft)||0)+(parseFloat(s.paddingRight)||0),
             y:(parseFloat(s.paddingTop)||0)+(parseFloat(s.paddingBottom)||0)};
   }
-  function fit(){
+  /* iOS fires visualViewport 'resize' continuously while the URL bar slides,
+     and scaling the stage on every one of those events moves layout enough
+     to provoke the next event \u2014 a feedback loop the player sees as the
+     whole game shaking. Two guards: coalesce bursts into one rAF, and
+     ignore changes too small to be visible. Without the threshold the loop
+     can sustain itself on sub-pixel differences indefinitely. */
+  var lastScale=0, fitQueued=false;
+  function applyFit(){
+    fitQueued=false;
     var pad=insets();
     var availW=Math.min(480, window.innerWidth-pad.x);   /* cap is for desktop; 430 clipped a 16 Pro Max */
     var availH=window.innerHeight-pad.y;
     var scale=Math.min(availW/STAGE_W, availH/STAGE_H);
+    if(Math.abs(scale-lastScale) < 0.0025) return;       /* below perceptible; don't feed the loop */
+    lastScale=scale;
     phone.style.width=(STAGE_W*scale)+'px';
     phone.style.height=(STAGE_H*scale)+'px';
     stage.style.transform='scale3d('+scale+','+scale+',1)';
   }
+  function fit(){
+    if(fitQueued) return;
+    fitQueued=true;
+    requestAnimationFrame(applyFit);
+  }
   window.addEventListener('resize',fit);
-  window.addEventListener('orientationchange',function(){setTimeout(fit,120);});
+  window.addEventListener('orientationchange',function(){
+    /* Orientation genuinely changes the target size, so bypass the
+       threshold rather than letting a large legitimate change be
+       mistaken for jitter. */
+    setTimeout(function(){ lastScale=0; fit(); },120);
+  });
   if(window.visualViewport){ window.visualViewport.addEventListener('resize',fit); }
   fit();
 
@@ -4261,9 +4285,9 @@
     castCard('import'),
     castCard('sam'),
     {kind:'text', scene:'intro_numbers',
-     text:"\u201CFour numbers run this franchise. You'll see 'em every Monday, top of the desk.\n\nCASH is cash. Gate money in, payroll out. Payroll does not care how the week felt.\n\nMORALE is the fellas. Happy fellas win games. That's the only thing it does, and it's the only thing that does it.\n\nBUZZ is how many folks turn up. Buzz doesn't win you a single basket \u2014 it just fills the seats, and the seats are the money.\u201D"},
+     text:"\u201CFour numbers run this franchise. Top of the desk, every Monday.\n\nCASH is cash. Gate money in, payroll out.\n\nMORALE wins games. It's the only thing that does.\n\nBUZZ fills seats. It won't win you a single basket \u2014 but seats are the money.\u201D"},
     {kind:'text', scene:'intro_cred',
-     text:"\u201CAnd CRED. That's what the league thinks of you. Stokes. The refs. The other owners. The man in the gray suit \u2014 I'll get to him when I've had more coffee.\n\nIt's the cut we get on the road, and it's whose calls come in at all. Low enough and the phone just doesn't ring. You won't know what you missed. That's rather the point.\n\nBuzz fills the building tonight. Cred is whether anybody returns your call in five years.\n\nChase one, you lose the other. That's the whole job.\u201D"},
+     text:"\u201CAnd CRED. That's what the league thinks of you.\n\nIt's our cut on the road, and it's whose calls come in at all. Low enough and the phone stops ringing, and you won't know what you missed.\n\nBuzz fills the building tonight. Cred is whether anybody returns your call in five years.\u201D"},
     {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
      text:"\u201CYour first briefing is Monday morning. Don't be late.\n\nThe last owner was late.\u201D\n\nShe does not elaborate."}
   ];
