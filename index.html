@@ -446,6 +446,20 @@
   .hl .pg{color:var(--ink); font-weight:800; font-size:18px; margin-top:6px; letter-spacing:.5px;}
   .p1{left:60px;width:218px;} .p2{left:300px;width:248px;} .p3{left:568px;width:235px;}
   .green{color:var(--green);} .blue{color:var(--blue);} .amber{color:var(--amber);}
+  /* REDUCED MOTION. Screen changes here are opacity crossfades and the
+     ticker is a continuous marquee, both of which are exactly what this
+     setting exists to stop. Transitions are collapsed to near-zero rather
+     than removed outright: several of them fire callbacks on transitionend,
+     and setting `transition:none` would mean those never arrive and the
+     game would sit on a blank screen. */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration:.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.01ms !important;
+      scroll-behavior:auto !important;
+    }
+  }
 </style>
 </head>
 <body>
@@ -573,10 +587,10 @@
         <div class="hcell h2"><span class="lab">WEEK</span><span class="v blk" id="stWeek">01</span></div>
         <div class="hcell h3"><span class="lab">RECORD</span><span class="v blk" id="stRecord">0-0</span></div>
         <!-- 4-EQUAL-CELL CARD (y227-315, dividers x236/428/600): economy -->
-        <div class="cell s1"><span class="lab">CASH</span><span class="v blk green" id="stCash">$55,000</span></div>
-        <div class="cell s2"><span class="lab">MORALE</span><span class="v blk green" id="stMorale">72%</span></div>
-        <div class="cell s3"><span class="lab">BUZZ</span><span class="v blk amber" id="stBuzz">48%</span></div>
-        <div class="cell s4"><span class="lab">CRED</span><span class="v blk blue" id="stCred">36%</span></div>
+        <div class="cell s1" role="group" aria-label="Cash on hand"><span class="lab" aria-hidden="true">CASH</span><span class="v blk green" id="stCash" aria-live="polite">$40,000</span></div>
+        <div class="cell s2" role="group" aria-label="Team morale, percent. Wins games."><span class="lab" aria-hidden="true">MORALE</span><span class="v blk green" id="stMorale" aria-live="polite">72%</span></div>
+        <div class="cell s3" role="group" aria-label="Buzz, percent. Fills seats."><span class="lab" aria-hidden="true">BUZZ</span><span class="v blk amber" id="stBuzz" aria-live="polite">48%</span></div>
+        <div class="cell s4" role="group" aria-label="Credibility, percent. Opens doors."><span class="lab" aria-hidden="true">CRED</span><span class="v blk blue" id="stCred" aria-live="polite">36%</span></div>
         <div class="noteh" id="noteh">DAY ONE</div>
         <div class="notewrap" id="notewrap">
           <div class="notescroll" id="notescroll"><p>Monday morning. The actual first day, if we're not counting yesterday — which I'm not, since most of it was you meeting people through a folder.</p><p>Straight to business, then. Tiny worked the Open Mic downtown last night, and about thirty of his forty minutes were an impression of you. I'd call it unflattering. The room disagreed. Loudly.</p><p>So... what's the first order of business?</p></div>
@@ -4286,7 +4300,34 @@
   }
 
   /* ---------- SAVE / CONTINUE ---------- */
-  var SAVE_KEY='courtside_save_v2';
+  /* SAVE_VERSION is the schema number, bumped whenever the shape of S
+     changes in a way an older save can't satisfy by defaulting. The key
+     itself is deliberately NOT versioned any more: rotating the key
+     orphans saves silently (the player just finds a New Game button and
+     loses a season), whereas one key plus a version field lets us see the
+     old save and decide what to do with it. MIGRATIONS runs in order for
+     any version below current; anything it can't repair is discarded
+     honestly rather than half-loaded into an inconsistent state. */
+  var SAVE_KEY='courtside_save', SAVE_VERSION=3;
+  var MIGRATIONS = {
+    /* v2 -> v3: cred became a content gate and the season-end state band
+       was introduced. Both default cleanly, so this is a no-op beyond the
+       stamp \u2014 but it's here so the path exists and the next one has
+       somewhere obvious to go. */
+    2: function(d){ d.S.lastState = d.S.lastState || null; return d; }
+  };
+  function migrate(d){
+    var v = d.v || 1;
+    if(v > SAVE_VERSION) return null; /* save from a newer build; don't guess */
+    while(v < SAVE_VERSION){
+      var m = MIGRATIONS[v];
+      if(!m) return null;             /* no path from here; discard cleanly */
+      d = m(d); if(!d) return null;
+      v++;
+    }
+    d.v = SAVE_VERSION;
+    return d;
+  }
   function curId(){
     if(!current) return null;
     if(current.playoff==='semi') return '__semi';
@@ -4297,17 +4338,31 @@
   function saveGame(){
     try{
       localStorage.setItem(SAVE_KEY, JSON.stringify({
-        v:2, S:S,
+        v:SAVE_VERSION, S:S,
         deckIds:deck.map(function(d){return d.id;}),
         deckPos:deckPos, cur:curId()
       }));
     }catch(e){}
   }
-  function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+  function clearSave(){
+    try{
+      localStorage.removeItem(SAVE_KEY);
+      localStorage.removeItem('courtside_save_v2'); /* pre-versioning key */
+    }catch(e){}
+  }
   function loadGame(){
     try{
-      var raw=localStorage.getItem(SAVE_KEY); if(!raw) return false;
+      var raw=localStorage.getItem(SAVE_KEY);
+      /* One-time adoption of saves written before the key was unified, so
+         anyone mid-season across this change keeps their year. */
+      if(!raw){
+        raw=localStorage.getItem('courtside_save_v2');
+        if(raw){ try{ localStorage.setItem(SAVE_KEY, raw); localStorage.removeItem('courtside_save_v2'); }catch(e){} }
+      }
+      if(!raw) return false;
       var d=JSON.parse(raw); if(!d || !d.S) return false;
+      d = migrate(d);
+      if(!d){ clearSave(); return false; }
       S=d.S; S.flags=S.flags||{}; S.done=S.done||{}; S.met=S.met||{}; S.tw=S.tw||S.week||1;
       var byId={}; STORY.forEach(function(st){ byId[st.id]=st; });
       deck=(d.deckIds||[]).map(function(id){ return byId[id]; }).filter(Boolean);
