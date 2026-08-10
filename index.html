@@ -3000,6 +3000,25 @@
     if(st.maxCred!=null && S.cred > st.maxCred) return false;
     return true;
   }
+  /* How many stories are sitting just out of reach because of standing, and
+     what the nearest one costs. "Solely" is the important word: a story
+     that's also blocked for other reasons (already told, wrong season,
+     missing prerequisite) isn't something cred would fix, so counting it
+     would make Sandra warn about doors that aren't there. */
+  function credLocked(){
+    var n=0, nearest=null;
+    for(var i=0;i<STORY.length;i++){
+      var st=STORY[i];
+      if(st.minCred==null) continue;
+      if(S.cred >= st.minCred) continue;
+      if(st.once && S.flags['done_'+st.id]) continue;
+      if(st.minSeason && S.season < st.minSeason) continue;
+      if(st.needs && !S.flags[st.needs]) continue;
+      n++;
+      if(nearest===null || st.minCred < nearest) nearest = st.minCred;
+    }
+    return {n:n, nearest:nearest};
+  }
   function buildDeck(){
     deck=[]; deckPos=0;
     var mains = STORY.filter(function(st){
@@ -3300,7 +3319,8 @@
     if(S.flags.graceGrudge && !S.flags['done_grace_2']) extras.push("Also: Grace sent a Christmas card. It was addressed to the franchise, not to you. I'd treat that as the weather report it is.");
     if(S.flags.arenaShaky) extras.push("The building made it through the summer. The footnote holds. For now.");
     else if(S.flags.arenaFixed) extras.push("The building had a quiet summer \u2014 first one anybody can remember. The repairs are holding, and so, for once, is the roof's opinion of us.");
-    var p3="We're carrying "+fmtCash(S.cash)+" into the year"
+    var p3=(S.lastState && STATE_OPEN[S.lastState] ? STATE_OPEN[S.lastState]+" " : "")
+      + "We're carrying "+fmtCash(S.cash)+" into the year"
       + (S.cash<10000 ? ", which is thinner than I'd like, and I'd like you to hear the word 'thinner' in my voice."
                       : ". The books open clean.");
     var setup=[p1,p2].concat(extras).concat([p3,"First order of business for the new year, boss?"]);
@@ -3857,6 +3877,26 @@
             S.flags.sandraReturned=true;
             brief.unshift("First week back. I saw the sun \u2014 it's still up there, doing its one job, which puts it ahead of most of the league office. Before anything else: I gather you survived a week of Grace. She'll have said it reflects well on her, and you should let her have it, because it's cheaper than the alternative and I'm the one who priced the alternative. She refiled the whole cabinet alphabetical-inside-chronological, which is a small act of violence I've spent the morning undoing, and she took her ledger home with her the way she does, so you needn't go looking for it. The desk is immaculate and smells faintly of being judged. Good to be home. Now \u2014 bring me up to speed on what I missed.");
           }
+          /* STANDING, AUDIBLE. Cred gates decide which stories will deal at
+             all, and a locked story is otherwise indistinguishable from one
+             that simply didn't come up this week \u2014 the player loses content
+             and never learns why. Sandra registers the silence instead:
+             never naming what's being missed (that spoils it), never every
+             week (that nags), tone scaling with how far short we are. */
+          var lock = credLocked();
+          if(lock.n>0 && !isPO && S.tw >= (S.flags.credNagWeek||0) + 4){
+            S.flags.credNagWeek = S.tw;
+            var gap = lock.nearest - S.cred;
+            brief.push(
+              gap>=25 ? "Quiet week on the telephone. Not no-news quiet \u2014 the other kind. There are rooms in this league where our name comes up and the subject gets changed, and I've been in this chair long enough to hear that happening from here."
+            : gap>=12 ? "Nothing came in this week worth opening. That's twice now. I'm not saying it's a pattern, I'm saying I've started a folder in case it becomes one."
+            : "Somebody nearly called this week. I can tell, because Doris at the exchange mentioned it and then didn't finish the sentence. We're close to being worth the toll charge. Not there."
+            );
+          }
+          if(lock.n===0 && S.flags.credNagWeek && !S.flags.credThaw && !isPO){
+            S.flags.credThaw = true;
+            brief.push("The phone's ringing again, by the way. I won't say who \u2014 half of them hang up when I answer, which is its own kind of respect \u2014 but it's ringing. That took some doing.");
+          }
           if(S.cash<0){
             S.debtWeeks++;
             if(S.debtWeeks===1)      brief.push("And the ledger's red. Gerald from First Federal called before I'd hung up my coat. We have two weeks to get back in the black before the bank, quote, 'explores its options.' Gerald doesn't explore, boss. Gerald forecloses.");
@@ -3902,6 +3942,32 @@
     }
   }
 
+  /* THE STATE OF THE CLUB. Record alone was doing all the work at season's
+     end \u2014 a broke, disreputable, miserable 9-9 read identically to a
+     solvent, respected, happy 9-9. This scores the things the player
+     actually spent the year moving, so the closing beat (and next year's
+     opener) can tell the difference. Bands, not a number: the player never
+     sees the score, only Sandra's read of it. */
+  function clubState(){
+    var s=0;
+    s += S.cash>=30000?2:(S.cash>=12000?1:(S.cash>=0?0:-2));
+    s += S.cred>=60?2:(S.cred>=40?1:(S.cred>=22?0:-2));
+    s += S.morale>=65?2:(S.morale>=45?1:(S.morale>=28?0:-2));
+    s += S.wins>S.losses?1:(S.wins===S.losses?0:-1);
+    return s>=6?'thriving':(s>=3?'holding':(s>=-1?'strained':'grim'));
+  }
+  var STATE_CLOSE = {
+    thriving:"And the club itself is in good order, which I don't say often and won't repeat. The books are healthy, the fellas are happy, and people who used to talk past us now talk to us. Whatever you did this year, do it again.",
+    holding:"The club is roughly where we found it, which after a winter up here counts as a result. Nothing's on fire. Some things are warm. I'll take warm.",
+    strained:"I'll be straight with you, because the alternative is a memo. We're thinner than we were in every way that shows up in this cabinet. Not dangerous yet. Adjacent to it.",
+    grim:"I'm going to put this in the file plainly, because one day somebody will read it. The money's short, the fellas are flat, and our name doesn't open anything. Clubs don't usually get a third year of this. I'd like us to be the exception. I'd like it more if we planned to be."
+  };
+  var STATE_OPEN = {
+    thriving:"We come into it in decent shape, which I've written down in case the year takes it back.",
+    holding:"We come into it about even. Even is a starting position. I've had worse ones.",
+    strained:"We come into it thin. I've moved a few things forward in the cabinet that I'd rather not have needed to.",
+    grim:"We come into it in trouble, and I'm not going to dress it. I've kept the bank's letters in their own folder now, which is the first time I've had to do that for anyone."
+  };
   /* THE SEASON FILE. Sandra's recap is prose and moves fast; this is the
      other thing a filing clerk would produce \u2014 the itemized record of what
      the owner actually did, drawn from the flags the season set. Only fires
@@ -3963,6 +4029,7 @@
       recap = recap.concat(file);
     }
     recap.push(
+      STATE_CLOSE[clubState()],
       (S.flags.samFolder ? "The SAM folder is load-bearing now. Structurally. The cabinet leans on it." : "The SAM folder stayed manageable this year. I've noted the miracle."),
       (S.flags.graceGrudge && !S.flags['done_grace_2'] ? "One more thing. Grace called. She says she'll 'see you next season.' She let the pause before 'season' run long. Sleep well." :
         (S.flags.arenaShaky ? "The inspector drove past twice this month without stopping, which from him is a wellness check. The footnote holds. For now." :
@@ -3972,6 +4039,7 @@
     );
     setNote(recap, 'ledger');
     el.call.style.display='none';
+    S.lastState = clubState(); /* banked before the new year resets W/L */
     setNextBtn('SEASON '+(S.season+1)+' \u25B6','New year. New folder.');
     el.next.style.display='';
     render();
