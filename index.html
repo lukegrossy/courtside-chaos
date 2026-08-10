@@ -907,7 +907,13 @@
    ============================================================ */
 (function(){
   /* ---------- STATE ---------- */
-  var S = { cash:55000, morale:72, buzz:48, cred:36,
+  /* Opening balance. Tuned by simulation, not vibes: at $55,000 the club
+     could not go broke in a full season under any play style (0-2% across
+     8,000 simulated seasons), which made Gerald, the debt-week warnings and
+     the whole bank ending decorative. At $40,000 careless play busts ~37%
+     of the time, ordinary play ~14%, and careful play ~3% \u2014 the ledger is
+     now something you can actually lose. */
+  var S = { cash:40000, morale:72, buzz:48, cred:36,
             week:1, wins:0, losses:0, streak:0, last:null,
             venue:'HOME', foe:'FARGO', flags:{}, done:{}, met:{},
             season:1, tw:1, stage:'regular', debtWeeks:0, champs:0,
@@ -916,8 +922,19 @@
   /* ---------- ECONOMY (tune here, not in the ledger logic) ----------
      Home gate = HOME_BASE + buzz*BUZZ_K + cred*CRED_K + (win?WIN_K:0).
      Road = a flat share minus travel. Playoffs multiply the take.     */
+  /* ECONOMY \u2014 each stat owns one lever, deliberately, so no single number
+     is strictly dominant:
+       BUZZ  \u2192 home gate only. Sells tickets, wins nothing.
+       CRED  \u2192 the visitor's cut we can negotiate, plus a smaller home
+               effect, plus it gates which stories will deal at all. A club
+               nobody respects gets the standard road split and none of the
+               phone calls.
+       MORALE\u2192 win probability only. Doesn't sell a single ticket.
+     Previously buzz drove BOTH gate and win probability while cred was worth
+     $10/point and nothing else, which made buzz the only stat worth playing
+     for and made the moral ledger decorative. */
   var ECON = { PAYROLL:3050, HOME_BASE:760, BUZZ_K:17.5, CRED_K:10, WIN_K:290,
-               ROAD_SHARE:1480, TRAVEL:800, PO_HOME:1.6, PO_ROAD:1.4 };
+               ROAD_SHARE:1480, ROAD_CRED_K:11, TRAVEL:800, PO_HOME:1.6, PO_ROAD:1.4 };
 
   /* ---------- SANDRA MOODS (placeholder swap) ----------
      Drop PNGs at assets/portraits/sandra/{mood}.png and they
@@ -2122,7 +2139,7 @@
         desk:"Refund: $800. Sam's mourning: ongoing, backwards. The return note is in the SAM folder now. The folder accepts all things.",
         gaz:"OVERSIZED HEAD RETURNED; MANUFACTURER OMINOUS", news:"The club has returned an oversized mascot head for partial refund. Sam has responded by wearing the old head backwards at practice, in mourning. The manufacturer's return note read, in full: 'They always come back.' It was not signed.", mood:'dry' } ] },
 
-  { id:'stokes_favor', title:'COMMISSIONER STOKES WANTS A FAVOR', mood:'dry',
+  { id:'stokes_favor', minCred:35, title:'COMMISSIONER STOKES WANTS A FAVOR', mood:'dry',
     setup:[
       "Commissioner Larry Stokes called. Person-to-person, which means he wants something, because Larry communicates via press release when he's giving and via warmth when he's taking.",
       "The favor: his nephew. A 'promising young man' with a 'unique skill set' who needs 'a foot in the door' \u2014 specifically our door, specifically the assistant equipment manager position, specifically before Thursday, when, coincidentally, the league votes on next year's schedule and who gets the holiday home games.",
@@ -2222,7 +2239,7 @@
         desk:"Trade: attempted, punished, withdrawn. The vigil's candle count: 74. Sam lit his own. I let this happen to you on purpose and I'd do it again.",
         gaz:"VIGIL HELD FOR LIVING MASCOT; MANAGEMENT ATTENDS BRIEFLY", news:"The club explored trading Sawdust Sam to Bismarck for a t-shirt cannon. The town learned of it within the hour. By evening, seventy-four candles had appeared on the sidewalk outside the arena. Sam attended the vigil in costume and lit one for himself. The trade has collapsed.", mood:'grim' } ] },
 
-  { id:'scout_speaks', title:'THE SCOUT SPEAKS', mood:'grim', needs:'scoutSeen', once:true,
+  { id:'scout_speaks', title:'THE SCOUT SPEAKS', mood:'grim', needs:'scoutSeen', once:true, minCred:40,
     setup:[
       "He asked for a meeting. The man from Row A. He asked through the usher, by name, at the exact moment I was thinking about him, which I've decided is a coincidence because the alternative is unacceptable.",
       "He sat across from your desk, set down one index card, and left. No pitch. No terms. No name. The card is in front of me now. On it, typed \u2014 typed, on a card \u2014 is a list of five weaknesses. Ours. Four of them we knew. The fifth one we didn't, and it's the true one, and I've been staring at it for an hour.",
@@ -2503,7 +2520,7 @@
         gaz:"TEAM HOTDISH SUPPER HELD; SPELLING DESCRIBED AS 'AMBITIOUS'",
         news:"Club ownership hosted the full roster for a tater tot hotdish supper during the open week. The centerpiece, intended to spell the team name in arranged tots, was reported to spell something adjacent to it. It was nonetheless consumed in its entirety, portions of it by request. The event was declared annual by consensus.", mood:'dry' } } },
 
-  { id:'assoc_rumor', title:'THE EXPANSION RUMOR', mood:'grim', once:true,
+  { id:'assoc_rumor', minCred:55, title:'THE EXPANSION RUMOR', mood:'grim', once:true,
     setup:[
       "A rumor reached the diner before it reached my desk, which tells you it's either completely false or completely true. The Association \u2014 the big one, the one that doesn't advertise \u2014 is looking to expand. The state has been earmarked. And the version going around says they'd rather license an existing club than build one from dirt.",
       "Which would put every team in this league in a beauty pageant nobody has officially announced, judged by people nobody has officially met. The man with the legal pad has been seen twice this month. He ordered pie. He watched the room. He wrote one thing.",
@@ -2552,7 +2569,7 @@
         gaz:"ARENA RENOVATION COMPLETE; SEVERAL SEATS FACE WRONG WAY",
         news:"The club has completed arena works funded by the Lindqvist estate, employing a contractor whose vehicles display multiple company names. A portion of the bequest is understood to have returned to club operations through what documents term administrative efficiencies. Some new seating faces marginally away from the court, which the contractor states is within tolerance.", mood:'grim' } ] },
 
-  { id:'techco_sponsor', title:'THE COMPUTER PEOPLE', mood:'pleased', once:true,
+  { id:'techco_sponsor', minCred:45, title:'THE COMPUTER PEOPLE', mood:'pleased', once:true,
     needs:'premiumArena', notBefore:{flag:'bequestWeek', plus:3},
     setup:[
       "Three men in identical gray blazers toured the renovated building this morning, taking notes on machines the size of hymnals. Tamarack Data Systems. They make business computers in an old creamery near the Cities and they are, their card says, 'the future of northern commerce,' which is a bold claim for a card.",
@@ -2787,7 +2804,7 @@
         desk:"Ceremony: parking lot, unauthorized arch, one open window (investigation concluded: no). Rice swept: four pounds. The word 'no' has been entered in the town's ledger, which unlike mine has no eraser.",
         gaz:"PARKING LOT WEDDING OUTDRAWS DOORS; RICE DELAYS SWEEP", news:"A couple declined halftime accommodation by the club were married in the arena parking lot before six hundred attendees. Organ accompaniment reached the ceremony through a window that opened by no known agency. The wedding party attended the game in full dress and threw rice at intervals. The club's decision has been widely noted.", mood:'grim' } ] },
 
-  { id:'radio_deal', title:'THE VOICE OF THE JACKS', mood:'base', scene:'radio',
+  { id:'radio_deal', minCred:30, title:'THE VOICE OF THE JACKS', mood:'base', scene:'radio',
     setup:[
       "KTMB is dropping us. The station manager says basketball 'doesn't move product like the polka hour,' and he has charts, and I'll be honest with ya, the charts are compelling.",
       "Which brings me to the microphone. I said I'd tell you about the microphone. It has not been plugged into anything since 1979, and I found that out on a Tuesday, from a man holding a ladder.",
@@ -2971,11 +2988,24 @@
   /* ---------- SEASON DECK ---------- */
   var deck=[], deckPos=0, current=null, phase='setup', momentChoice=null, pendingRoute=null;
   var STORY_BY_ID={}; STORY.forEach(function(st){ STORY_BY_ID[st.id]=st; });
+  /* CREDIBILITY AS A DOOR. A story may require a floor of standing
+     (minCred) or only show up while we're still disreputable (maxCred).
+     This is what stops cred from being a decorative number: the Association
+     doesn't scout a circus, an estate doesn't leave its money to one, and
+     the league office doesn't do favors for a club it's embarrassed by.
+     Cred is re-checked every time the deck is built, so a story locked out
+     early can become available later in the same save \u2014 and vice versa. */
+  function credOK(st){
+    if(st.minCred!=null && S.cred < st.minCred) return false;
+    if(st.maxCred!=null && S.cred > st.maxCred) return false;
+    return true;
+  }
   function buildDeck(){
     deck=[]; deckPos=0;
     var mains = STORY.filter(function(st){
       return st.id!=='tiny_openmic' && !st.needs && !(st.once && S.flags['done_'+st.id])
-        && (!st.minSeason || S.season>=st.minSeason);
+        && (!st.minSeason || S.season>=st.minSeason)
+        && credOK(st);
     });
     var arena  = mains.filter(function(st){return st.id==='arena_condemned';});
     var possum = mains.filter(function(st){return st.id==='possum_fusebox';});
@@ -3013,6 +3043,7 @@
       if(st.once && S.flags['done_'+st.id]) return false;
       if(st.minSeason && S.season<st.minSeason) return false;
       if(st.notBefore && S.tw < (S.flags[st.notBefore.flag]||0) + st.notBefore.plus) return false;
+      if(!credOK(st)) return false;
       return true;
     });
     if(pool.length && Math.random()<0.6){ return pool[0]; }
@@ -3144,7 +3175,7 @@
         gate += take;
       }
     } else {
-      gate = ECON.ROAD_SHARE*games;
+      gate = (ECON.ROAD_SHARE + S.cred*ECON.ROAD_CRED_K)*games;
       if(po) gate = gate*ECON.PO_ROAD;
       costs += ECON.TRAVEL*games;
     }
@@ -3653,7 +3684,7 @@
        call can measure its own contribution (stats already banked into S)
        and hand that edge forward to the night's in-game call. */
     function baseWinP(){
-      return 0.16 + S.morale*0.0035 + S.buzz*0.0015 + (fx.wins?0.12:0)
+      return 0.13 + S.morale*0.0048 + (fx.wins?0.12:0)
            + (home?0.04:-0.04) + (S.flags.rosterEdge?0.025:0);
     }
     var pregameEdge = 0;
@@ -3871,6 +3902,41 @@
     }
   }
 
+  /* THE SEASON FILE. Sandra's recap is prose and moves fast; this is the
+     other thing a filing clerk would produce \u2014 the itemized record of what
+     the owner actually did, drawn from the flags the season set. Only fires
+     for flags that represent a decision the player made, not bookkeeping
+     ones, so the list reads as consequences rather than a debug dump. */
+  var SEASON_FILE = [
+    ['blob',           "The statue went up. It depicts nobody. The town gives directions by it."],
+    ['premiumArena',   "The arena was done properly. Eight thousand seats and not one of them apologizes."],
+    ['shoddyArena',    "The arena was done cheaply. It invoices us a little every week, forever, like a subscription to regret."],
+    ['arenaShaky',     "The inspector's footnote is still open. So is the northeast roof, in a sense."],
+    ['arenaFixed',     "The building was made sound. Nobody noticed, which is what sound buildings are for."],
+    ['waltOnAir',      "Walt is on the air. Genuinely, this time. The microphone is connected to something."],
+    ['waltGone',       "Walt is off the air. He still prepares four hours a night. I've stopped asking who for."],
+    ['scoutSeen',      "The man in the gray suit sat courtside and wrote nothing down that I could see."],
+    ['scoutApproved',  "The Scout left satisfied. He did not say so. He didn't have to."],
+    ['graceRespected', "Grace was treated well and has said so to eleven people, four of whom matter."],
+    ['graceGrudge',    "Grace was not treated well. Grace keeps her own ledger. Grace remembers."],
+    ['vernRetired',    "Vern came home and we retired his number. He hated the ceremony and loved the plaque."],
+    ['vernBack',       "Vern came home. No ceremony. He asked for none and got none, which he called 'about right.'"],
+    ['crate61',        "The 1961 crate was opened. Four of them are still alive. Three came."],
+    ['dairy',          "The dairy business is settled, in the legal sense. Not in the other sense."],
+    ['stokesFavor',    "Commissioner Stokes owes us one. He'll remember it differently."],
+    ['assocRumor',     "The Association has been asking about us. Asking is not the same as calling."],
+    ['brendaLives',    "Brenda is still with us and still the only reason the concourse works."],
+    ['busCrew',        "The bus crew stayed together. That's not nothing over a winter."],
+    ['asteriskSeason', "There's an asterisk on this season. It will come due. They always do."]
+  ];
+  function seasonFileLines(){
+    var out=[];
+    for(var i=0;i<SEASON_FILE.length;i++){
+      if(S.flags[SEASON_FILE[i][0]]) out.push("\u2014 " + SEASON_FILE[i][1]);
+    }
+    return out;
+  }
+
   /* ---------- SEASON RECAP & THE NEXT YEAR ---------- */
   function seasonRecap(){
     phase='recap'; S.stage='recap'; current=null;
@@ -3886,17 +3952,25 @@
       : (S.wins===S.losses
         ? "Dead even. The most honest record a team can post. The ledger respects it."
         : "A losing season, but the building's still standing, the folders are current, and nobody was traded to Bismarck. Around here that's called momentum.");
-    setNote([
+    var recap = [
       "Well. That's Season "+S.season+", then: "+S.wins+" wins, "+S.losses+" losses, "+poLine,
       verdict,
-      "Cash on hand: " + fmtCash(S.cash) + ". Morale's at " + S.morale + "%, buzz at " + S.buzz + "%, and our credibility \u2014 " + S.cred + "% \u2014 is a number I'll let you interpret privately.",
+      "Cash on hand: " + fmtCash(S.cash) + ". Morale's at " + S.morale + "%, buzz at " + S.buzz + "%, and our credibility \u2014 " + S.cred + "% \u2014 is a number I'll let you interpret privately."
+    ];
+    var file = seasonFileLines();
+    if(file.length){
+      recap.push("For the record, since somebody has to keep one:");
+      recap = recap.concat(file);
+    }
+    recap.push(
       (S.flags.samFolder ? "The SAM folder is load-bearing now. Structurally. The cabinet leans on it." : "The SAM folder stayed manageable this year. I've noted the miracle."),
       (S.flags.graceGrudge && !S.flags['done_grace_2'] ? "One more thing. Grace called. She says she'll 'see you next season.' She let the pause before 'season' run long. Sleep well." :
         (S.flags.arenaShaky ? "The inspector drove past twice this month without stopping, which from him is a wellness check. The footnote holds. For now." :
         (S.flags.scoutApproved ? "Row A was empty for the finale. On the seat: nothing. Which, from him, reads as applause." :
          "The lake's frozen, the coffee's on, and next season's folder is already labeled."))),
       "See ya in Season "+(S.season+1)+", boss."
-    ], 'ledger');
+    );
+    setNote(recap, 'ledger');
     el.call.style.display='none';
     setNextBtn('SEASON '+(S.season+1)+' \u25B6','New year. New folder.');
     el.next.style.display='';
@@ -4105,9 +4179,9 @@
     castCard('import'),
     castCard('sam'),
     {kind:'text', scene:'intro_numbers',
-     text:"\u201CFour numbers run this franchise. You'll see 'em every Monday, top of the desk.\n\nCASH is cash. Gate money in, payroll out. Payroll does not care how the week felt.\n\nMORALE is the fellas. BUZZ is how many folks turn up to watch the fellas.\u201D"},
+     text:"\u201CFour numbers run this franchise. You'll see 'em every Monday, top of the desk.\n\nCASH is cash. Gate money in, payroll out. Payroll does not care how the week felt.\n\nMORALE is the fellas. Happy fellas win games. That's the only thing it does, and it's the only thing that does it.\n\nBUZZ is how many folks turn up. Buzz doesn't win you a single basket \u2014 it just fills the seats, and the seats are the money.\u201D"},
     {kind:'text', scene:'intro_cred',
-     text:"\u201CAnd CRED. That's what the league thinks of you. Stokes. The refs. The other owners. The man in the gray suit \u2014 I'll get to him when I've had more coffee.\n\nBuzz fills the building tonight. Cred is whether anybody returns your call in five years.\n\nChase one, you lose the other. That's the whole job.\u201D"},
+     text:"\u201CAnd CRED. That's what the league thinks of you. Stokes. The refs. The other owners. The man in the gray suit \u2014 I'll get to him when I've had more coffee.\n\nIt's the cut we get on the road, and it's whose calls come in at all. Low enough and the phone just doesn't ring. You won't know what you missed. That's rather the point.\n\nBuzz fills the building tonight. Cred is whether anybody returns your call in five years.\n\nChase one, you lose the other. That's the whole job.\u201D"},
     {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
      text:"\u201CYour first briefing is Monday morning. Don't be late.\n\nThe last owner was late.\u201D\n\nShe does not elaborate."}
   ];
