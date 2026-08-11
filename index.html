@@ -487,6 +487,17 @@
    reading a phone console mid-play isn't practical. */
 window.__BUILD__ = 'bottom-anchor-1';
 console.log('Courtside Chaos build', window.__BUILD__);
+/* TEMPORARY: visible build marker. iOS home-screen web apps cache the shell
+   aggressively and a Safari reload doesn't clear them, so a "fix didn't
+   work" report is ambiguous between a bad fix and a stale build. This makes
+   the running version readable from any screenshot. Remove before release. */
+document.addEventListener('DOMContentLoaded', function(){
+  var t=document.createElement('div');
+  t.textContent=window.__BUILD__;
+  t.style.cssText='position:fixed;right:3px;bottom:2px;z-index:99997;'
+    +'font:9px/1 monospace;color:rgba(255,255,255,.38);pointer-events:none;';
+  document.body.appendChild(t);
+});
 window.addEventListener('error', function(e){
   var msg = (e.message||'?') + ' @ ' + (e.filename||'inline') + ':' + (e.lineno||'?') + ':' + (e.colno||'?');
   if(e.error && e.error.stack) msg += '\n' + e.error.stack.split('\n').slice(0,3).join('\n');
