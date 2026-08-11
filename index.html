@@ -725,6 +725,32 @@ window.addEventListener('unhandledrejection', function(e){
   if(window.visualViewport){ window.visualViewport.addEventListener('resize',fit); }
   fit();
 
+  /* Layout diagnostic, opt-in via ?debug=1. Chromium reports a zero
+     safe-area inset, so the notched-device path can't be reproduced
+     headlessly \u2014 this reports the real numbers from the device itself
+     rather than having them inferred. Never renders unless asked for. */
+  if(/[?&]debug=1/.test(location.search)){
+    var dbg=document.createElement('div');
+    dbg.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99998;'
+      +'background:rgba(0,90,0,.92);color:#fff;font:11px/1.4 monospace;padding:6px;';
+    document.body.appendChild(dbg);
+    var paint=function(){
+      var ph=phone.getBoundingClientRect();
+      dbg.textContent =
+        'innerH='+window.innerHeight+' innerW='+window.innerWidth
+        +' vv='+(window.visualViewport?Math.round(window.visualViewport.height):'-')
+        +' | inset='+safeInsetTop().toFixed(1)+' pad='+(parseFloat(document.body.style.paddingTop)||0).toFixed(1)
+        +' scale='+lastScale.toFixed(4)
+        +' | phone top='+ph.top.toFixed(1)+' bot='+ph.bottom.toFixed(1)+' h='+ph.height.toFixed(1)
+        +' w='+ph.width.toFixed(1)
+        +' | gapBottom='+(window.innerHeight-ph.bottom).toFixed(1)
+        +' gapSide='+((window.innerWidth-ph.width)/2).toFixed(1);
+    };
+    paint();
+    window.addEventListener('resize',function(){ setTimeout(paint,60); });
+    setInterval(paint, 1000);
+  }
+
   /* ---------- 80s MIDI-STYLE TITLE THEME (WebAudio) ---------- */
   var AC=null, master=null, delaySend=null, musicOn=false, loopTimer=null, nextLoop=0;
   var BPM=104, BEAT=60/BPM, BAR=BEAT*4, LOOP=BAR*4;
