@@ -23,11 +23,10 @@
   html,body{margin:0; height:100%;}
   body{background:#000; display:flex; align-items:center; justify-content:center;
     min-height:100dvh; overflow:hidden;
-    /* No padding at all now. Reserving the top inset here shrank the whole
-       frame to buy clearance the art didn't actually need once scaled \u2014 it
-       cost ~7% of the play area on every notched iPhone. The stage now takes
-       the full viewport and shifts its own contents down by the inset
-       instead, so the Dynamic Island is cleared without giving up size. */
+    /* padding-top is set by applyFit(), which reserves only the few px
+       actually needed to clear the Dynamic Island rather than the whole
+       inset. Sides/bottom stay zero: the frame's dead margin below y1788
+       already absorbs the home indicator. */
     padding:0;
     font-family:"Helvetica Neue",Arial,sans-serif;}
 
@@ -465,6 +464,37 @@
     }
   }
 </style>
+<script>
+/* BUILD STAMP + ERROR SURFACE.
+   Safari's console reports inline-script failures as a bare "Script error."
+   with no message, file or line, which makes on-device debugging guesswork.
+   This runs before everything else so it catches boot-time throws too, and
+   prints the real details to the console AND paints them on screen, since
+   reading a phone console mid-play isn't practical. */
+window.__BUILD__ = '2025-08-10c';
+console.log('Courtside Chaos build', window.__BUILD__);
+window.addEventListener('error', function(e){
+  var msg = (e.message||'?') + ' @ ' + (e.filename||'inline') + ':' + (e.lineno||'?') + ':' + (e.colno||'?');
+  if(e.error && e.error.stack) msg += '\n' + e.error.stack.split('\n').slice(0,3).join('\n');
+  console.log('[ERR] ' + msg);
+  try{
+    var box = document.getElementById('__errbox');
+    if(!box){
+      box = document.createElement('div');
+      box.id = '__errbox';
+      box.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;'
+        + 'background:rgba(120,0,0,.94);color:#fff;font:11px/1.35 monospace;'
+        + 'padding:8px;white-space:pre-wrap;max-height:38vh;overflow:auto;';
+      box.addEventListener('click', function(){ box.remove(); });
+      (document.body||document.documentElement).appendChild(box);
+    }
+    box.textContent += msg + '\n\n';
+  }catch(_){}
+});
+window.addEventListener('unhandledrejection', function(e){
+  console.log('[REJECT] ' + (e.reason && (e.reason.stack||e.reason.message) || e.reason));
+});
+</script>
 </head>
 <body>
 <div class="phone">
@@ -626,39 +656,45 @@
      stage clips their painted edges. Letterboxing is the correct
      trade here unless every art asset is re-authored at a new aspect. */
   var STAGE_W=853, STAGE_H=1844;
-  /* iOS fires visualViewport 'resize' continuously while the URL bar slides,
+  /* Highest readable UI sits at stage y96 (measured \u2014 the FILING CABINET
+     header; everything above it is full-bleed art that reads fine under the
+     Dynamic Island). Scaled down, y96 is already most of the way past the
+     inset, so reserving the FULL inset as padding over-paid by ~40px of
+     frame height on every notched iPhone. Solve for the least padding P
+     that still clears it:  P + TOP_UI*(H-P)/STAGE_H >= inset.
+     Still padding rather than a stage transform: translating the stage
+     pushes content past the frame's overflow clip, which is what broke tap
+     targets when this was attempted before. */
+  var TOP_UI = 96, insetTopPx = null;
+  function safeInsetTop(){
+    if(insetTopPx !== null) return insetTopPx;
+    var probe=document.createElement('div');
+    probe.style.cssText='position:fixed;top:0;left:0;width:1px;'
+      + 'height:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none;';
+    document.body.appendChild(probe);
+    insetTopPx = probe.getBoundingClientRect().height || 0;
+    probe.parentNode.removeChild(probe);
+    return insetTopPx;
+  }  /* iOS fires visualViewport 'resize' continuously while the URL bar slides,
      and scaling the stage on every one of those events moves layout enough
      to provoke the next event \u2014 a feedback loop the player sees as the
      whole game shaking. Two guards: coalesce bursts into one rAF, and
      ignore changes too small to be visible. Without the threshold the loop
      can sustain itself on sub-pixel differences indefinitely. */
   var lastScale=0, fitQueued=false;
-  function safeTop(){
-    var probe=document.createElement('div');
-    probe.style.cssText='position:fixed;top:0;height:env(safe-area-inset-top,0px);visibility:hidden;';
-    document.body.appendChild(probe);
-    var v=probe.getBoundingClientRect().height||0;
-    document.body.removeChild(probe);
-    return v;
-  }
   function applyFit(){
     fitQueued=false;
-    var availW=Math.min(480, window.innerWidth);
-    var availH=window.innerHeight;
+    var H=window.innerHeight, inset=safeInsetTop(), k=TOP_UI/STAGE_H;
+    var pad=Math.max(0, Math.min(inset, (inset - k*H)/(1-k)));
+    var availW=Math.min(480, window.innerWidth);   /* cap is for desktop; 430 clipped a 16 Pro Max */
+    var availH=H-pad;
     var scale=Math.min(availW/STAGE_W, availH/STAGE_H);
     if(Math.abs(scale-lastScale) < 0.0025) return;       /* below perceptible; don't feed the loop */
     lastScale=scale;
+    document.body.style.paddingTop=pad+'px';
     phone.style.width=(STAGE_W*scale)+'px';
     phone.style.height=(STAGE_H*scale)+'px';
-    /* Clear the Dynamic Island by nudging the stage's content down rather
-       than shrinking the whole frame to make room, which is what the old
-       body padding did (~7% of the play area on every notched iPhone).
-       The stage's own art starts around y83, which at scale is already
-       partway clear, so only the shortfall is offset \u2014 usually ~20px, taken
-       out of the dead margin below y1711 rather than out of the frame.
-       translateY sits left of scale3d so it resolves in screen pixels. */
-    var need=Math.max(0, safeTop() - 83*scale);
-    stage.style.transform='translateY('+need+'px) scale3d('+scale+','+scale+',1)';
+    stage.style.transform='scale3d('+scale+','+scale+',1)';
   }
   function fit(){
     if(fitQueued) return;
@@ -669,8 +705,9 @@
   window.addEventListener('orientationchange',function(){
     /* Orientation genuinely changes the target size, so bypass the
        threshold rather than letting a large legitimate change be
-       mistaken for jitter. */
-    setTimeout(function(){ lastScale=0; fit(); },120);
+       mistaken for jitter. The inset differs between portrait and
+       landscape too, so drop the cached probe reading with it. */
+    setTimeout(function(){ insetTopPx=null; lastScale=0; fit(); },120);
   });
   if(window.visualViewport){ window.visualViewport.addEventListener('resize',fit); }
   fit();
@@ -1062,12 +1099,12 @@
       mSit.style.lineHeight=Math.round(size*44/31)+'px';
     }
   }
-  var CAWTXT_BASE_SIZE=38, CAWTXT_BASE_LH=54;
+  var CAWTXT_BASE_SIZE=38, CAWTXT_BASE_LH=54, CAWTXT_CAP=1844-140;
   function fitCawTxt(){
     cawTxt.style.fontSize=CAWTXT_BASE_SIZE+'px';
     cawTxt.style.lineHeight=CAWTXT_BASE_LH+'px';
-    var margin=140, cap=STAGE_H-margin, size=CAWTXT_BASE_SIZE;
-    while(cawTxt.scrollHeight > cap && size > 22){
+    var size=CAWTXT_BASE_SIZE;
+    while(cawTxt.scrollHeight > CAWTXT_CAP && size > 22){
       size -= 2;
       cawTxt.style.fontSize=size+'px';
       cawTxt.style.lineHeight=Math.round(size*54/38)+'px';
@@ -1231,19 +1268,23 @@
             /* Don't reveal until the real dimensions are known. object-fit
                resolves against the element's intrinsic size, and a <video>
                whose metadata hasn't landed still reports the previous clip's
-               size (or the 300x150 default), so showing it immediately laid
+               size (or the 300x150 default), so revealing immediately laid
                the first frames out at the wrong aspect and snapped when the
-               true size arrived \u2014 the zoom-jump on tip-offs. readyState>=1
-               means metadata is already in from a warm preload, in which
-               case there's nothing to wait for. */
+               true size arrived \u2014 the zoom-jump on tip-offs.
+               Assigning src doesn't clear readyState synchronously, so the
+               wait is unconditional; a timeout backstop means a clip that
+               never reports metadata still shows rather than hanging on a
+               blank screen. */
             cawVid.classList.remove('show');
             cawVid.src=res.url; cawVid.currentTime=0;
+            var revealed=false;
             var reveal=function(){
-              if(stTok!==seqArtToken) return;
+              if(revealed || stTok!==seqArtToken) return;
+              revealed=true;
               cawVid.classList.add('show');
             };
-            if(cawVid.readyState>=1){ reveal(); }
-            else { cawVid.addEventListener('loadedmetadata', reveal, {once:true}); }
+            cawVid.addEventListener('loadedmetadata', reveal, {once:true});
+            setTimeout(reveal, 600);
             var playPromise = cawVid.play();
             if(playPromise && playPromise.catch){
               playPromise.catch(function(){
