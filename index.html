@@ -55,7 +55,11 @@
     font-size:24px; letter-spacing:10px; font-weight:700;}
 
   /* SPLASH */
-  #splash img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
+  /* Splash art carries the title at its very top, so it can't bleed under
+     the notch the way other screens' background texture can. Offset by the
+     measured notch depth; object-fit:cover reframes the rest. */
+  #splash img{position:absolute; left:0; right:0; top:var(--notch,0px); bottom:0;
+    width:100%; height:calc(100% - var(--notch,0px)); object-fit:cover;}
   .startbtn{position:absolute; left:50%; bottom:118px; transform:translateX(-50%);
     display:flex; align-items:center; gap:20px;
     background:rgba(12,10,8,.82); border:2px solid rgba(214,192,150,.55); border-radius:14px;
@@ -656,16 +660,20 @@ window.addEventListener('unhandledrejection', function(e){
      stage clips their painted edges. Letterboxing is the correct
      trade here unless every art asset is re-authored at a new aspect. */
   var STAGE_W=853, STAGE_H=1844;
-  /* Highest readable UI sits at stage y96 (measured \u2014 the FILING CABINET
-     header; everything above it is full-bleed art that reads fine under the
-     Dynamic Island). Scaled down, y96 is already most of the way past the
-     inset, so reserving the FULL inset as padding over-paid by ~40px of
-     frame height on every notched iPhone. Solve for the least padding P
-     that still clears it:  P + TOP_UI*(H-P)/STAGE_H >= inset.
+  /* Highest readable UI across all screens, measured not assumed: the
+     dashboard's COURTSIDE CHAOS logo at stage y84 (the FILING CABINET
+     header at y96 is second). Everything above y84 is full-bleed
+     background texture that reads fine under the Dynamic Island \u2014 with
+     one exception, the splash, whose title is baked into the art at y0;
+     that screen offsets itself using the --notch variable set below.
+     Scaled down, y84 is already partway past the inset, so reserving the
+     FULL inset as padding over-paid by ~38px of frame height. Solve for
+     the least padding P that still clears it:
+        P + TOP_UI*(H-P)/STAGE_H >= inset
      Still padding rather than a stage transform: translating the stage
      pushes content past the frame's overflow clip, which is what broke tap
      targets when this was attempted before. */
-  var TOP_UI = 96, insetTopPx = null;
+  var TOP_UI = 84, insetTopPx = null;
   function safeInsetTop(){
     if(insetTopPx !== null) return insetTopPx;
     var probe=document.createElement('div');
@@ -692,6 +700,11 @@ window.addEventListener('unhandledrejection', function(e){
     if(Math.abs(scale-lastScale) < 0.0025) return;       /* below perceptible; don't feed the loop */
     lastScale=scale;
     document.body.style.paddingTop=pad+'px';
+    /* Depth of the notch measured in STAGE units, for screens whose own art
+       runs to y0 and can't rely on the global clearance \u2014 the splash title
+       is baked into cover.webp at the very top, so it needs its own offset. */
+    document.documentElement.style.setProperty('--notch',
+      Math.max(0,(inset-pad)/scale).toFixed(1)+'px');
     phone.style.width=(STAGE_W*scale)+'px';
     phone.style.height=(STAGE_H*scale)+'px';
     stage.style.transform='scale3d('+scale+','+scale+',1)';
