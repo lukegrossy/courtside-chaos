@@ -57,9 +57,12 @@
   /* SPLASH */
   /* Splash art carries the title at its very top, so it can't bleed under
      the notch the way other screens' background texture can. Offset by the
-     measured notch depth; object-fit:cover reframes the rest. */
+     measured notch depth; object-position pins the crop to the top so the
+     shorter box takes its loss from the bottom of the image rather than
+     trimming the title. */
   #splash img{position:absolute; left:0; right:0; top:var(--notch,0px); bottom:0;
-    width:100%; height:calc(100% - var(--notch,0px)); object-fit:cover;}
+    width:100%; height:calc(100% - var(--notch,0px));
+    object-fit:cover; object-position:center top;}
   .startbtn{position:absolute; left:50%; bottom:118px; transform:translateX(-50%);
     display:flex; align-items:center; gap:20px;
     background:rgba(12,10,8,.82); border:2px solid rgba(214,192,150,.55); border-radius:14px;
@@ -213,16 +216,18 @@
   .slotL .sv1.stamp.win{color:#3f7d34;}
   .slotL .sv1.stamp.loss{color:#9a3826;}
   .slot .sv2{display:none;}
-  /* Bottom band: these two used to stop at y1740, leaving 104px of empty
-     stage under them. Harmless when the frame was smaller and the top inset
-     was large, but once the frame grew the gap scaled up with it and the
-     screen read as pushed-up with daylight beneath. Moved down to sit just
-     above the stage floor, in line with where the decision/moment frames
-     paint to (y1829). */
-  .ticker{position:absolute; left:60px; right:60px; top:1752px; text-align:center;
+  /* Bottom band: these used to stop at y1740, leaving 104px of empty stage
+     under them. Harmless when the frame was smaller and the top inset was
+     large, but once the frame grew the gap scaled up with it and the screen
+     read as pushed-up with daylight beneath.
+     Anchored by `bottom` rather than `top`: ljfooter is height:auto on an
+     image whose rendered height varies with the asset, so a top offset
+     silently depends on that height and clips the banner if it's taller
+     than assumed. Anchoring to the stage floor is correct at any height. */
+  .ticker{position:absolute; left:60px; right:60px; bottom:104px; text-align:center;
     font-family:"Courier New",monospace; font-weight:700; color:#b3a288;
     font-size:21px; letter-spacing:1px;}
-  .ljfooter{left:76px; top:1802px; width:700px; height:auto; z-index:5;}
+  .ljfooter{left:76px; bottom:26px; top:auto; width:700px; height:auto; z-index:5;}
   /* ---- decision screen ---- */
   .dart{position:absolute; left:0; top:0; width:853px; height:1844px;}
   .dtitle{position:absolute; left:48px; right:48px; top:180px; height:150px;
@@ -480,7 +485,7 @@
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = '2025-08-10c';
+window.__BUILD__ = 'bottom-anchor-1';
 console.log('Courtside Chaos build', window.__BUILD__);
 window.addEventListener('error', function(e){
   var msg = (e.message||'?') + ' @ ' + (e.filename||'inline') + ':' + (e.lineno||'?') + ':' + (e.colno||'?');
