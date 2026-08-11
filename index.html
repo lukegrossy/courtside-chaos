@@ -224,7 +224,12 @@
      image whose rendered height varies with the asset, so a top offset
      silently depends on that height and clips the banner if it's taller
      than assumed. Anchoring to the stage floor is correct at any height. */
-  .ticker{position:absolute; left:60px; right:60px; bottom:150px; text-align:center;
+  /* bottom:123px places the ticker centred in the gap between the button
+     cards (which end 186px above the stage floor) and the top of the
+     LUMBERJACK STORY banner (82px above it). Derived from a device
+     screenshot rather than guessed \u2014 the banner is a height:auto image
+     that doesn't load headlessly, so its extent can't be measured here. */
+  .ticker{position:absolute; left:60px; right:60px; bottom:123px; text-align:center;
     font-family:"Courier New",monospace; font-weight:700; color:#b3a288;
     font-size:21px; letter-spacing:1px;}
   .ljfooter{left:76px; bottom:26px; top:auto; width:700px; height:auto; z-index:5;}
@@ -485,7 +490,7 @@
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'ticker-gap-1';
+window.__BUILD__ = 'ticker-gap-2';
 console.log('Courtside Chaos build', window.__BUILD__);
 /* TEMPORARY: visible build marker. iOS home-screen web apps cache the shell
    aggressively and a Safari reload doesn't clear them, so a "fix didn't
