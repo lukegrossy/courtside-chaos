@@ -23,12 +23,12 @@
   html,body{margin:0; height:100%;}
   body{background:#000; display:flex; align-items:center; justify-content:center;
     min-height:100dvh; overflow:hidden;
-    /* Top inset only. Every screen's art has content near y77-83, which would
-       sit under the Dynamic Island at full-bleed, so the top inset stays.
-       Side/bottom padding was pure loss: the frame's own dead margin below
-       y1711 already absorbs the home indicator. Dropping them takes the side
-       letterboxing from ~47px to ~26px on a 14 Pro. */
-    padding:env(safe-area-inset-top,0px) 0 0;
+    /* No padding at all now. Reserving the top inset here shrank the whole
+       frame to buy clearance the art didn't actually need once scaled \u2014 it
+       cost ~7% of the play area on every notched iPhone. The stage now takes
+       the full viewport and shifts its own contents down by the inset
+       instead, so the Dynamic Island is cleared without giving up size. */
+    padding:0;
     font-family:"Helvetica Neue",Arial,sans-serif;}
 
   /* width/height set by JS (fit-to-contain); aspect-ratio is a fallback before JS runs */
@@ -72,7 +72,11 @@
 
   /* CUTSCENE */
   #cut .art{position:absolute; inset:0; overflow:hidden;}
-  #cut .art img{position:absolute; inset:0; width:100%; height:100%;
+  /* img AND video must share this: styling only the img left #cutvid
+     unsized until its metadata arrived, so every tip-off rendered at the
+     browser's default video box and then snapped to full-bleed \u2014 the
+     "jump" on the home/away cutscenes. */
+  #cut .art img, #cut .art video{position:absolute; inset:0; width:100%; height:100%;
     object-fit:cover; object-position:center top;}
   .glow{position:absolute; width:300px; height:340px; pointer-events:none;
     background:radial-gradient(closest-side, rgba(255,233,180,.34), rgba(255,233,180,0) 72%);
@@ -622,22 +626,52 @@
      stage clips their painted edges. Letterboxing is the correct
      trade here unless every art asset is re-authored at a new aspect. */
   var STAGE_W=853, STAGE_H=1844;
-  function insets(){
-    var s=getComputedStyle(document.body);
-    return {x:(parseFloat(s.paddingLeft)||0)+(parseFloat(s.paddingRight)||0),
-            y:(parseFloat(s.paddingTop)||0)+(parseFloat(s.paddingBottom)||0)};
+  /* iOS fires visualViewport 'resize' continuously while the URL bar slides,
+     and scaling the stage on every one of those events moves layout enough
+     to provoke the next event \u2014 a feedback loop the player sees as the
+     whole game shaking. Two guards: coalesce bursts into one rAF, and
+     ignore changes too small to be visible. Without the threshold the loop
+     can sustain itself on sub-pixel differences indefinitely. */
+  var lastScale=0, fitQueued=false;
+  function safeTop(){
+    var probe=document.createElement('div');
+    probe.style.cssText='position:fixed;top:0;height:env(safe-area-inset-top,0px);visibility:hidden;';
+    document.body.appendChild(probe);
+    var v=probe.getBoundingClientRect().height||0;
+    document.body.removeChild(probe);
+    return v;
   }
-  function fit(){
-    var pad=insets();
-    var availW=Math.min(480, window.innerWidth-pad.x);   /* cap is for desktop; 430 clipped a 16 Pro Max */
-    var availH=window.innerHeight-pad.y;
+  function applyFit(){
+    fitQueued=false;
+    var availW=Math.min(480, window.innerWidth);
+    var availH=window.innerHeight;
     var scale=Math.min(availW/STAGE_W, availH/STAGE_H);
+    if(Math.abs(scale-lastScale) < 0.0025) return;       /* below perceptible; don't feed the loop */
+    lastScale=scale;
     phone.style.width=(STAGE_W*scale)+'px';
     phone.style.height=(STAGE_H*scale)+'px';
-    stage.style.transform='scale3d('+scale+','+scale+',1)';
+    /* Clear the Dynamic Island by nudging the stage's content down rather
+       than shrinking the whole frame to make room, which is what the old
+       body padding did (~7% of the play area on every notched iPhone).
+       The stage's own art starts around y83, which at scale is already
+       partway clear, so only the shortfall is offset \u2014 usually ~20px, taken
+       out of the dead margin below y1711 rather than out of the frame.
+       translateY sits left of scale3d so it resolves in screen pixels. */
+    var need=Math.max(0, safeTop() - 83*scale);
+    stage.style.transform='translateY('+need+'px) scale3d('+scale+','+scale+',1)';
+  }
+  function fit(){
+    if(fitQueued) return;
+    fitQueued=true;
+    requestAnimationFrame(applyFit);
   }
   window.addEventListener('resize',fit);
-  window.addEventListener('orientationchange',function(){setTimeout(fit,120);});
+  window.addEventListener('orientationchange',function(){
+    /* Orientation genuinely changes the target size, so bypass the
+       threshold rather than letting a large legitimate change be
+       mistaken for jitter. */
+    setTimeout(function(){ lastScale=0; fit(); },120);
+  });
   if(window.visualViewport){ window.visualViewport.addEventListener('resize',fit); }
   fit();
 
@@ -1017,6 +1051,29 @@
       gazS=document.getElementById('gazS'), gazHead=document.getElementById('gazHead'),
       gazDate=document.getElementById('gazDate'), gazPage=document.getElementById('gazPage');
 
+  var MSIT_BASE_SIZE=31, MSIT_BASE_LH=44, MSIT_CAP=420;
+  function fitMSit(){
+    mSit.style.fontSize=MSIT_BASE_SIZE+'px';
+    mSit.style.lineHeight=MSIT_BASE_LH+'px';
+    var size=MSIT_BASE_SIZE;
+    while(mSit.scrollHeight > MSIT_CAP && size > 20){
+      size -= 1;
+      mSit.style.fontSize=size+'px';
+      mSit.style.lineHeight=Math.round(size*44/31)+'px';
+    }
+  }
+  var CAWTXT_BASE_SIZE=38, CAWTXT_BASE_LH=54;
+  function fitCawTxt(){
+    cawTxt.style.fontSize=CAWTXT_BASE_SIZE+'px';
+    cawTxt.style.lineHeight=CAWTXT_BASE_LH+'px';
+    var margin=140, cap=STAGE_H-margin, size=CAWTXT_BASE_SIZE;
+    while(cawTxt.scrollHeight > cap && size > 22){
+      size -= 2;
+      cawTxt.style.fontSize=size+'px';
+      cawTxt.style.lineHeight=Math.round(size*54/38)+'px';
+    }
+  }
+
   /* Cast portraits: assets/portraits/{who}/base.png. Missing files show
      the FILE PHOTO PENDING placard, except Sandra, who falls back to the
      painted master already on the dashboard.                          */
@@ -1129,6 +1186,7 @@
       caw.classList.toggle('cardmode', step.kind==='card');
       caw.classList.toggle('textmode', step.kind==='text' && !step.artOnly);
       cawTxt.textContent=step.text||step.line;
+      fitCawTxt();
       cawArt.classList.remove('show');
       cawVid.classList.remove('show');
       cawVid.pause();
@@ -1170,9 +1228,23 @@
           if(stTok!==seqArtToken) return; /* player already advanced */
           if(!res){ if(step.artOnly) advance(); return; }
           if(res.type==='video'){
+            /* Don't reveal until the real dimensions are known. object-fit
+               resolves against the element's intrinsic size, and a <video>
+               whose metadata hasn't landed still reports the previous clip's
+               size (or the 300x150 default), so showing it immediately laid
+               the first frames out at the wrong aspect and snapped when the
+               true size arrived \u2014 the zoom-jump on tip-offs. readyState>=1
+               means metadata is already in from a warm preload, in which
+               case there's nothing to wait for. */
+            cawVid.classList.remove('show');
             cawVid.src=res.url; cawVid.currentTime=0;
+            var reveal=function(){
+              if(stTok!==seqArtToken) return;
+              cawVid.classList.add('show');
+            };
+            if(cawVid.readyState>=1){ reveal(); }
+            else { cawVid.addEventListener('loadedmetadata', reveal, {once:true}); }
             var playPromise = cawVid.play();
-            cawVid.classList.add('show');
             if(playPromise && playPromise.catch){
               playPromise.catch(function(){
                 /* probeArt confirming a separate probe element COULD play this
@@ -1190,7 +1262,17 @@
               });
             }
           } else {
-            cawArt.src=res.url; cawArt.classList.add('show');
+            cawArt.classList.remove('show');
+            var pre=new Image();
+            pre.onload=function(){
+              if(stTok!==seqArtToken) return;
+              cawArt.src=res.url; cawArt.classList.add('show');
+            };
+            pre.onerror=function(){
+              if(stTok!==seqArtToken) return;
+              cawArt.src=res.url; cawArt.classList.add('show');
+            };
+            pre.src=res.url;
           }
         });
       }
@@ -2223,7 +2305,7 @@
         desk:"Funds raised: real, receipted. Ricky's speech: about Ricky, per tradition, but pointed at the sick kids like a hose. Progress comes in strange shapes here.",
         gaz:"CHARITY DOES CHARITY; STAR TAKES QUESTIONS ABOUT SELF", news:"Following pre-gala paperwork arranged by the club, the Ricky Malone Foundation named the children's hospital as beneficiary in advance. Malone signed everything, delighted, having assumed charities handled themselves. Real money was raised, on purpose. Malone's remarks ran twenty minutes and concerned Malone.", mood:'pleased' } ] },
 
-  { id:'blizzard_game', venue:'home',  title:'THE BLIZZARD GAME', mood:'alarmed', scene:'blizzard', sceneIsTipoff:true,
+  { id:'blizzard_game', venue:'home', needs:'blob', title:'THE BLIZZARD GAME', mood:'alarmed', scene:'blizzard', sceneIsTipoff:true,
     setup:[
       "The forecast says fourteen inches by tip-off and the forecast has been underselling all winter. The visiting team is already here \u2014 their bus made it in this morning and their coach has been standing in our parking lot letting the snow accumulate on him, which their players say 'means yes.'",
       "The league says the game's our call. Half the staff can't get in. The other half is already here and refuses to leave, because of course they are. The concession stand has soup enough for two hundred, tops.",
@@ -2356,7 +2438,7 @@
          b:{t:"Apologize. Skip ours.", sub:"Nobody will mind. He'll mind.", mod:0.0, cred:2, morale:-5,
             out:"Their PA man is gracious about it and the building doesn't notice. The driver sits back down and says it's fine, twice, unprompted, which is how you know. He drove the whole way home the next day without the radio on."}} ],
       [ {stamp:'PREGAME \u2022 THE LAUNDRY',
-         sit:"Nothing has been washed since Fargo. The motel has one machine and it takes quarters we do not have, because the rookie has the quarters, and the rookie is asleep in a chair in the lobby with his mouth open and nobody will wake him \u2014 not out of kindness, I don't think, but because it's become a thing to see. Bismarck's equipment manager has offered his laundry room. He offered it warmly. He also offered it to Fargo last month and Fargo has not stopped talking about it.",
+         sit:"Nothing has been washed since Fargo. The rookie has the only quarters, and he's asleep in the lobby with his mouth open \u2014 nobody will wake him, not from kindness, but because it's become a thing to see. Bismarck's equipment manager has offered his laundry room. He offered it to Fargo last month too, and Fargo hasn't stopped talking about it.",
          a:{t:"Accept. Say thank you twice.", sub:"We owe a favor to a rival.", mod:0.02, morale:6, cred:-3,
             out:"Twelve men in borrowed sweatpants sit on folding chairs in a rival equipment room at eleven at night watching a dryer turn. Their equipment manager brings out a coffee percolator and does not stay to be thanked. We owe Bismarck a favor now, formally, and I have opened a folder for it, because that is the kind of debt that comes back."},
          b:{t:"Decline. We'll play in what we've got.", sub:"They'll smell us coming.", mod:0.01, buzz:6, morale:-4,
@@ -3729,6 +3811,7 @@
         mStamp.innerHTML = '<span class="mttl">'+String(mo.stamp).trim()+'</span>';
       }
       mSit.textContent = mo.sit;
+      fitMSit();
       mCards[0].querySelector('.txt').textContent=mo.a.t;
       mCards[0].querySelector('.sub').textContent=mo.a.sub;
       mCards[1].querySelector('.txt').textContent=mo.b.t;
@@ -4156,7 +4239,7 @@
      'thick' is the folder spine in the cabinet. Sam's is a bit.     */
   var CAST=[
     { who:'sandra', tab:'SANDRA', thick:'\u25AE', name:'SANDRA', meta:'Secretary',
-      intro:"\u201CWelcome to the Lumberjack Shack. I'm Sandra \u2014 I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those.\u201D",
+      intro:"\u201CI keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those.\u201D",
       file:[
         "SANDRA. Secretary. Former beat reporter, the Frostbite Gazette, 1968\u201375.",
         "I keep the books, the schedule, and most of the chaos. Two of those are going well.",
@@ -4269,7 +4352,7 @@
     {kind:'text', scene:'intro_arrival',
      text:"WINTER, 1984.\n\nYou bought a basketball team.\n\nNobody up here has asked why. Not the bank, not the league, not the fella who sold it to you \u2014 who shook your hand with both of his, which you have since had time to think about."},
     {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
-     text:"She's at the door before you are, holding a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CWelcome to the Lumberjack Shack. I'm Sandra \u2014 I keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those. I'll let you pick which.\u201D"},
+     text:"She's at the door before you are, holding a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CI keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those. I'll let you pick which.\u201D"},
     {kind:'text', scene:'intro_files',
      text:"The tour takes eleven minutes.\n\nThe arena smells like woodsmoke and old rubber. The lights over the court need a full minute to come up, and she waits through it without comment, because that's just the minute. There's a longer list of things like that \u2014 things the previous owner appeared to negotiate around instead of fix. She doesn't itemize it now."},
     {kind:'text',
@@ -4281,9 +4364,9 @@
     castCard('import'),
     castCard('sam'),
     {kind:'text', scene:'intro_numbers',
-     text:"\u201CFour numbers run this franchise. You'll see 'em every Monday, top of the desk.\n\nCASH is cash. Gate money in, payroll out. Payroll does not care how the week felt.\n\nMORALE is the fellas. Happy fellas win games. That's the only thing it does, and it's the only thing that does it.\n\nBUZZ is how many folks turn up. Buzz doesn't win you a single basket \u2014 it just fills the seats, and the seats are the money.\u201D"},
+     text:"\u201CFour numbers run this franchise. Top of the desk, every Monday.\n\nCASH is cash. Gate money in, payroll out.\n\nMORALE wins games. It's the only thing that does.\n\nBUZZ fills seats. It won't win you a single basket \u2014 but seats are the money.\u201D"},
     {kind:'text', scene:'intro_cred',
-     text:"\u201CAnd CRED. That's what the league thinks of you. Stokes. The refs. The other owners. The man in the gray suit \u2014 I'll get to him when I've had more coffee.\n\nIt's the cut we get on the road, and it's whose calls come in at all. Low enough and the phone just doesn't ring. You won't know what you missed. That's rather the point.\n\nBuzz fills the building tonight. Cred is whether anybody returns your call in five years.\n\nChase one, you lose the other. That's the whole job.\u201D"},
+     text:"\u201CAnd CRED. That's what the league thinks of you.\n\nIt's our cut on the road, and it's whose calls come in at all. Low enough and the phone stops ringing, and you won't know what you missed.\n\nBuzz fills the building tonight. Cred is whether anybody returns your call in five years.\u201D"},
     {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
      text:"\u201CYour first briefing is Monday morning. Don't be late.\n\nThe last owner was late.\u201D\n\nShe does not elaborate."}
   ];
