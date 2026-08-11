@@ -490,7 +490,7 @@
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'ticker-gap-2';
+window.__BUILD__ = 'inset-refit-1';
 console.log('Courtside Chaos build', window.__BUILD__);
 /* TEMPORARY: visible build marker. iOS home-screen web apps cache the shell
    aggressively and a Safari reload doesn't clear them, so a "fix didn't
@@ -699,16 +699,21 @@ window.addEventListener('unhandledrejection', function(e){
      Still padding rather than a stage transform: translating the stage
      pushes content past the frame's overflow clip, which is what broke tap
      targets when this was attempted before. */
-  var TOP_UI = 84, insetTopPx = null;
+  var TOP_UI = 84;
+  /* NOT cached. On iOS the safe-area inset frequently reads 0 at first paint
+     and only resolves once standalone layout settles, so caching the first
+     read locked in whichever value happened to be available at boot \u2014 the
+     same build then rendered at two different sizes depending on load
+     timing. Re-reading each fit is cheap: applyFit is rAF-throttled and
+     bails on sub-perceptible changes before doing any layout work. */
   function safeInsetTop(){
-    if(insetTopPx !== null) return insetTopPx;
     var probe=document.createElement('div');
     probe.style.cssText='position:fixed;top:0;left:0;width:1px;'
       + 'height:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none;';
     document.body.appendChild(probe);
-    insetTopPx = probe.getBoundingClientRect().height || 0;
+    var v=probe.getBoundingClientRect().height || 0;
     probe.parentNode.removeChild(probe);
-    return insetTopPx;
+    return v;
   }  /* iOS fires visualViewport 'resize' continuously while the URL bar slides,
      and scaling the stage on every one of those events moves layout enough
      to provoke the next event \u2014 a feedback loop the player sees as the
@@ -746,8 +751,16 @@ window.addEventListener('unhandledrejection', function(e){
        threshold rather than letting a large legitimate change be
        mistaken for jitter. The inset differs between portrait and
        landscape too, so drop the cached probe reading with it. */
-    setTimeout(function(){ insetTopPx=null; lastScale=0; fit(); },120);
+    setTimeout(function(){ lastScale=0; fit(); },120);
   });
+  /* The inset can resolve after first paint on iOS standalone, and returning
+     from the background can change it too. Re-fit at a few points rather
+     than trusting the boot-time reading \u2014 lastScale is cleared so the
+     sub-perceptible-change guard can't suppress a genuine correction. */
+  var refit=function(){ lastScale=0; fit(); };
+  window.addEventListener('load', function(){ refit(); setTimeout(refit,300); setTimeout(refit,1200); });
+  window.addEventListener('pageshow', refit);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) setTimeout(refit,60); });
   if(window.visualViewport){ window.visualViewport.addEventListener('resize',fit); }
   fit();
 
