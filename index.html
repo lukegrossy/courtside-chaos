@@ -238,14 +238,14 @@
   .ljfooter{left:76px; bottom:26px; top:auto; width:700px; height:auto; z-index:5;}
   /* ---- decision screen ---- */
   .dart{position:absolute; left:0; top:0; width:853px; height:1844px;}
-  /* POLISH PASS 1: the clean Arial title was the one element on this screen
-     that read like modern mobile UI beside the physical index cards. Treat it
-     as a typed office heading instead: still clear, but from the same desk. */
+  /* POLISH PASS 2: decision and in-game moment titles now share one visual
+     language. Gold display type means an event/screen heading; Courier stays
+     reserved for physical paper and small contextual kickers. */
   .dtitle{position:absolute; left:48px; right:48px; top:180px; height:150px;
     display:flex; align-items:center; justify-content:center; text-align:center;
-    font-family:"Courier New",monospace; font-weight:700; color:#ddd4c3;
-    font-size:54px; line-height:64px; letter-spacing:8px;
-    text-shadow:1px 1px 0 rgba(0,0,0,.95), 0 3px 14px #000;}
+    font-family:"Arial Black",sans-serif; font-weight:900; color:#ffb02e;
+    font-size:52px; line-height:58px; letter-spacing:2px;
+    text-shadow:0 0 22px rgba(255,176,46,.45), 0 3px 14px #000;}
   .dsub{position:absolute; left:80px; right:80px; top:352px; text-align:center;
     font-family:Georgia,serif; font-style:italic; color:#9a927f; font-size:34px;}
   /* The cards are painted into decision.webp — these divs must sit centred
@@ -273,7 +273,9 @@
   #decide.two .d1{top:839px; transform:rotate(1.46deg);}
   #decide.two .d2{top:1318px; transform:rotate(-3.03deg);}
   /* ---- in-game moment screen ---- */
-  .mstamp{position:absolute; left:40px; right:40px; top:112px; text-align:center;}
+  /* POLISH PASS 2: lower the whole moment heading group so its kicker no
+     longer grazes the painted top border. Internal title spacing is unchanged. */
+  .mstamp{position:absolute; left:40px; right:40px; top:145px; text-align:center;}
   .mstamp .mper{display:block; font-family:"Courier New",monospace; font-weight:bold; color:#c9862b;
     font-size:27px; letter-spacing:9px; text-shadow:0 0 14px rgba(255,176,46,.4);}
   .mstamp .mttl{display:block; margin-top:16px;
@@ -525,7 +527,7 @@
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'polish-pass-1';
+window.__BUILD__ = 'polish-pass-2';
 console.log('Courtside Chaos build', window.__BUILD__);
 /* TEMPORARY: visible build marker. iOS home-screen web apps cache the shell
    aggressively and a Safari reload doesn't clear them, so a "fix didn't
