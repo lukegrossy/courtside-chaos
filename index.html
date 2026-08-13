@@ -50,8 +50,11 @@
      duration. This snaps the overlay on instantly instead. */
   #mgOverlay.instant{transition:none;}
 
+  /* POLISH PASS 1: still deliberately recessive, but the shipped .34 opacity
+     disappeared against the darkest Shack frames on-device. This is a prompt,
+     not a button, so only lift the ink slightly — no box, glow or motion. */
   .tap{position:absolute; left:0; right:0; bottom:56px; text-align:center;
-    font-family:"Courier New",monospace; color:rgba(238,230,210,.34);
+    font-family:"Courier New",monospace; color:rgba(238,230,210,.42);
     font-size:24px; letter-spacing:10px; font-weight:700;}
 
   /* SPLASH */
@@ -235,10 +238,14 @@
   .ljfooter{left:76px; bottom:26px; top:auto; width:700px; height:auto; z-index:5;}
   /* ---- decision screen ---- */
   .dart{position:absolute; left:0; top:0; width:853px; height:1844px;}
+  /* POLISH PASS 1: the clean Arial title was the one element on this screen
+     that read like modern mobile UI beside the physical index cards. Treat it
+     as a typed office heading instead: still clear, but from the same desk. */
   .dtitle{position:absolute; left:48px; right:48px; top:180px; height:150px;
     display:flex; align-items:center; justify-content:center; text-align:center;
-    font-family:"Arial Black",sans-serif; color:#e8e2d4; font-size:64px; line-height:70px;
-    letter-spacing:1px; text-shadow:0 3px 16px #000;}
+    font-family:"Courier New",monospace; font-weight:700; color:#ddd4c3;
+    font-size:54px; line-height:64px; letter-spacing:8px;
+    text-shadow:1px 1px 0 rgba(0,0,0,.95), 0 3px 14px #000;}
   .dsub{position:absolute; left:80px; right:80px; top:352px; text-align:center;
     font-family:Georgia,serif; font-style:italic; color:#9a927f; font-size:34px;}
   /* The cards are painted into decision.webp — these divs must sit centred
@@ -309,11 +316,34 @@
      cawtxt is vertically centred and can run up to 4 lines (NIGHT tag +
      2 team lines) so the stamp+record sit at a fixed offset low enough to
      clear that worst case, well above the bottom .tap label (bottom:56px). */
+  /* POLISH PASS 1: keep FINAL austere, but stop it feeling like pristine HTML.
+     The hard scan rows are intentionally barely-there — old display texture,
+     not a CRT effect — and only exist on the score ritual. */
+  .caw.scoremode{
+    background-color:#020201;
+    background-image:
+      repeating-linear-gradient(0deg,
+        rgba(255,176,46,.016) 0px,
+        rgba(255,176,46,.016) 1px,
+        rgba(0,0,0,0) 1px,
+        rgba(0,0,0,0) 5px);
+  }
   .cawrecord{position:absolute; left:0; right:0; top:1180px; text-align:center;
     font-family:"Courier New",monospace; font-weight:700; color:#ffb02e;
-    font-size:24px; letter-spacing:3px; text-shadow:0 0 18px rgba(255,176,46,.4);
+    font-size:24px; letter-spacing:3px;
+    text-shadow:1px 0 0 rgba(201,128,31,.22), -1px 0 0 rgba(122,66,16,.16),
+      0 0 14px rgba(255,176,46,.32);
     opacity:0;}
   .caw.scoremode .cawrecord{opacity:1;}
+  .caw.scoremode .cawlabel,
+  .caw.scoremode .cawtxt,
+  .caw.scoremode .cawrecord{animation:scoreSettle .18s steps(2,end) 1;}
+  @keyframes scoreSettle{
+    0%{opacity:.82;}
+    55%{opacity:1;}
+    72%{opacity:.94;}
+    100%{opacity:1;}
+  }
   .stampCanvasReal{position:absolute; left:50%; top:1260px; width:320px; height:auto;
     margin-left:-160px; opacity:0; transform:rotate(-7deg) scale(2.6); filter:blur(1px);
     pointer-events:none;}
@@ -445,9 +475,14 @@
   .gazbyline{position:absolute; left:122px; right:110px; top:628px; text-align:center;
     font-family:"Courier New",monospace; font-weight:700; color:#4a453d;
     font-size:17px; letter-spacing:3px;}
+  /* POLISH PASS 1: narrow newspaper columns + browser justification were
+     opening huge rivers between words on iPhone. Let WebKit hyphenate English
+     copy before it stretches the line; keep the same newspaper geometry. */
   .gazstory{position:absolute; left:132px; right:120px; top:668px; height:330px;
     font-family:Georgia,"Times New Roman",serif; color:#26231e;
-    font-size:26px; line-height:35px; text-align:justify;
+    font-size:26px; line-height:35px; text-align:justify; text-align-last:left;
+    -webkit-hyphens:auto; hyphens:auto; word-spacing:-.025em;
+    overflow-wrap:normal; word-break:normal;
     column-count:2; column-gap:34px; column-rule:1px solid rgba(40,36,30,.4);
     overflow:hidden;}
   .gazstory .cont{font-style:italic; color:#4a453d;}
@@ -490,7 +525,7 @@
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'inset-refit-1';
+window.__BUILD__ = 'polish-pass-1';
 console.log('Courtside Chaos build', window.__BUILD__);
 /* TEMPORARY: visible build marker. iOS home-screen web apps cache the shell
    aggressively and a Safari reload doesn't clear them, so a "fix didn't
