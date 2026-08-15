@@ -5,68 +5,105 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <title>Hotdish Night</title>
 <style>
-  :root{ --bg:#20252c; --amber:#e2b45b; --amberdim:#ae8650; --cream:#efe6d3;
-         --green:#6f9565; --red:#a94d3f; }
-  /* This runs inside the parent game's overlay iframe, which is a fixed
-     853x1844 CSS box \u2014 not a device viewport. Authoring against
-     device-width left the board at its 520px max-width, pinned to the top,
-     with 14px chrome text sitting in a box twice the size it was drawn for.
-     So: one fixed design box at the canvas's native width, scaled as a unit
-     to fit whatever frame it lands in. Every authored px keeps its intended
-     proportion, and the board fills the frame. Same model the parent uses. */
-  html,body{margin:0;height:100%;background:var(--bg);overflow:hidden;}
+  :root{ --ink:#0b0e13; --amber:#e2b45b; --amberdim:#8d7147; --cream:#f1e7d4;
+         --rule:#3d3427; --red:#a94d3f; }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--ink);}
   body{font-family:"Courier New",Courier,monospace;color:var(--amber);
     display:flex;justify-content:center;align-items:center;
-    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
-    touch-action:manipulation;-webkit-user-select:none;user-select:none;}
-  /* The design box is taller than its contents on purpose. The frame is a
-     0.46 aspect and the board is 0.67, so the board is width-bound \u2014 it can
-     get no larger. The spare height goes into breathing room between the
-     narration, the pan and the HUD instead of a dead letterbox, which fills
-     the frame without shrinking anything. */
-  #fit{flex:0 0 auto;width:484px;height:864px;transform-origin:50% 50%;}
-  .wrap{width:484px;height:864px;display:flex;flex-direction:column;
-    justify-content:space-between;padding:14px 0;box-sizing:border-box;}
-  #foot{display:flex;flex-direction:column;}
-  /* Fixed height, not min-height: narration runs one to three lines and a
-     shifting box would slide the pan under the player's thumb mid-drop. */
-  #narr{background:#181b20;color:#f4efe5;font-weight:700;font-size:14px;line-height:1.4;
-    padding:10px 13px;height:82px;box-sizing:border-box;border:2px solid #574735;
-    box-shadow:inset 0 0 0 1px #272c33;display:flex;align-items:center;}
-  #stage{margin:0;}
-  canvas#c{display:block;width:480px;height:560px;image-rendering:pixelated;image-rendering:crisp-edges;
-    border:2px solid #574735;background:#1d232b;box-shadow:0 6px 20px rgba(0,0,0,.35);}
-  #hud{margin-top:0;display:flex;justify-content:space-between;align-items:center;
-    font-size:13px;color:var(--amberdim);letter-spacing:1px;}
-  #hud b{color:var(--amber);font-weight:700;}
-  #hint{margin-top:7px;text-align:center;font-size:13px;color:#b79360;}
+    padding:calc(8px + env(safe-area-inset-top)) 11px calc(12px + env(safe-area-inset-bottom));
+    min-height:100%;touch-action:manipulation;-webkit-user-select:none;user-select:none;
+    background:radial-gradient(125% 78% at 50% 32%, #191f27 0%, #0b0e13 74%);}
+  .wrap{width:100%;max-width:452px;display:flex;flex-direction:column;gap:10px;}
+
+  /* Narration sits in a fixed-height card so the canvas below never jumps
+     when the line length changes. Long lines shrink to fit instead. */
+  #narr{position:relative;background:#131820;color:var(--cream);
+    font-size:13.5px;line-height:1.46;letter-spacing:.2px;
+    padding:14px 16px 13px;height:94px;display:flex;align-items:center;
+    border:1px solid var(--rule);
+    box-shadow:inset 0 1px 0 rgba(255,222,158,.055), 0 9px 22px rgba(0,0,0,.45);}
+  #narr:before{content:"";position:absolute;left:-1px;right:-1px;top:-1px;height:2px;
+    background:linear-gradient(90deg,#6b512c,#e2b45b 42%,#6b512c);opacity:.72;}
+  #narrTxt{width:100%;}
+
+  #stage{position:relative;line-height:0;}
+  canvas#c{display:block;width:100%;height:auto;
+    image-rendering:pixelated;image-rendering:crisp-edges;
+    border:1px solid var(--rule);background:#0b0e13;
+    box-shadow:0 12px 34px rgba(0,0,0,.6);}
+
+  #hud{display:flex;justify-content:space-between;align-items:center;
+    font-size:9.5px;letter-spacing:2.2px;color:var(--amberdim);}
+  .grp{display:flex;align-items:center;gap:8px;}
+  .pips{display:flex;gap:3px;}
+  .pip{width:7px;height:12px;background:#1b212a;
+    box-shadow:inset 0 0 0 1px #2c343f;transition:background .12s linear;}
+  .pip.on{background:var(--amber);box-shadow:inset 0 -3px 0 rgba(0,0,0,.3);}
+  .pip.on.bad{background:var(--red);}
+  .xs{display:flex;gap:4px;}
+  .x{width:9px;height:12px;background:#1b212a;box-shadow:inset 0 0 0 1px #2c343f;}
+  .x.on{background:var(--red);box-shadow:inset 0 -3px 0 rgba(0,0,0,.3);}
+
+  #hint{text-align:center;font-size:10.5px;letter-spacing:1.9px;color:#7a6340;
+    min-height:14px;}
 </style>
 </head>
 <body>
-<div id="fit"><div class="wrap">
-  <div id="narr"></div>
-  <div id="stage"><canvas id="c" width="480" height="560"></canvas></div>
-  <div id="foot">
-    <div id="hud"><span>LETTERS <b id="hLet">0/11</b></span><span>CROOKED <b id="hMiss">0/3</b></span></div>
-    <div id="hint">Tap to drop the letter when it's over its slot.</div>
+<div class="wrap">
+  <div id="narr"><div id="narrTxt"></div></div>
+  <div id="stage"><canvas id="c" width="480" height="680"></canvas></div>
+  <div id="hud">
+    <div class="grp"><span>LETTERS</span><div class="pips" id="pips"></div></div>
+    <div class="grp"><span>CROOKED</span><div class="xs" id="xs"></div></div>
   </div>
-</div></div>
+  <div id="hint">TAP TO BEGIN</div>
+</div>
 <script>
 /* ============================================================
    HOTDISH NIGHT — the tot layer.
-   Eleven tot-built letters spell LUMBERJACKS across the pan.
+   Eleven tot-built letters spell LUMBER / JACKS across a square casserole.
    One verb: tap to drop the sliding letter into its slot.
-   Then one PULL at the oven. Reports {result:'win'|'lose'}
+   Then one PULL at the oven. If you later add hotdish-team-success.webp beside this file, successful endings use that bespoke art automatically. Reports {result:'win'|'lose'}
    to the parent (Courtside Chaos). One shot, no replay.
    ============================================================ */
 var cv=document.getElementById('c'), cx=cv.getContext('2d');
-var narr=document.getElementById('narr'), hint=document.getElementById('hint');
-var hLet=document.getElementById('hLet'), hMiss=document.getElementById('hMiss');
-var IW=480, IH=560;
+var narr=document.getElementById('narr'), narrTxt=document.getElementById('narrTxt');
+var hint=document.getElementById('hint');
+var pipWrap=document.getElementById('pips'), xWrap=document.getElementById('xs');
+var IW=480, IH=680;
+
+/* ---------- HUD: pips instead of a debug readout ---------- */
+var pips=[], xs=[];
+for(var pi=0;pi<11;pi++){ var el=document.createElement('i'); el.className='pip'; pipWrap.appendChild(el); pips.push(el); }
+for(var xi=0;xi<3;xi++){ var ex=document.createElement('i'); ex.className='x'; xWrap.appendChild(ex); xs.push(ex); }
+function syncHud(){
+  for(var i=0;i<11;i++){
+    pips[i].className='pip'+(i<placed.length?' on':'')+(placed[i]&&placed[i].bad?' bad':'');
+  }
+  for(var j=0;j<3;j++) xs[j].className='x'+(j<misses?' on':'');
+}
 
 /* ---------- audio (tiny, optional) ---------- */
-var AC=null;
-function actx(){ if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}} if(AC&&AC.state==='suspended')AC.resume(); return AC; }
+var AC=null, acUnlocked=false;
+function actx(){
+  if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+  if(!AC) return null;
+  if(AC.state==='suspended') AC.resume();
+  /* iOS will hand back a running context that stays silent unless a real
+     buffer has been played from inside a user gesture. Explicit resume on
+     its own is not enough, and the failure is silent with no console error,
+     so the silent buffer goes out on the first press. */
+  if(!acUnlocked){
+    acUnlocked=true;
+    try{
+      var b=AC.createBuffer(1,1,22050), sN=AC.createBufferSource();
+      sN.buffer=b; sN.connect(AC.destination);
+      if(sN.start) sN.start(0); else if(sN.noteOn) sN.noteOn(0);
+    }catch(e){}
+  }
+  return AC;
+}
 function blip(f,d,t){ var a=actx(); if(!a)return; var o=a.createOscillator(),g=a.createGain();
   o.type=t||'square'; o.frequency.value=f; g.gain.value=.05;
   o.connect(g); g.connect(a.destination); o.start();
@@ -90,20 +127,63 @@ var FONT={
   S:["01111","10000","10000","01110","00001","00001","11110"]
 };
 var WORD="LUMBERJACKS";
+var ROW1=6, ROW2=5;
 
-/* ---------- layout ---------- */
-var TOT=6;
-var LW=5*TOT, LH=7*TOT;
-/* The pan constants describe the usable food surface, not the enamel shell.
-   All eleven 5x7 tot letters fit with a generous interior margin. */
-var PAN_W=400, PAN_H=86;
-var PAN_X=Math.round((IW-PAN_W)/2), PAN_Y=368;
-var LPAD=10;
-var GAP=Math.floor((PAN_W-2*LPAD-11*LW)/10); /* 5px between letters */
-function slotX(i){ return PAN_X + LPAD + i*(LW+GAP); }
-var SLOT_Y=PAN_Y + Math.round((PAN_H-LH)/2);
-var SLIDER_Y=224;
+/* ---------- layout ----------
+   The word is now built across two lines inside a square casserole:
+   LUMBER / JACKS. That buys us bigger, clearer tot letters and makes the
+   oven shot physically believable. */
 
+/* Top-down close shot used while building the dish and while it bakes. */
+var TD={tot:9, x:52, y:138, w:376, h:376, rim:16, lpad:10, gap:5, rowGap:26};
+TD.lw=5*TD.tot; TD.lh=7*TD.tot;
+TD.ix=TD.x+TD.rim; TD.iy=TD.y+TD.rim;
+TD.iw=TD.w-2*TD.rim; TD.ih=TD.h-2*TD.rim;
+TD.row1W=ROW1*TD.lw + (ROW1-1)*TD.gap;
+TD.row2W=ROW2*TD.lw + (ROW2-1)*TD.gap;
+TD.row1X=TD.ix + Math.round((TD.iw-TD.row1W)/2);
+TD.row2X=TD.ix + Math.round((TD.iw-TD.row2W)/2);
+TD.rowsH=TD.lh*2 + TD.rowGap;
+TD.row1Y=TD.iy + Math.round((TD.ih-TD.rowsH)/2);
+TD.row2Y=TD.row1Y + TD.lh + TD.rowGap;
+TD.bed=[TD.ix+2, TD.iy+2, TD.iw-4, TD.ih-4];
+TD.clip=function(g){ g.beginPath(); g.rect(TD.ix,TD.iy,TD.iw,TD.ih); };
+
+/* Pull-back bench shot used for the result reveal if no bespoke team art is
+   present. The same crooked letters render into this dish too. */
+var PAN_W=236, PAN_H=146;
+var PAN_X=Math.round((IW-PAN_W)/2), PAN_Y=418;
+var WB={tot:6, lpad:10, gap:4, rowGap:10, x:PAN_X, y:PAN_Y, w:PAN_W, h:PAN_H};
+WB.lw=5*WB.tot; WB.lh=7*WB.tot;
+WB.ix=PAN_X+11; WB.iy=PAN_Y+10; WB.iw=PAN_W-22; WB.ih=PAN_H-18;
+WB.row1W=ROW1*WB.lw + (ROW1-1)*WB.gap;
+WB.row2W=ROW2*WB.lw + (ROW2-1)*WB.gap;
+WB.row1X=WB.ix + Math.round((WB.iw-WB.row1W)/2);
+WB.row2X=WB.ix + Math.round((WB.iw-WB.row2W)/2);
+WB.rowsH=WB.lh*2 + WB.rowGap;
+WB.row1Y=WB.iy + Math.round((WB.ih-WB.rowsH)/2);
+WB.row2Y=WB.row1Y + WB.lh + WB.rowGap;
+WB.bed=[PAN_X+7, PAN_Y+5, PAN_W-14, PAN_H-10];
+WB.clip=function(g){
+  g.beginPath();
+  g.moveTo(PAN_X+10,PAN_Y+6); g.lineTo(PAN_X+PAN_W-10,PAN_Y+6);
+  g.lineTo(PAN_X+PAN_W-14,PAN_Y+PAN_H-8); g.lineTo(PAN_X+14,PAN_Y+PAN_H-8); g.closePath();
+};
+
+/* Gameplay is always played in the top-down shot. */
+var TOT=TD.tot, LW=TD.lw, LH=TD.lh;
+function rowFor(i){ return i<ROW1 ? 0 : 1; }
+function colFor(i){ return i<ROW1 ? i : (i-ROW1); }
+function slotPosG(i,G){
+  var row=rowFor(i), col=colFor(i);
+  var x=(row===0?G.row1X:G.row2X) + col*(G.lw+G.gap);
+  var y=(row===0?G.row1Y:G.row2Y);
+  return {x:x,y:y,row:row,col:col};
+}
+function sliderMinFor(i){ var p=slotPosG(i,TD); return (p.row===0?TD.row1X:TD.row2X); }
+function sliderMaxFor(i){ var p=slotPosG(i,TD); return (p.row===0?TD.row1X+TD.row1W-LW:TD.row2X+TD.row2W-LW); }
+function sliderYFor(i){ return rowFor(i)===0 ? TD.row1Y-74 : TD.row2Y-56; }
+var SLIDER_Y=sliderYFor(0);
 /* ---------- state ---------- */
 var ST_INTRO=0, ST_PLAY=1, ST_DROP=2, ST_OVEN=3, ST_END=4;
 var state=ST_INTRO;
@@ -111,91 +191,87 @@ var li=0;                  /* current letter index */
 var placed=[];             /* {ch, x, y, off, bad} */
 var misses=0;
 function speedForLetter(index){
-  /* The opening three letters stay calm and learnable. From letter four,
-     use the old pace multiplied by 1.25, then let the modulation below add
-     a small late-game surge without becoming random or unfair. */
-  if(index===0) return 1.45;
-  if(index===1) return 1.68;
-  if(index===2) return 1.90;
-  return (1.6+index*0.22)*1.25;
+  /* First three are steady and forgiving. From letter four onward the
+     original speed is increased by 25%, which makes the full sequence
+     approximately 20% harder overall while preserving a learnable opening. */
+  var k=TD.lw/36;
+  if(index===0) return 1.55*k;
+  if(index===1) return 1.75*k;
+  if(index===2) return 1.95*k;
+  return (1.6+index*0.22)*1.25*k;
 }
-var slider={x:PAN_X, dir:1, speed:speedForLetter(0), phase:0};
+var slider={x:sliderMinFor(0), dir:1, speed:speedForLetter(0), phase:0};
 var drop=null;             /* {ch,x,y,vy,targetY,off,bad} */
 var oven={t:0, bar:0, pulled:false, doneness:0}; /* bar 0..1 over ~8s */
 var endResult=null;        /* 'win' | 'lose-word' | 'lose-burnt' | 'win-pale' */
 var reported=false;
+var FINAL_ART_SRC='hotdish-team-success.webp';
+var finalArt=new Image(), finalArtReady=false;
+finalArt.onload=function(){ finalArtReady=true; };
+finalArt.onerror=function(){};
+try{ finalArt.src=FINAL_ART_SRC; }catch(e){}
 var shakeT=0;
+var puff=null;      /* {x,y,t} crumb burst when a letter lands */
+var flashT=0;       /* brief warm lift on a clean drop */
 
 /* ---------- narration ---------- */
-function say(t){ narr.textContent='\u201C'+t+'\u201D'; }
-var GOOD=["Square. Arvid would nod.","That's a letter. Keep going.","Centered. The county approves.","Clean. Don't get cocky."];
+function say(t){
+  narrTxt.textContent='\u201C'+t+'\u201D';
+  /* Measured shrink-to-fit: the card height is fixed, so long lines step down
+     in size rather than growing the box and shoving the canvas. */
+  var size=13.5;
+  narrTxt.style.fontSize=size+'px';
+  var room=narr.clientHeight-27;
+  while(narrTxt.scrollHeight>room && size>9.5){ size-=0.5; narrTxt.style.fontSize=size+'px'; }
+}
+var GOOD=["Square. County-fair quality.","That's a letter. Keep going.","Centered. The county approves.","Clean. Don't get cocky."];
 var BAD=["That letter has had a drink.","Crooked. The county saw that.","It's leaning. Casseroles remember."];
-say("Eleven letters. One pan. Drop each one square in its slot \u2014 this hotdish is going to say LUMBERJACKS, or it's going to say something we all have to live with.");
+say("Eleven letters. Two lines. Drop each one square in its slot \u2014 this hotdish is going to say LUMBERJACKS, or it's going to say something we all have to live with.");
 
 /* ---------- input ---------- */
 function press(){
   actx();
-  if(state===ST_INTRO){ state=ST_PLAY; hint.textContent="Tap to drop the letter when it's over its slot."; return; }
+  if(state===ST_INTRO){ state=ST_PLAY; hint.textContent="TAP TO DROP THE LETTER OVER ITS SLOT"; return; }
   if(state===ST_PLAY){ beginDrop(); return; }
   if(state===ST_OVEN){ pullNow(); return; }
   if(state===ST_END){ report(); return; }
 }
-/* Taps land anywhere in the frame, not just on the board. Once the design box
-   is scaled there is margin around it, and a tap into that margin used to do
-   nothing \u2014 which reads as the game having frozen. press() takes no
-   coordinates, so there is nothing to map through the transform. */
-document.addEventListener('touchstart',function(e){e.preventDefault();press();},{passive:false});
-document.addEventListener('mousedown',press);
+cv.addEventListener('touchstart',function(e){e.preventDefault();press();},{passive:false});
+cv.addEventListener('mousedown',press);
 window.addEventListener('keydown',function(e){ if(e.code==='Space'){e.preventDefault();press();} });
-
-/* ---------- fit the design box to the frame ---------- */
-var FIT_W=484, FIT_H=864, fitEl=document.getElementById('fit');
-function fitToFrame(){
-  var cs=getComputedStyle(document.body);
-  var availW=document.documentElement.clientWidth
-           - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  var availH=document.documentElement.clientHeight
-           - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-  var k=Math.min(availW/FIT_W, availH/FIT_H);
-  fitEl.style.transform='scale('+k+')';
-}
-window.addEventListener('resize',fitToFrame);
-window.addEventListener('orientationchange',fitToFrame);
-fitToFrame();
 
 /* ---------- drop resolution ---------- */
 function beginDrop(){
-  var target=slotX(li);
-  var off=Math.round(slider.x-target);
-  /* Keep the original landing tolerance. Difficulty comes from the paced
-     speed ramp and late-game surges, not from making the target feel dishonest. */
+  var target=slotPosG(li,TD);
+  var off=Math.round(slider.x-target.x);
   var bad=Math.abs(off)>Math.floor(LW*0.45);
-  drop={ch:WORD[li], x:slider.x, y:SLIDER_Y, vy:0, targetY:SLOT_Y, off:off, bad:bad};
+  drop={ch:WORD[li], x:slider.x, y:SLIDER_Y, vy:0, targetY:target.y, off:off, bad:bad};
   state=ST_DROP;
   blip(bad?160:520,.08,bad?'sawtooth':'square');
 }
 function settleDrop(){
   /* crooked letters clamp partway toward the slot so the word still reads */
-  var target=slotX(li);
+  var target=slotPosG(li,TD);
   var keep=drop.bad ? (drop.off>0?1:-1)*Math.floor(LW*0.35)
                     : Math.round(drop.off*0.25);
-  placed.push({ch:drop.ch, x:target+keep, y:SLOT_Y, bad:drop.bad, tilt:drop.bad?(drop.off>0?1:-1):0});
+  placed.push({ch:drop.ch, i:li, offFrac:keep/LW, bad:drop.bad,
+               tilt:drop.bad?(drop.off>0?1:-1):0});
+  puff={x:target.x+keep+LW/2, y:target.y+LH, t:0, bad:drop.bad};
   if(drop.bad){ misses++; shakeT=0.35; say(BAD[Math.floor(Math.random()*BAD.length)]); }
-  else say(GOOD[Math.floor(Math.random()*GOOD.length)]);
-  hMiss.textContent=misses+"/3";
-  li++; hLet.textContent=li+"/11";
+  else { flashT=0.18; say(GOOD[Math.floor(Math.random()*GOOD.length)]); }
+  li++; syncHud();
   drop=null;
   if(li>=11){
     if(misses>=3){ endResult='lose-word'; state=ST_END; endNarr(); }
     else {
       state=ST_OVEN; oven={t:0,bar:0,pulled:false,doneness:0};
       say("Now the oven. Pull at golden. Golden. Not blond. Not cajun.");
-      hint.textContent="Tap to PULL when the bar is in the golden zone.";
+      hint.textContent="TAP TO PULL AT GOLDEN";
     }
   } else {
-    slider.speed=speedForLetter(li);          /* easy opening, then faster */
-    slider.phase=0;
-    slider.x=(li%2)?PAN_X+PAN_W-LW:PAN_X; slider.dir=(li%2)?-1:1;
+    slider.speed=speedForLetter(li);
+    SLIDER_Y=sliderYFor(li);
+    slider.x=(li%2)?sliderMaxFor(li):sliderMinFor(li); slider.dir=(li%2)?-1:1;
     state=ST_PLAY;
   }
 }
@@ -211,7 +287,7 @@ function pullNow(){
   state=ST_END; endNarr();
 }
 function endNarr(){
-  hint.textContent="Tap to continue.";
+  hint.textContent="TAP TO CONTINUE";
   if(endResult==='win')       say("It says LUMBERJACKS. Golden. Nobody breathe on it.");
   if(endResult==='win-pale')  say("Pale, but it says LUMBERJACKS. Technically triumphant. The oven and I both know you flinched.");
   if(endResult==='lose-word') say("It says something, and what it says is not LUMBERJACKS, and Tiny is already calling us the Slumberjacks.");
@@ -230,15 +306,39 @@ var P={
   ink:'#0b1017', deep:'#151b23', cool0:'#26313d', cool1:'#414b55', cool2:'#65707a',
   plaster0:'#8c7c69', plaster1:'#b6a083', plaster2:'#d0ba95', plaster3:'#e0cfaa',
   wood0:'#2a1b13', wood1:'#4a2d1d', wood2:'#6d4327', wood3:'#8b5c34', wood4:'#b27a43', woodHi:'#d39b57',
-  tile0:'#777a70', tile1:'#929184', tile2:'#aaa593', grout:'#555b58',
+  /* Backsplash pulled from cold gray-green to warm bone. It was competing with
+     the pan for attention; now it recedes and reads as period tile. */
+  tile0:'#6a6152', tile1:'#776d5b', tile2:'#847a65', grout:'#433c31',
   enamel:'#eee8d8', enamelHi:'#fff9e9', enamelShade:'#aeb7be', enamelDark:'#727d86', cobalt:'#294f75',
   beef0:'#6a3518', beef1:'#8a4d22', beef2:'#a8662f', beef3:'#c58642', gravy:'#e0ad65',
   gold:'#d9a441', goldHi:'#ffe082', red:'#9f493d', green:'#607b4d'
 };
 var BAYER4=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+/* 8x8 ordered matrix, used by the relight pass so the light falloff stays
+   dithered pixel art rather than turning into a smooth CSS-looking gradient. */
+var BAYER8=(function(){
+  var m=[[0,32,8,40,2,34,10,42],[48,16,56,24,50,18,58,26],[12,44,4,36,14,46,6,38],
+         [60,28,52,20,62,30,54,22],[3,35,11,43,1,33,9,41],[51,19,59,27,49,17,57,25],
+         [15,47,7,39,13,45,5,37],[63,31,55,23,61,29,53,21]];
+  var f=[]; for(var y=0;y<8;y++)for(var x=0;x<8;x++) f[y*8+x]=m[y][x]/64;
+  return f;
+})();
 function rect(x,y,w,h,c,g){ (g||cx).fillStyle=c; (g||cx).fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h)); }
 function poly(g,pts,c){ g.fillStyle=c; g.beginPath(); g.moveTo(pts[0][0],pts[0][1]); for(var i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]); g.closePath(); g.fill(); }
 function line(g,x1,y1,x2,y2,c,w){ g.strokeStyle=c; g.lineWidth=w||1; g.beginPath(); g.moveTo(x1+.5,y1+.5); g.lineTo(x2+.5,y2+.5); g.stroke(); }
+/* One card style, shared by the intro, the result and the gauge bezel, so the
+   in-canvas furniture matches the HTML chrome around it instead of looking
+   like three different games stapled together. */
+function card(g,x,y,w,h){
+  rect(x+3,y+5,w,h,'rgba(6,8,12,.55)',g);
+  rect(x,y,w,h,'#0e1219',g);
+  rect(x+1,y+1,w-2,h-2,'#171d26',g);
+  rect(x+1,y+1,w-2,2,'#e2b45b',g);
+  rect(x+1,y+1,w-2,1,'#ffdf9c',g);
+  rect(x+1,y+h-2,w-2,1,'rgba(0,0,0,.6)',g);
+  rect(x+1,y+3,1,h-5,'rgba(226,180,91,.22)',g);
+  rect(x+w-2,y+3,1,h-5,'rgba(226,180,91,.16)',g);
+}
 function bevelBox(g,x,y,w,h,face,hi,lo,depth){ depth=depth||3; rect(x,y,w,h,lo,g); rect(x+depth,y+depth,w-depth*2,h-depth*2,face,g); rect(x+depth,y+depth,w-depth*2,2,hi,g); rect(x+depth,y+depth,2,h-depth*2,hi,g); rect(x+depth,y+h-depth-2,w-depth*2,2,lo,g); }
 function ditherLight(g,x,y,w,h,cold,warm,hot,cx0,cy0,rx,ry,step){
   step=step||4;
@@ -272,163 +372,271 @@ function clippedSpeckles(g,clipPts,count){
 var bg=document.createElement('canvas'), bgx=bg.getContext('2d');
 bg.width=IW; bg.height=IH; bgx.imageSmoothingEnabled=false;
 function drawStaticKitchen(){
-  /* Back wall: warm floral paper in the lamp pool, cool gingham at the edges. */
-  rect(0,0,IW,IH,P.cool0,bgx);
-  rect(0,0,IW,211,P.plaster1,bgx);
-  ditherLight(bgx,48,0,384,214,P.plaster0,P.plaster1,P.plaster2,240,40,255,185,4);
+  /* Result kitchen: one coherent wall/bench elevation. The old version had
+     a shallow bench floating in front of a separate background plane. Here
+     the large night window, backsplash, worktop and oven all share one wall. */
+  rect(0,0,IW,IH,'#111820',bgx);
 
-  /* Blue checked paper at the far edges. */
-  function gingham(x,w,y,h){
-    rect(x,y,w,h,'#2f3b48',bgx);
-    for(var yy=y;yy<y+h;yy+=8)for(var xx=x;xx<x+w;xx+=8){
-      var even=(((xx-x)/8)+((yy-y)/8))&1;
-      rect(xx,yy,7,7,even?'#405064':'#273541',bgx);
-      if(((xx-x)/8)&1) rect(xx,yy,7,2,'rgba(177,151,112,.13)',bgx);
-    }
-  }
-  gingham(0,56,0,348); gingham(424,56,0,348);
+  /* Warm painted wall, deliberately subdued so the snow window owns the shot. */
+  rect(0,0,IW,356,'#8c7b67',bgx);
+  ditherLight(bgx,0,0,IW,356,'#665d52','#8f806c','#b59a72',240,72,300,260,4);
 
-  /* Tiny 1980s floral wallpaper marks — deterministic, sparse, not noise. */
-  for(var fl=0;fl<78;fl++){
-    var fx=62+((fl*53)%354), fy=9+((fl*29)%74);
-    rect(fx,fy,2,2,(fl%3===0)?'#8f5a4d':'#9f7d58',bgx);
-    if(fl%4===0){ rect(fx+2,fy+1,1,2,'#6c7251',bgx); rect(fx-1,fy-1,1,1,'#b98a6a',bgx); }
+  /* Sparse, slightly tired wallpaper flecks. */
+  for(var fl=0;fl<96;fl++){
+    var fx=10+((fl*67)%460), fy=12+((fl*31)%332);
+    var c=(fl%4===0)?'#765849':(fl%3===0)?'#77745b':'#9a7c60';
+    rect(fx,fy,(fl%7===0)?2:1,(fl%5===0)?2:1,c,bgx);
   }
 
-  /* Strong practical lamp and stepped amber light pool. */
-  ditherLight(bgx,96,6,288,116,'rgba(0,0,0,0)','#b69a72','#c7aa77',240,48,165,96,4);
-  poly(bgx,[[205,16],[275,16],[289,40],[191,40]],P.ink);
-  poly(bgx,[[209,12],[271,12],[283,34],[197,34]],P.enamelDark);
-  poly(bgx,[[215,13],[265,13],[274,29],[206,29]],P.enamel);
-  rect(218,27,44,7,'#f4d587',bgx); rect(228,34,24,4,P.woodHi,bgx);
-  line(bgx,240,0,240,12,P.ink,3);
-  rect(232,36,16,5,'rgba(255,225,147,.24)',bgx);
+  /* Hanging enamel light. */
+  line(bgx,240,0,240,21,P.ink,3);
+  poly(bgx,[[204,22],[276,22],[291,49],[189,49]],P.ink);
+  poly(bgx,[[210,18],[270,18],[282,43],[198,43]],P.enamelDark);
+  poly(bgx,[[217,21],[263,21],[273,39],[207,39]],P.enamel);
+  rect(220,38,40,6,'#f4d587',bgx);
+  ditherLight(bgx,88,35,304,155,'rgba(0,0,0,0)','#b79568','#d1ad73',240,64,190,120,4);
 
-  /* Upper cabinet runs with deeper inset panels and warm rim light. */
-  function cabinetPair(x,y,w,h){
-    rect(x,y,w,h,P.wood0,bgx);
-    rect(x+3,y+3,w-6,h-6,P.wood1,bgx);
-    var gap=4, dw=Math.floor((w-gap-10)/2);
-    for(var d=0;d<2;d++){
-      var dx=x+5+d*(dw+gap);
-      rect(dx,y+7,dw,h-14,P.wood0,bgx);
-      rect(dx+3,y+3,dw-6,h-6,P.wood3,bgx);
-      rect(dx+6,y+7,dw-12,h-14,P.wood1,bgx);
-      rect(dx+7,y+8,dw-14,2,P.wood4,bgx);
-      rect(dx+7,y+h-11,dw-14,3,'#3b2418',bgx);
-      rect(dx+(d?5:dw-9),y+Math.round(h*.54),5,7,P.ink,bgx);
-      rect(dx+(d?6:dw-8),y+Math.round(h*.54),2,2,P.woodHi,bgx);
-    }
-    rect(x,y+h-5,w,5,'#20150f',bgx);
-  }
-  cabinetPair(0,82,116,126);
-  cabinetPair(364,82,116,126);
+  /* Big window directly above the bench. */
+  rect(50,54,380,294,P.wood0,bgx);
+  rect(56,60,368,282,P.wood4,bgx);
+  rect(64,68,352,266,P.ink,bgx);
+  ditherStrip(bgx,66,70,348,262,'#07101a','#111d28',.24,3);
 
-  /* Window: large, unmistakable night glass, thick timber frame and frost. */
-  rect(116,78,248,149,P.wood0,bgx);
-  rect(121,83,238,139,P.wood4,bgx);
-  rect(126,88,228,129,P.ink,bgx);
-  ditherStrip(bgx,128,90,224,125,P.ink,P.deep,.18,3);
-  rect(237,86,5,133,P.wood2,bgx); rect(124,149,232,6,P.wood2,bgx);
-  rect(123,84,234,4,P.woodHi,bgx); rect(122,218,236,6,P.wood1,bgx);
-  line(bgx,148,100,206,158,'rgba(108,128,145,.14)',2);
-  line(bgx,266,96,330,160,'rgba(108,128,145,.12)',2);
-  /* Frost is confined to the inside corners of the four glass panes.
-     No loose white pixels are baked onto curtains, frame, wall or mullions. */
-  var frostPanes=[[128,90,108,57],[243,90,109,57],[128,156,108,59],[243,156,109,59]];
-  for(var fp=0;fp<frostPanes.length;fp++){
-    var pr=frostPanes[fp], px=pr[0], py=pr[1], pw=pr[2], ph=pr[3];
-    for(var fr=0;fr<8;fr++){
-      var left=(fr&1)===0;
-      var fx=left?px+1+((fr*5)%10):px+pw-3-((fr*4)%10);
-      var fy=py+ph-2-((fr*7)%15);
-      rect(fx,fy,1+(fr%2),1,(fr%2)?'#81909c':'#aeb9c1',bgx);
-    }
+  /* Four broad panes. */
+  rect(237,66,7,270,P.wood2,bgx);
+  rect(62,195,356,7,P.wood2,bgx);
+  rect(58,62,364,4,P.woodHi,bgx);
+  rect(58,338,364,7,P.wood1,bgx);
+
+  /* Cold glass streaks — snow itself remains animated in drawSnow(). */
+  line(bgx,92,88,162,150,'rgba(126,147,164,.14)',2);
+  line(bgx,273,86,365,165,'rgba(126,147,164,.12)',2);
+  line(bgx,116,222,176,287,'rgba(126,147,164,.10)',2);
+  line(bgx,302,220,385,292,'rgba(126,147,164,.10)',2);
+
+  /* Curtains hang outside the window frame instead of stealing window width. */
+  poly(bgx,[[35,48],[77,48],[82,352],[69,345],[60,353],[49,346],[40,353]],'#713932');
+  poly(bgx,[[403,48],[445,48],[440,353],[429,346],[420,353],[411,345],[398,352]],'#713932');
+  poly(bgx,[[40,53],[58,53],[61,347],[47,352]],'#965448');
+  poly(bgx,[[422,53],[440,53],[434,352],[419,347]],'#965448');
+  line(bgx,69,55,69,344,'#542b29',3); line(bgx,411,55,411,344,'#542b29',3);
+  line(bgx,46,55,46,339,'#b26d58',2); line(bgx,435,55,435,339,'#b26d58',2);
+  rect(28,45,424,6,P.wood3,bgx);
+
+  /* Narrow tile backsplash immediately under the window. */
+  rect(0,348,IW,42,P.grout,bgx);
+  for(var ty=351;ty<390;ty+=19)for(var tx=0;tx<IW;tx+=30){
+    var row=((ty-351)/19)|0, ox=(row&1)?15:0;
+    var tile=((tx/30+row)|0)%3===0?P.tile2:(((tx/30+row)|0)%3===1?P.tile1:P.tile0);
+    rect(tx+ox,ty,28,17,tile,bgx);
+    rect(tx+ox+1,ty+1,26,2,'rgba(244,227,194,.10)',bgx);
+    rect(tx+ox+26,ty+2,2,14,'rgba(38,34,28,.24)',bgx);
   }
 
-  /* Heavy curtains with folds, light-facing edges and irregular hems. */
-  poly(bgx,[[102,75],[140,75],[137,224],[131,219],[124,225],[116,219],[108,225]],'#7a3f38');
-  poly(bgx,[[340,75],[378,75],[372,224],[364,219],[357,225],[349,219],[343,225]],'#7a3f38');
-  poly(bgx,[[107,78],[122,78],[120,221],[111,224]],'#a35e4f');
-  poly(bgx,[[346,78],[360,78],[363,222],[351,224]],'#a35e4f');
-  line(bgx,129,79,129,218,'#5c302d',3); line(bgx,354,79,354,219,'#5c302d',3);
-  line(bgx,113,80,113,216,'#bd7963',2); line(bgx,369,80,369,216,'#bd7963',2);
-  rect(98,72,284,6,P.wood3,bgx); rect(95,74,8,10,P.wood1,bgx); rect(377,74,8,10,P.wood1,bgx);
-
-  /* Tiled backsplash, deliberately warm and varied under the light. */
-  rect(56,211,368,137,P.grout,bgx);
-  for(var ty=214;ty<348;ty+=20)for(var tx=58;tx<424;tx+=29){
-    var row=((ty-214)/20)|0, col=((tx-58)/29)|0, ox=(row&1)?14:0;
-    var tile=(row+col)%4===0?P.tile2:(row+col)%4===1?'#9d9989':(row+col)%4===2?P.tile1:P.tile0;
-    rect(tx+ox,ty,27,18,tile,bgx);
-    rect(tx+ox+1,ty+1,25,2,'rgba(244,227,194,.18)',bgx);
-    rect(tx+ox+25,ty+2,2,15,'rgba(45,48,46,.18)',bgx);
+  /* Full-width workbench: broad, flat and physically attached to the wall. */
+  rect(0,390,IW,12,P.wood0,bgx);
+  rect(0,396,IW,164,'#604026',bgx);
+  ditherLight(bgx,0,396,IW,164,P.wood1,P.wood2,P.wood3,240,438,350,200,4);
+  line(bgx,0,396,IW,396,P.woodHi,3);
+  line(bgx,0,556,IW,556,'#2a1a11',4);
+  for(var gr=0;gr<24;gr++){
+    var gy=406+((gr*29)%144), gx=(gr*71)%430;
+    line(bgx,gx,gy,gx+38+(gr%4)*16,gy+((gr%3)-1),'rgba(46,27,15,.28)',1);
   }
-  rect(158,254,27,18,'#878a80',bgx); rect(159,255,5,2,P.grout,bgx);
-  rect(306,294,27,18,'#afa792',bgx); rect(328,294,4,4,P.grout,bgx);
 
-  /* Ingredient shelf. */
-  poly(bgx,[[8,214],[113,214],[109,224],[13,224]],P.wood4);
-  rect(13,224,96,6,P.wood0,bgx); rect(20,230,84,4,'rgba(0,0,0,.28)',bgx);
-  poly(bgx,[[20,177],[55,177],[60,214],[16,214]],'#d6c697');
-  rect(20,177,35,9,P.red,bgx); rect(23,188,30,19,'#e0d3aa',bgx);
-  bgx.fillStyle=P.wood0; bgx.font='bold 9px "Courier New"'; bgx.textAlign='center'; bgx.fillText('TOTS',38,201);
-  function can(x,band){
-    rect(x,187,17,27,P.cool2,bgx); rect(x+1,189,15,23,P.enamel,bgx);
-    rect(x+1,194,15,8,band,bgx); rect(x+1,187,15,3,P.enamelShade,bgx); rect(x+1,211,15,3,P.cool1,bgx);
-  }
-  can(66,'#b26043'); can(87,'#b26043');
-  rect(109,191,9,23,P.enamel,bgx); rect(110,188,7,4,P.enamelHi,bgx); rect(111,196,5,2,'#b7ad91',bgx);
+  /* Leave the back edge of the bench clear in the result composition.
+     With the pan centred and the camera tight, props here only read as clutter. */
 
-  /* Refrigerator against the back wall. Full base and cast shadow are visible. */
-  poly(bgx,[[374,202],[466,202],[474,211],[382,211]],'#2b333b');
-  rect(374,210,98,137,P.deep,bgx);
-  poly(bgx,[[378,214],[466,214],[466,341],[378,341]],P.cool1);
-  rect(382,218,80,119,P.cool2,bgx);
-  rect(383,219,78,3,'#7d8790',bgx); rect(383,334,78,3,'#303942',bgx);
-  rect(455,236,6,39,P.enamelShade,bgx); rect(457,238,2,35,P.enamelHi,bgx);
-  rect(397,235,39,48,'#d8cfb8',bgx);
-  line(bgx,405,252,411,244,'#4d5861',2); line(bgx,411,244,416,252,'#4d5861',2);
-  line(bgx,416,252,422,244,'#4d5861',2); line(bgx,422,244,429,252,'#4d5861',2);
-  rect(407,252,20,14,'#7d8790',bgx); rect(411,257,2,2,P.ink,bgx); rect(422,257,2,2,P.ink,bgx); rect(416,262,3,2,P.ink,bgx);
-  line(bgx,416,266,413,277,'#4d5861',2); line(bgx,422,266,426,277,'#4d5861',2); line(bgx,426,272,433,268,'#4d5861',2);
-  rect(394,232,6,6,P.red,bgx); rect(433,231,6,6,P.green,bgx); rect(394,282,6,6,P.gold,bgx);
-  rect(379,341,88,6,'#222a31',bgx); rect(382,347,82,4,'#11161b',bgx);
-  poly(bgx,[[369,348],[474,348],[466,353],[377,353]],'rgba(9,12,15,.34)');
-
-  /* Warm wooden counter surface in perspective. The back edge starts under
-     the fridge so it reads as a counter, not a floor climbing the wall. */
-  poly(bgx,[[0,348],[480,348],[468,469],[12,469]],'#6c4327');
-  ditherLight(bgx,0,348,IW,121,P.wood1,P.wood2,P.wood3,240,388,310,155,4);
-  for(var pl=0;pl<15;pl++){
-    var px=8+pl*34;
-    line(bgx,px,352,px-8,463,(pl%3===0)?'#4a2c1d':'#80512e',1);
-    if(pl%4===0) line(bgx,px+12,369,px+4,438,'rgba(203,141,76,.22)',1);
-  }
-  line(bgx,0,348,480,348,P.woodHi,3);
-  poly(bgx,[[12,469],[468,469],[480,482],[0,482]],P.wood0);
-  line(bgx,10,469,470,469,P.wood4,3);
-
-  /* Mitts and trivet, partly tucked under the dish. */
-  poly(bgx,[[28,428],[54,421],[67,451],[39,460],[24,448]],P.red);
-  for(var mi=0;mi<5;mi++) line(bgx,31+mi*6,431,43+mi*6,454,'#6f302b',1);
-  poly(bgx,[[425,422],[455,430],[457,451],[437,460],[417,447]],P.green);
-  for(var mj=0;mj<5;mj++) line(bgx,423+mj*6,446,441+mj*5,426,'#3b5434',1);
-  poly(bgx,[[53,443],[429,443],[443,468],[38,468]],'rgba(13,10,8,.48)');
-  poly(bgx,[[58,436],[423,436],[434,458],[47,458]],P.wood0);
-  for(var tr=0;tr<24;tr++) line(bgx,60+tr*15,438,66+tr*15,456,(tr%2)?P.wood2:P.wood1,2);
-
-  /* Lower cabinetry and built-in oven. */
-  rect(0,482,IW,78,P.cool0,bgx);
-  bevelBox(bgx,8,487,104,68,P.wood1,P.wood3,P.wood0,4);
-  bevelBox(bgx,368,487,104,68,P.wood1,P.wood3,P.wood0,4);
-  rect(56,501,8,6,P.ink,bgx); rect(416,501,8,6,P.ink,bgx);
-  bevelBox(bgx,120,484,240,72,P.cool2,'#7c8790',P.deep,5);
-  rect(151,492,178,7,P.deep,bgx); rect(166,489,148,4,P.enamelShade,bgx);
-  for(var k=0;k<5;k++) bevelBox(bgx,154+k*36,489,14,10,P.cool1,P.cool2,P.deep,2);
-  rect(147,508,186,39,P.ink,bgx); rect(154,514,172,27,P.deep,bgx); rect(155,515,170,2,P.cool2,bgx);
+  /* Integrated lower cabinets and oven: same wall, same bench. */
+  rect(0,560,IW,120,P.cool0,bgx);
+  bevelBox(bgx,8,566,104,98,P.wood1,P.wood3,P.wood0,4);
+  bevelBox(bgx,368,566,104,98,P.wood1,P.wood3,P.wood0,4);
+  rect(56,592,8,6,P.ink,bgx); rect(416,592,8,6,P.ink,bgx);
+  bevelBox(bgx,134,562,212,110,P.cool2,'#7c8790',P.deep,5);
+  rect(161,571,158,8,P.deep,bgx); rect(174,568,132,4,P.enamelShade,bgx);
+  for(var k=0;k<5;k++) bevelBox(bgx,154+k*36,554,14,10,P.cool1,P.cool2,P.deep,2);
+  rect(147,576,186,60,P.ink,bgx); rect(154,585,172,41,P.deep,bgx); rect(155,586,170,2,P.cool2,bgx);
+  rect(0,665,IW,15,'#07090c',bgx);
 }
 drawStaticKitchen();
+
+/* ============================================================
+   RELIGHT PASS
+   The scene above is painted flat, one fill per object, which is
+   exactly what makes flat art look like flat art. This pass runs
+   once and relights the whole background from two sources: the
+   hanging lamp, and the pool it throws across the counter where
+   the pan sits. Everything outside those pools cools toward navy,
+   desaturates, and loses contrast, so the eye lands on the food.
+   The result is ordered-dithered and posterized to stay pixel art.
+   ============================================================ */
+function lightAt(x,y){
+  var dx=(x-240)/292, dy=(y-104)/318;
+  var lamp=1-Math.sqrt(dx*dx+dy*dy);
+  var ex=(x-240)/236, ey=(y-414)/172;
+  var pool=(1-Math.sqrt(ex*ex+ey*ey))*0.92;
+  var L=Math.max(lamp,pool);
+  if(L<0) L=0; if(L>1) L=1;
+  return L*L*(3-2*L);            /* smoothstep: generous mids, fast edges */
+}
+function relight(g,w,h){
+  var img=g.getImageData(0,0,w,h), d=img.data, Q=11;
+  for(var y=0;y<h;y++){
+    for(var x=0;x<w;x++){
+      var i=(y*w+x)*4;
+      var bay=BAYER8[(y&7)*8+(x&7)];
+      var L=lightAt(x,y)+(bay-0.5)*0.06;
+      if(L<0)L=0; if(L>1)L=1;
+
+      var r=d[i], gg=d[i+1], b=d[i+2];
+      /* Colour drains out of the shadows before value does. */
+      var lum=0.299*r+0.587*gg+0.114*b, sat=0.34+0.66*L;
+      r=lum+(r-lum)*sat; gg=lum+(gg-lum)*sat; b=lum+(b-lum)*sat;
+      /* Tungsten in the light, night blue out of it. */
+      r*=0.55+0.60*L; gg*=0.54+0.52*L; b*=0.60+0.34*L;
+      r+=(1-L)*5; gg+=(1-L)*8; b+=(1-L)*17;
+      /* Posterize with the same ordered noise so bands break up. */
+      r=Math.round((r+(bay-0.5)*Q)/Q)*Q; gg=Math.round((gg+(bay-0.5)*Q)/Q)*Q; b=Math.round((b+(bay-0.5)*Q)/Q)*Q;
+      d[i]=r<0?0:r>255?255:r; d[i+1]=gg<0?0:gg>255?255:gg; d[i+2]=b<0?0:b>255?255:b;
+    }
+  }
+  g.putImageData(img,0,0);
+}
+relight(bgx,IW,IH);
+
+/* ============================================================
+   SHOT 1 - TOP-DOWN BENCH
+   Straight down on the dish while the word is built. The pan is the
+   same object in shot 2, so only the surround is redrawn.
+   ============================================================ */
+var bgTable=document.createElement('canvas'), tbx=bgTable.getContext('2d');
+bgTable.width=IW; bgTable.height=IH;
+function drawTableBg(){
+  var g=tbx;
+  rect(0,0,IW,IH,'#5a3722',g);
+  ditherLight(g,0,0,IW,IH,P.wood1,P.wood2,P.wood3,240,320,340,320,4);
+  /* Planks run across the frame; seen from directly above there is no
+     perspective, so the grain is the only thing describing the surface. */
+  for(var pl=0;pl<7;pl++){
+    var py=Math.round(pl*IH/6);
+    line(g,0,py,IW,py,'#33200f',3);
+    line(g,0,py+3,IW,py+3,'rgba(198,140,79,.16)',1);
+  }
+  for(var gr=0;gr<170;gr++){
+    var gy=(gr*61)%IH, gx=(gr*97)%IW, gl=14+(gr%5)*13;
+    line(g,gx,gy,gx+gl,gy+((gr%3)-1),(gr%4===0)?'rgba(46,28,15,.34)':'rgba(150,101,56,.14)',1);
+  }
+  /* Crumbs and stray tots scattered on the bench. */
+  var sd=7; function rnd(){ sd=(sd*9301+49297)%233280; return sd/233280; }
+  for(var cb=0;cb<120;cb++){
+    var x=rnd()*IW, y=rnd()*IH;
+    if(x>TD.x-14&&x<TD.x+TD.w+14&&y>TD.y-14&&y<TD.y+TD.h+14) continue;
+    rect(x,y,rnd()<.3?2:1,1,rnd()<.5?'rgba(190,140,80,.4)':'rgba(60,36,18,.5)',g);
+  }
+  function strayTot(x,y,w,h){
+    rect(x+1,y+1,w,h,'rgba(30,16,7,.5)',g);
+    rect(x,y,w,h,'#a0692c',g); rect(x,y,w,1,'#c99044',g); rect(x,y+h-1,w,1,'#6a3d17',g);
+  }
+  strayTot(58,596,9,6); strayTot(74,606,6,8); strayTot(404,88,9,6); strayTot(46,92,7,7);
+  strayTot(416,600,8,6); strayTot(398,614,6,7);
+
+  /* Tea towel, folded, top right. */
+  poly(g,[[352,10],[470,26],[462,96],[344,80]],'#8f2f2b');
+  poly(g,[[356,16],[464,32],[458,60],[350,45]],'#a94039');
+  for(var st=0;st<6;st++) line(g,352+st*20,12,346+st*20,82,'rgba(233,214,186,.20)',2);
+  line(g,344,58,464,74,'rgba(60,18,16,.45)',3);
+
+  /* Wooden spoon lying across the bottom left. */
+  poly(g,[[26,632],[52,610],[176,656],[168,676]],'rgba(20,12,6,.45)');
+  poly(g,[[24,626],[48,604],[170,650],[162,670]],'#a97a45');
+  poly(g,[[24,626],[48,604],[74,614],[50,636]],'#c1904f');
+  line(g,60,624,164,660,'#8a6034',3);
+
+  /* Oven mitt, bottom right, half out of frame. */
+  poly(g,[[386,640],[452,624],[478,668],[470,680],[392,680]],'#2f4a2c');
+  poly(g,[[394,648],[444,636],[462,668],[400,676]],'#41643a');
+  for(var mq=0;mq<5;mq++) line(g,396+mq*15,646,404+mq*15,676,'rgba(22,36,20,.5)',2);
+}
+drawTableBg();
+/* Lit by the same fixture, but we are underneath it now: one pool centred
+   on the dish, falling off to the bench edges. */
+function relightPool(g,cxp,cyp,rx,ry,warm){
+  var img=g.getImageData(0,0,IW,IH), d=img.data, Q=11;
+  for(var y=0;y<IH;y++)for(var x=0;x<IW;x++){
+    var i=(y*IW+x)*4, bay=BAYER8[(y&7)*8+(x&7)];
+    var dx=(x-cxp)/rx, dy=(y-cyp)/ry;
+    var L=1-Math.sqrt(dx*dx+dy*dy); if(L<0)L=0; if(L>1)L=1;
+    L=L*L*(3-2*L)+(bay-0.5)*0.06; if(L<0)L=0; if(L>1)L=1;
+    var r=d[i], gg=d[i+1], b=d[i+2];
+    var lum=0.299*r+0.587*gg+0.114*b, sat=0.36+0.64*L;
+    r=lum+(r-lum)*sat; gg=lum+(gg-lum)*sat; b=lum+(b-lum)*sat;
+    r*=warm[0]+warm[1]*L; gg*=warm[2]+warm[3]*L; b*=warm[4]+warm[5]*L;
+    r+=(1-L)*warm[6]; gg+=(1-L)*warm[7]; b+=(1-L)*warm[8];
+    r=Math.round((r+(bay-0.5)*Q)/Q)*Q; gg=Math.round((gg+(bay-0.5)*Q)/Q)*Q; b=Math.round((b+(bay-0.5)*Q)/Q)*Q;
+    d[i]=r<0?0:r>255?255:r; d[i+1]=gg<0?0:gg>255?255:gg; d[i+2]=b<0?0:b>255?255:b;
+  }
+  g.putImageData(img,0,0);
+}
+relightPool(tbx,240,318,470,486,[0.70,0.44,0.68,0.40,0.70,0.26,6,9,17]);
+
+/* ============================================================
+   SHOT 2 - INSIDE THE OVEN
+   Same pan position, different world. The bake was previously hidden
+   behind a closed door, so the browning ramp never got seen.
+   ============================================================ */
+var bgOven=document.createElement('canvas'), obx=bgOven.getContext('2d');
+bgOven.width=IW; bgOven.height=IH;
+function drawOvenBg(){
+  var g=obx;
+  rect(0,0,IW,IH,'#191410',g);
+  ditherStrip(g,0,0,IW,IH,'#191410','#241c15',.34,4);
+  /* Baked-on speckle and streaks down the cavity walls. */
+  var sd=23; function rnd(){ sd=(sd*9301+49297)%233280; return sd/233280; }
+  for(var sp=0;sp<420;sp++){
+    var x=rnd()*IW, y=rnd()*IH, t=rnd();
+    rect(x,y,t<.2?2:1,t<.1?2:1,t<.45?'rgba(10,7,5,.6)':'rgba(86,63,40,.28)',g);
+  }
+  for(var stk=0;stk<26;stk++){
+    var x2=(stk*41)%IW, y2=(stk*97)%IH;
+    line(g,x2,y2,x2+((stk%3)-1)*3,y2+30+(stk%4)*22,'rgba(12,8,5,.34)',2);
+  }
+  /* Side wall rack ledges, receding to the back of the cavity. */
+  for(var sl=0;sl<5;sl++){
+    var ly=120+sl*112;
+    rect(0,ly,26,7,'#2b231b',g); rect(0,ly,26,2,'#4a3d2e',g);
+    rect(454,ly,26,7,'#2b231b',g); rect(454,ly,26,2,'#4a3d2e',g);
+  }
+  /* The rack the dish sits on: bars front and back of the pan. */
+  function rackRun(y){
+    rect(0,y,IW,4,'#0d0a07',g); rect(0,y,IW,2,'#6b5b46',g); rect(0,y+3,IW,1,'#000000',g);
+  }
+  rackRun(TD.y-26); rackRun(TD.y+TD.h+20);
+  for(var rb=0;rb<9;rb++){
+    var bx=16+rb*56;
+    rect(bx,TD.y-26,4,TD.h+50,'#0d0a07',g); rect(bx,TD.y-26,2,TD.h+50,'#5c4e3c',g);
+  }
+  /* Vent slots at the top of the cavity. */
+  for(var vt=0;vt<7;vt++) rect(96+vt*44,16,30,6,'#080604',g);
+}
+drawOvenBg();
+relightPool(obx,240,340,420,470,[0.42,0.46,0.36,0.34,0.34,0.20,10,5,2]);
+
+/* Vignette is a separate prerendered layer drawn over everything, including
+   the pan and the letters, so foreground and background share one falloff. */
+var vig=document.createElement('canvas'), vgx=vig.getContext('2d');
+vig.width=IW; vig.height=IH;
+(function(){
+  var img=vgx.createImageData(IW,IH), d=img.data;
+  for(var y=0;y<IH;y++)for(var x=0;x<IW;x++){
+    var i=(y*IW+x)*4;
+    var dx=(x-240)/268, dy=(y-330)/330;
+    var t=Math.sqrt(dx*dx+dy*dy)-0.62;
+    if(t<0)t=0; t/=0.72; if(t>1)t=1;
+    var a=t*t*0.62+BAYER8[(y&7)*8+(x&7)]*0.035;
+    d[i]=7; d[i+1]=10; d[i+2]=18; d[i+3]=Math.round(Math.min(1,a)*255);
+  }
+  vgx.putImageData(img,0,0);
+})();
 
 function totPx(x,y,s,browned,bad){
   /* Letter tots are the same food as the bed, only a modest step brighter.
@@ -436,19 +644,22 @@ function totPx(x,y,s,browned,bad){
   var body,hi,lo;
   if(browned<0.70){
     var t=browned/0.70;
-    body=lerpHex('#d9a25a','#efb64b',t);
-    hi=lerpHex('#f5cf89','#ffdb78',t);
-    lo=lerpHex('#9a5b27','#a95d24',t);
+    /* The letters are a lighter, crisper batch sitting proud of the bed.
+       The gap in value between this and fillerPx is what makes the word
+       legible at a glance, so it is deliberately wide. */
+    body=lerpHex('#eec681','#ffcf6b',t);
+    hi=lerpHex('#fff0c2','#ffe6a0',t);
+    lo=lerpHex('#a2612a','#ac6527',t);
   }else if(browned<0.84){
     var t2=(browned-0.70)/0.14;
-    body=lerpHex('#efb64b','#d8842e',t2);
-    hi=lerpHex('#ffdb78','#efaa52',t2);
-    lo=lerpHex('#a95d24','#7f421b',t2);
+    body=lerpHex('#ffcf6b','#e5943a',t2);
+    hi=lerpHex('#ffe6a0','#f8bb63',t2);
+    lo=lerpHex('#ac6527','#82441b',t2);
   }else{
     var t3=Math.min(1,(browned-0.84)/0.16);
-    body=lerpHex('#d8842e','#5b2c14',t3);
-    hi=lerpHex('#efaa52','#9d4e24',t3);
-    lo=lerpHex('#7f421b','#281208',t3);
+    body=lerpHex('#e5943a','#613015',t3);
+    hi=lerpHex('#f8bb63','#a35426',t3);
+    lo=lerpHex('#82441b','#2a1308',t3);
   }
   if(bad){ body=shadeHex(body,-0.08); hi=shadeHex(hi,-0.05); }
   /* Crisp 5px tot with clipped corners and a browned right edge. */
@@ -471,84 +682,188 @@ function shadeHex(c,amt){
   return 'rgb('+r+','+g+','+b+')';
 }
 
-/* Dense, ordered rows of tots. Stable positions preserve the painted scene. */
-var fillerTots=(function(){
-  var arr=[],seed=19;
+/* Tots, tumbled rather than tiled. A perfect staggered grid of identical
+   nuggets reads as corduroy from a metre away, so each one gets its own
+   size, jitter and orientation, and roughly one in nine is skipped so the
+   dark bed shows through as gaps. Deterministic seed keeps it stable. */
+function makeTots(G,seed0){
+  var arr=[],seed=seed0||19;
   function rnd(){ seed=(seed*9301+49297)%233280; return seed/233280; }
-  var x0=PAN_X+7,x1=PAN_X+PAN_W-7,y0=PAN_Y+5,y1=PAN_Y+PAN_H-6;
-  var SX=7,SY=6,row=0;
+  var sc=G.tot/6;
+  var x0=G.ix,x1=G.ix+G.iw,y0=G.iy,y1=G.iy+G.ih;
+  var SX=Math.max(5,Math.round(7*sc)),SY=Math.max(4,Math.round(6*sc)),row=0;
   for(var gy=y0;gy<y1;gy+=SY,row++){
-    var stagger=(row&1)?3:0;
+    var stagger=(row&1)?Math.round(3*sc):0;
     for(var gx=x0+stagger;gx<x1;gx+=SX){
-      arr.push({x:gx+(rnd()-.5)*1.2,y:gy+(rnd()-.5)*1.0,w:6,h:5,ph:rnd()});
+      if(rnd()<0.11) continue;
+      var upright=rnd()<0.26, lng=rnd()<0.30;
+      var w=Math.round((upright?4:(lng?8:6+(rnd()<.5?0:1)))*sc);
+      var h=Math.round((upright?7:5)*sc);
+      arr.push({x:gx+(rnd()-.5)*2.2*sc,y:gy+(rnd()-.5)*1.8*sc,w:w,h:h,ph:rnd()});
     }
   }
   return arr;
-})();
+}
 function fillerPx(x,y,w,h,browned,phase){
   var body,hi,lo;
   if(browned<0.70){
     var t=browned/0.70;
-    body=lerpHex('#b87b37','#ca842f',t);
-    hi=lerpHex('#d8a55b','#e4aa4f',t);
-    lo=lerpHex('#7f451f','#813d18',t);
+    /* Pulled down and browner than before. The bed has to sit clearly
+       beneath the letters in value or the word never reads. */
+    body=lerpHex('#8a5624','#976020',t);
+    hi=lerpHex('#a67833','#ad7d2f',t);
+    lo=lerpHex('#4e2a11','#50260e',t);
   }else if(browned<0.84){
     var t2=(browned-0.70)/0.14;
-    body=lerpHex('#ca842f','#b86b24',t2);
-    hi=lerpHex('#e4aa4f','#d28b3d',t2);
-    lo=lerpHex('#813d18','#643014',t2);
+    body=lerpHex('#a86c25','#96551c',t2);
+    hi=lerpHex('#c08d38','#ab7130',t2);
+    lo=lerpHex('#5e2c11','#4b230f',t2);
   }else{
     var t3=Math.min(1,(browned-0.84)/0.16);
-    body=lerpHex('#b86b24','#482511',t3);
-    hi=lerpHex('#d28b3d','#7c3d1d',t3);
-    lo=lerpHex('#643014','#1f0e06',t3);
+    body=lerpHex('#96551c','#3c1e0d',t3);
+    hi=lerpHex('#ab7130','#653016',t3);
+    lo=lerpHex('#4b230f','#180a04',t3);
   }
-  body=shadeHex(body,(phase-.5)*.035);
-  /* Separate nuggets: 1px air between grid cells and clipped corners. */
+  body=shadeHex(body,(phase-.5)*.075);   /* wider spread: less uniform weave */
+  /* Separate nuggets, with a cast shadow so they sit in a bed of gravy. */
+  rect(x+2,y+2,w-1,h-1,'rgba(38,16,5,.34)');
   rect(x+1,y,w-2,h,body); rect(x,y+1,w,h-2,body);
+  /* A warmer interior cap makes each tot feel cooked rather than flat. */
+  if(w>3 && h>3) rect(x+1,y+1,Math.max(1,w-3),Math.max(1,h-3),shadeHex(body,0.05-browned*0.03));
   rect(x+1,y+1,w-2,1,hi); rect(x+1,y+h-2,w-2,1,lo);
-  rect(x+w-2,y+2,1,h-3,'rgba(56,25,8,.34)');
-  if(phase>.70) rect(x+2,y+2,1,1,'rgba(255,224,150,.24)');
+  rect(x+w-2,y+2,1,h-3,'rgba(56,25,8,.4)');
+  /* Occasional glaze sparkle and a tiny toasted dimple. */
+  if(phase>.70) rect(x+2,y+2,1,1,'rgba(255,224,150,.22)');
+  if(phase<.18 && w>4) rect(x+2,y+Math.max(1,h-3),Math.max(1,w-4),1,'rgba(73,34,14,.16)');
 }
-function drawFillerBed(browned){
+function drawFillerBed(G,tots,browned){
   cx.save();
-  cx.beginPath();
-  cx.moveTo(PAN_X+5,PAN_Y+3); cx.lineTo(PAN_X+PAN_W-5,PAN_Y+3);
-  cx.lineTo(PAN_X+PAN_W-8,PAN_Y+PAN_H-5); cx.lineTo(PAN_X+8,PAN_Y+PAN_H-5); cx.closePath();
-  cx.clip();
-  for(var i=0;i<fillerTots.length;i++){
-    var f=fillerTots[i], b=Math.max(0,Math.min(1,browned+(f.ph-.5)*.04));
+  G.clip(cx); cx.clip();
+  var deepBed=browned>0.84?'#201007':browned>0.6?'#33190c':'#3f2110';
+  rect(G.bed[0],G.bed[1],G.bed[2],G.bed[3],deepBed);
+  ditherStrip(cx,G.bed[0],G.bed[1],G.bed[2],G.bed[3],deepBed,'#48250f',.3,3);
+  /* A few warmer gravy pockets and toasted flecks keep the bed from reading
+     as one uniform brown plane. */
+  for(var gp=0;gp<44;gp++){
+    var px=G.bed[0]+6+((gp*37)%Math.max(8,G.bed[2]-14));
+    var py=G.bed[1]+5+((gp*23)%Math.max(8,G.bed[3]-10));
+    if(gp%5===0) rect(px,py,3,2,'rgba(224,169,96,.10)');
+    else if(gp%4===0) rect(px,py,2,2,'rgba(72,33,12,.14)');
+    else rect(px,py,2,1,'rgba(120,68,28,.08)');
+  }
+  for(var i=0;i<tots.length;i++){
+    var f=tots[i], b=Math.max(0,Math.min(1,browned+(f.ph-.5)*.04));
     fillerPx(Math.round(f.x),Math.round(f.y),f.w,f.h,b,f.ph);
   }
+  /* Slightly crisper baked edge so the casserole reads as a cooked surface,
+     not a perfectly even field. */
+  rect(G.bed[0],G.bed[1],G.bed[2],2,'rgba(82,43,18,.34)');
+  rect(G.bed[0],G.bed[1]+G.bed[3]-2,G.bed[2],2,'rgba(116,70,28,.42)');
+  rect(G.bed[0],G.bed[1],2,G.bed[3],'rgba(88,49,20,.30)');
+  rect(G.bed[0]+G.bed[2]-2,G.bed[1],2,G.bed[3],'rgba(88,49,20,.30)');
+  /* One faint sheen line across the top suggests a little moisture left. */
+  rect(G.bed[0]+8,G.bed[1]+4,Math.max(8,G.bed[2]-16),1,'rgba(246,205,120,.09)');
   cx.restore();
 }
-function drawLetter(ch,x,y,browned,bad,tilt){
+function drawLetter(ch,x,y,T,browned,bad,tilt){
+  /* Letters used to be drawn as one isolated nugget per lit cell, each with
+     its own shadow ring, which made the word read as a scatter of beads
+     rather than as letters. Now the lit cells are welded into a single
+     connected mass with a dark keyline, and the tot seams are scored back
+     in on top — so it still looks built out of tots, but it reads as a word
+     from across the room. */
   var g=FONT[ch],rows=g.length,cols=g[0].length,midRow=(rows-1)/2;
-  for(var r=0;r<rows;r++)for(var c=0;c<cols;c++)if(g[r][c]==='1'){
-    var ox=tilt?Math.round(tilt*(r-midRow)*.9):0, px=x+c*TOT+ox, py=y+r*TOT;
-    /* A compact all-around contact shadow hides the bed beneath each letter tot. */
-    rect(px-1,py+1,TOT+1,TOT-2,'rgba(55,25,8,.46)');
-    rect(px,py,TOT-1,TOT-1,'rgba(55,25,8,.24)');
-    totPx(px,py,TOT-1,browned,bad);
+  function on(r,c){ return r>=0&&r<rows&&c>=0&&c<cols&&g[r][c]==='1'; }
+  function cellX(r,c){ return x+c*T+(tilt?Math.round(tilt*(r-midRow)*.9*(T/6)):0); }
+
+  var body,hi,lo;
+  if(browned<0.70){
+    var t=browned/0.70;
+    body=lerpHex('#eec681','#ffcf6b',t); hi=lerpHex('#fff3cd','#ffe9ab',t); lo=lerpHex('#9c5a25','#a55f24',t);
+  }else if(browned<0.84){
+    var t2=(browned-0.70)/0.14;
+    body=lerpHex('#ffcf6b','#e5943a',t2); hi=lerpHex('#ffe9ab','#f8bb63',t2); lo=lerpHex('#a55f24','#7d411a',t2);
+  }else{
+    var t3=Math.min(1,(browned-0.84)/0.16);
+    body=lerpHex('#e5943a','#613015',t3); hi=lerpHex('#f8bb63','#a35426',t3); lo=lerpHex('#7d411a','#2a1308',t3);
   }
+  if(bad){ body=shadeHex(body,-0.07); hi=shadeHex(hi,-0.05); }
+
+  var r,c,px,py;
+  /* Cast shadow, offset down and right, laid down for the whole glyph first. */
+  for(r=0;r<rows;r++)for(c=0;c<cols;c++)if(on(r,c)){
+    rect(cellX(r,c)+2,y+r*T+3,T,T,'rgba(22,9,3,.55)');
+  }
+  /* Dark keyline hugging the mass. */
+  for(r=0;r<rows;r++)for(c=0;c<cols;c++)if(on(r,c)){
+    rect(cellX(r,c)-1,y+r*T-1,T+2,T+2,'rgba(30,13,4,.9)');
+  }
+  /* Body: full cells, edge to edge, so strokes actually connect. */
+  for(r=0;r<rows;r++)for(c=0;c<cols;c++)if(on(r,c)){
+    px=cellX(r,c); py=y+r*T;
+    rect(px,py,T,T,body);
+  }
+  /* Score the tot seams and light the outer silhouette. */
+  for(r=0;r<rows;r++)for(c=0;c<cols;c++)if(on(r,c)){
+    px=cellX(r,c); py=y+r*T;
+    if(on(r,c+1)) rect(px+T-1,py+1,1,T-2,'rgba(74,36,12,.42)');
+    if(on(r+1,c)) rect(px+1,py+T-1,T-2,1,'rgba(74,36,12,.42)');
+    if(!on(r-1,c)) rect(px,py,T,1,hi);
+    if(!on(r,c-1)) rect(px,py,1,T,hi);
+    if(!on(r+1,c)) rect(px,py+T-1,T,1,lo);
+    if(!on(r,c+1)) rect(px+T-1,py,1,T,lo);
+    if(((r*3+c*5)%4)===0) rect(px+2,py+2,1,1,'rgba(255,246,214,.5)');
+  }
+}
+/* The dish from directly above: no perspective, so all the description has
+   to come from the rim thickness, the corner radius and the glaze highlight. */
+function drawDishTopDown(){
+  var X=TD.x,Y=TD.y,W=TD.w,H=TD.h;
+  /* Wider, softer contact shadow so the casserole feels parked on the bench,
+     not pasted over the kitchen. */
+  rect(X-10,Y+10,W+20,H+10,'rgba(4,6,9,.28)');
+  rect(X-6,Y+14,W+12,H+6,'rgba(4,6,9,.22)');
+  rect(X-3,Y-3,W+6,H+6,'#4c545b');
+  rect(X,Y,W,H,'#6e777f');
+  rect(X+2,Y+2,W-4,H-4,'#d6d0c0');
+  /* Cobalt band around the rim, the way every dish of this vintage has one. */
+  rect(X+5,Y+5,W-10,2,P.cobalt); rect(X+5,Y+H-7,W-10,2,P.cobalt);
+  rect(X+5,Y+5,2,H-10,P.cobalt); rect(X+W-7,Y+5,2,H-10,P.cobalt);
+  rect(X+2,Y+2,W-4,1,'#f0ebdc'); rect(X+2,Y+2,1,H-4,'#f0ebdc');
+  rect(X+2,Y+H-3,W-4,1,'#868f97'); rect(X+W-3,Y+2,1,H-4,'#868f97');
+  /* Handles centred on the short ends. */
+  var hh=Math.round(H*0.28), hy=Y+Math.round((H-hh)/2);
+  rect(X-14,hy-1,16,hh+2,P.enamelDark);
+  rect(X-11,hy,12,hh,P.enamel);
+  rect(X+W-2,hy-1,16,hh+2,P.enamelDark);
+  rect(X+W+1,hy,12,hh,P.enamel);
+  /* Inner wall turning down to the food, plus a long glaze highlight. */
+  rect(TD.ix-4,TD.iy-4,TD.iw+8,TD.ih+8,'#a8afb5');
+  rect(TD.ix-2,TD.iy-2,TD.iw+4,TD.ih+4,'#79828a');
+  rect(TD.ix-1,TD.iy-1,TD.iw+2,TD.ih+2,'rgba(24,14,7,.72)');
+  rect(X+16,Y+11,Math.round(W*0.30),1,'rgba(255,255,255,.42)');
+  /* A little extra top lip shading helps the food sit down inside the dish. */
+  rect(TD.ix-1,TD.iy-1,TD.iw+2,2,'rgba(31,18,8,.24)');
+  rect(TD.ix-1,TD.iy+TD.ih-2,TD.iw+2,2,'rgba(92,56,28,.35)');
 }
 function dishPath(g,pts){ g.beginPath(); g.moveTo(pts[0][0],pts[0][1]); for(var i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]); g.closePath(); }
 function drawDish(){
   /* Shallow 3/4 enamel baker. The food surface is the hero; the front wall is
      thick enough to feel ceramic but not tall enough to become a white box. */
-  var farY=PAN_Y-9, nearY=PAN_Y+PAN_H+7;
+  var farY=PAN_Y-8, nearY=PAN_Y+PAN_H+6;
   var outer=[[PAN_X+3,farY],[PAN_X+PAN_W-3,farY],[PAN_X+PAN_W+10,PAN_Y+5],[PAN_X+PAN_W+13,PAN_Y+PAN_H-5],[PAN_X+PAN_W+6,nearY],[PAN_X-6,nearY],[PAN_X-13,PAN_Y+PAN_H-5],[PAN_X-10,PAN_Y+5]];
   var inner=[[PAN_X+4,PAN_Y+1],[PAN_X+PAN_W-4,PAN_Y+1],[PAN_X+PAN_W-7,PAN_Y+PAN_H-4],[PAN_X+7,PAN_Y+PAN_H-4]];
 
-  poly(cx,[[PAN_X-14,PAN_Y+PAN_H+7],[PAN_X+PAN_W+14,PAN_Y+PAN_H+7],[PAN_X+PAN_W+24,PAN_Y+PAN_H+20],[PAN_X-24,PAN_Y+PAN_H+20]],'rgba(12,9,7,.48)');
+  poly(cx,[[PAN_X-8,PAN_Y+PAN_H+5],[PAN_X+PAN_W+8,PAN_Y+PAN_H+5],[PAN_X+PAN_W+14,PAN_Y+PAN_H+13],[PAN_X-14,PAN_Y+PAN_H+13]],'rgba(12,9,7,.38)');
 
   /* Handles behind the pan, with blue undersides. */
-  poly(cx,[[PAN_X-29,PAN_Y+24],[PAN_X-8,PAN_Y+21],[PAN_X-7,PAN_Y+55],[PAN_X-31,PAN_Y+59]],P.enamelDark);
-  poly(cx,[[PAN_X-27,PAN_Y+26],[PAN_X-9,PAN_Y+24],[PAN_X-9,PAN_Y+52],[PAN_X-28,PAN_Y+56]],P.enamel);
-  line(cx,PAN_X-25,PAN_Y+27,PAN_X-11,PAN_Y+25,P.cobalt,2);
-  poly(cx,[[PAN_X+PAN_W+8,PAN_Y+21],[PAN_X+PAN_W+29,PAN_Y+24],[PAN_X+PAN_W+31,PAN_Y+59],[PAN_X+PAN_W+7,PAN_Y+55]],P.enamelDark);
-  poly(cx,[[PAN_X+PAN_W+9,PAN_Y+24],[PAN_X+PAN_W+27,PAN_Y+26],[PAN_X+PAN_W+28,PAN_Y+56],[PAN_X+PAN_W+9,PAN_Y+52]],P.enamel);
-  line(cx,PAN_X+PAN_W+11,PAN_Y+25,PAN_X+PAN_W+25,PAN_Y+27,P.cobalt,2);
+  var hy=PAN_Y+Math.round(PAN_H*0.5), hTop=hy-13, hBot=hy+13;
+  poly(cx,[[PAN_X-18,hTop+1],[PAN_X-6,hTop],[PAN_X-6,hBot],[PAN_X-20,hBot+2]],P.enamelDark);
+  poly(cx,[[PAN_X-16,hTop+2],[PAN_X-7,hTop+1],[PAN_X-7,hBot-1],[PAN_X-17,hBot]],P.enamel);
+  line(cx,PAN_X-14,hTop+3,PAN_X-9,hTop+2,P.cobalt,2);
+  poly(cx,[[PAN_X+PAN_W+6,hTop],[PAN_X+PAN_W+18,hTop+1],[PAN_X+PAN_W+20,hBot+2],[PAN_X+PAN_W+6,hBot]],P.enamelDark);
+  poly(cx,[[PAN_X+PAN_W+7,hTop+1],[PAN_X+PAN_W+16,hTop+2],[PAN_X+PAN_W+17,hBot],[PAN_X+PAN_W+7,hBot-1]],P.enamel);
+  line(cx,PAN_X+PAN_W+9,hTop+2,PAN_X+PAN_W+14,hTop+3,P.cobalt,2);
 
   poly(cx,outer,P.enamelDark);
   poly(cx,[[PAN_X+6,farY+2],[PAN_X+PAN_W-6,farY+2],[PAN_X+PAN_W+7,PAN_Y+7],[PAN_X+PAN_W+9,PAN_Y+PAN_H-6],[PAN_X+PAN_W+3,nearY-2],[PAN_X-3,nearY-2],[PAN_X-9,PAN_Y+PAN_H-6],[PAN_X-7,PAN_Y+7]],P.enamel);
@@ -572,111 +887,257 @@ function drawDish(){
   line(cx,PAN_X+Math.round(PAN_W*.08),nearY-1,PAN_X+Math.round(PAN_W*.38),nearY-1,'#ffffff',1);
 }
 function drawSnow(){
-  /* Animate snow separately inside each glass pane. This prevents flakes
-     from ever crossing the timber frame, mullions, curtains or backsplash. */
-  var panes=[[128,90,108,57],[243,90,109,57],[128,156,108,59],[243,156,109,59]];
-  var tt=last*.028;
-  for(var p=0;p<panes.length;p++){
-    var pr=panes[p], px=pr[0], py=pr[1], pw=pr[2], ph=pr[3];
-    cx.save(); cx.beginPath(); cx.rect(px,py,pw,ph); cx.clip();
-    for(var i=0;i<11;i++){
-      var id=i+p*13;
-      var drift=tt*(0.72+(id%4)*0.16);
-      var fall=tt*(0.50+(id%5)*0.12);
-      var x=px+((id*37+drift)%pw);
-      var y=py+((id*29+fall)%ph);
-      rect(x,y,(id%7===0)?2:1,(id%4===0)?3:2,(id%3===0)?'#d9e1e6':'#9facb7');
+  /* Each pane gets its own animated snow field and clipping rectangle.
+     This keeps every flake moving and prevents snow crossing the timber frame. */
+  var panes=[[66,70,169,123],[245,70,169,123],[66,204,169,128],[245,204,169,128]];
+  var tt=last*.030;
+  for(var pane=0;pane<panes.length;pane++){
+    var pr=panes[pane], px=pr[0], py=pr[1], pw=pr[2], ph=pr[3];
+    cx.save();
+    cx.beginPath(); cx.rect(px,py,pw,ph); cx.clip();
+    for(var i=0;i<12;i++){
+      var id=pane*17+i;
+      var x=px+((id*43+tt*(0.70+(id%4)*0.18))%pw);
+      var y=py+((id*31+tt*(0.58+(id%5)*0.15))%ph);
+      var flake=(id%3===0)?'#d9e1e6':'#9facb7';
+      rect(x,y,(id%7===0)?2:1,(id%4===0)?3:2,flake);
     }
     cx.restore();
   }
 }
 function drawOvenGlow(){
   var d=(state===ST_OVEN||state===ST_END)?oven.doneness:0;
-  var glow=d>.82?'#9f321f':d>.58?'#b95e27':d>.2?'#9c6d35':P.deep;
-  rect(154,514,172,27,glow);
+  if(state===ST_END) d*=0.44;      /* element off, cavity coasting down */
+  var glow=d>.82?'#4b1a10':d>.58?'#553017':d>.2?'#40301c':P.deep;
+  rect(154,585,172,41,glow);
   if(d>0){
-    var hot=d>.82?'#df4b29':d>.58?'#dc8c38':'#bea05b';
-    ditherStrip(cx,158,517,164,21,glow,hot,.15+d*.34,3);
-    rect(154,514,172,2,'rgba(255,226,153,.30)');
+    rect(154,585,172,8,'rgba(10,7,5,.5)');
+    rect(154,585,6,41,'rgba(10,7,5,.42)'); rect(320,585,6,41,'rgba(10,7,5,.42)');
   }
-  rect(147,508,186,39,'rgba(11,14,17,.27)');
-  rect(153,514,174,2,'rgba(236,231,216,.18)');
+  if(d>0){
+    var rgb=d>.82?'223,75,41':d>.58?'226,144,58':'198,166,95';
+    for(var gr=0;gr<38;gr++){
+      var ga=(1-Math.abs(gr-10)/24);
+      if(ga>0) rect(156,585+gr,168,1,'rgba('+rgb+','+(ga*(0.20+d*0.62)).toFixed(3)+')');
+    }
+    if(state===ST_OVEN){
+      rect(170,606,8,7,'rgba(24,12,6,.8)'); rect(302,606,8,7,'rgba(24,12,6,.8)');
+      rect(176,600,128,15,'rgba(22,11,5,.85)');
+      rect(178,602,124,11,'rgba('+rgb+','+(0.30+d*0.30).toFixed(3)+')');
+      ditherStrip(cx,179,603,122,7,'rgba(46,22,9,.55)','rgba('+rgb+',.9)',.16+d*.20,2);
+      rect(177,601,126,1,'rgba(255,230,175,'+(0.34+d*0.40).toFixed(3)+')');
+      rect(178,613,124,2,'rgba(16,8,4,.6)');
+    }
+    for(var rk=0;rk<6;rk++) rect(162+rk*28,620,20,1,'rgba(14,8,5,.55)');
+    rect(150,627,180,7,'rgba('+rgb+','+(0.09+d*0.16).toFixed(3)+')');
+    rect(160,634,160,4,'rgba('+rgb+','+(0.05+d*0.10).toFixed(3)+')');
+  }
+  rect(147,576,186,60,'rgba(11,14,17,.22)');
+  rect(154,585,172,6,'rgba(226,231,216,.07)');
+  rect(154,585,172,1,'rgba(236,231,216,.18)');
+  poly(cx,[[160,626],[196,585],[212,585],[176,626]],'rgba(255,255,255,.05)');
+  poly(cx,[[222,626],[244,585],[251,585],[229,626]],'rgba(255,255,255,.034)');
 }
+
+/* ---------- shots ---------- */
+var SH_TABLE=0, SH_OVEN=1, SH_BENCH=2;
+var shot=SH_TABLE, pendingShot=null, cutT=0;
+var CUT=0.34;
+function shotFor(st){ return st===ST_OVEN?SH_OVEN : st===ST_END?SH_BENCH : SH_TABLE; }
+function syncShot(){
+  var want=shotFor(state);
+  if(want!==shot && pendingShot===null){ pendingShot=want; cutT=CUT; }
+}
+var totsTD=makeTots(TD,19), totsWB=makeTots(WB,19);
+
+function drawSteam(G,browned,scale){
+  var stt=last/1000;
+  for(var sm=0;sm<5;sm++){
+    var baseX=G.ix+Math.round(G.iw*0.14)+sm*Math.round(G.iw*0.18);
+    for(var seg=0;seg<9;seg++){
+      var life=((stt*0.42+sm*0.21+seg*0.111)%1);
+      var ry=G.y-6-life*46*scale;
+      var wob=Math.sin(life*4.4+sm*1.7+stt*1.1)*(3+life*7);
+      var a=(1-life)*(1-life)*0.22*(browned>0.8?0.55:1);
+      if(a<=0.006) continue;
+      rect(baseX+Math.round(wob),ry,life<0.35?1:2,2,'rgba(238,232,220,'+a.toFixed(3)+')');
+    }
+  }
+}
+function letterPos(L,G){
+  var p=slotPosG(L.i,G);
+  return {x:Math.round(p.x + L.offFrac*G.lw), y:p.y};
+}
+
+/* ---------- shot 1 + 2: the dish, close ---------- */
+function drawCloseShot(inOven){
+  var browned=inOven?oven.doneness:(state===ST_END?oven.doneness:0);
+  if(inOven){
+    cx.drawImage(bgOven,0,0);
+    var pulse=0.82+0.18*Math.sin(last/240);
+    var eb=IH-62;
+    function coil(y,alpha,thick){
+      for(var xq=26;xq<IW-26;xq+=2){
+        var ph=(xq-26)/(IW-52);
+        var yy=y+Math.round(Math.sin(ph*Math.PI*3.0)*9);
+        rect(xq,yy,2,thick+2,'rgba(120,32,14,'+(alpha*0.55*pulse).toFixed(3)+')');
+        rect(xq,yy+1,2,thick,'rgba(226,86,32,'+(alpha*0.85*pulse).toFixed(3)+')');
+        rect(xq,yy+1,2,Math.max(1,thick-2),'rgba(255,172,76,'+(alpha*0.7*pulse).toFixed(3)+')');
+      }
+      rect(20,y-10,8,24,'rgba(200,70,26,'+(alpha*0.6*pulse).toFixed(3)+')');
+      rect(IW-28,y-10,8,24,'rgba(200,70,26,'+(alpha*0.6*pulse).toFixed(3)+')');
+    }
+    coil(eb,1,5); coil(eb+26,0.8,4);
+    for(var gh=0;gh<96;gh++){
+      var ga=(1-gh/96)*(1-gh/96)*0.30*pulse;
+      rect(0,eb-gh,IW,1,'rgba(226,110,40,'+ga.toFixed(3)+')');
+    }
+  } else {
+    cx.drawImage(bgTable,0,0);
+  }
+
+  drawDishTopDown();
+  drawFillerBed(TD,totsTD,browned);
+  if(state!==ST_INTRO) drawSteam(TD,browned,1.25);
+
+  if(state===ST_PLAY||state===ST_DROP){
+    for(var g2=li;g2<11;g2++){
+      var gp=slotPosG(g2,TD);
+      cx.strokeStyle='rgba(255,216,128,.20)'; cx.lineWidth=1;
+      cx.strokeRect(gp.x-1,gp.y-1,LW+2,LH+2);
+    }
+    var ap=slotPosG(li,TD);
+    cx.strokeStyle='rgba(255,224,148,.82)'; cx.lineWidth=2;
+    cx.strokeRect(ap.x-2,ap.y-2,LW+4,LH+4);
+  }
+
+  for(var p=0;p<placed.length;p++){
+    var L=placed[p], lp=letterPos(L,TD);
+    drawLetter(L.ch,lp.x,lp.y,TD.tot,browned,L.bad,L.tilt);
+  }
+
+  if(state===ST_PLAY){
+    var slx=Math.round(slider.x), sly=SLIDER_Y;
+    var HOV=13;
+    for(var r0=0;r0<7;r0++)for(var c0=0;c0<5;c0++){
+      if(FONT[WORD[li]][r0][c0]!=='1') continue;
+      rect(slx+c0*TD.tot+HOV, sly+r0*TD.tot+HOV+4, TD.tot, TD.tot,'rgba(8,10,14,.42)');
+    }
+    drawLetter(WORD[li],slx,sly,TD.tot,0,false,0);
+    var targ=slotPosG(li,TD), gxl=targ.x, gxr=targ.x+LW;
+    for(var dyi=sly+LH+6;dyi<targ.y-4;dyi+=7){
+      var ga2=0.10+0.34*((dyi-sly)/Math.max(1,(targ.y-sly)));
+      rect(gxl,dyi,2,4,'rgba(255,220,135,'+ga2.toFixed(3)+')');
+      rect(gxr-2,dyi,2,4,'rgba(255,220,135,'+ga2.toFixed(3)+')');
+    }
+  }
+  if(state===ST_DROP&&drop){
+    var fall=(drop.y-SLIDER_Y)/Math.max(1,(drop.targetY-SLIDER_Y));
+    var hov=Math.round(13*(1-fall));
+    for(var r1=0;r1<7;r1++)for(var c1=0;c1<5;c1++){
+      if(FONT[drop.ch][r1][c1]!=='1') continue;
+      rect(Math.round(drop.x)+c1*TD.tot+hov, drop.targetY+r1*TD.tot+hov+4, TD.tot,TD.tot,
+        'rgba(8,10,14,'+(0.42*(1-fall*0.4)).toFixed(3)+')');
+    }
+    drawLetter(drop.ch,Math.round(drop.x),Math.round(drop.y),TD.tot,0,drop.bad,0);
+  }
+
+  if(inOven){
+    var gw=250, gx=Math.round((IW-gw)/2), gy=44, gh2=50;
+    rect(gx-5,gy+gh2+2,gw+10,6,'rgba(6,4,3,.55)');
+    rect(gx,gy,gw,gh2,'#1b222b');
+    rect(gx+2,gy+2,gw-4,gh2-4,'#cfc8b7');
+    rect(gx+2,gy+2,gw-4,2,'#f2ecdd');
+    rect(gx+7,gy+7,gw-14,3,'#2a5077');
+    var bx=gx+12, bw=gw-24, by=gy+17, bh=16;
+    rect(bx-2,by-2,bw+4,bh+4,'#2b3038');
+    rect(bx,by,bw,bh,'#12171d');
+    var q0=Math.round(bx+bw*GOLD0), q1=Math.round(bx+bw*GOLD1);
+    ditherStrip(cx,q0,by,Math.max(2,q1-q0),bh,'#6b4d20',P.gold,.55,2);
+    rect(q0-1,by-3,1,bh+6,'#ffe082'); rect(q1,by-3,1,bh+6,'#ffe082');
+    var fill=oven.bar, col=fill<GOLD0?'#966c35':fill<=GOLD1?P.gold:'#b4543c';
+    rect(bx,by,bw*fill,bh,col);
+    rect(bx,by,bw*fill,2,fill>GOLD1?'#e07a56':P.goldHi);
+    rect(bx+bw*fill-2,by-2,3,bh+4,'#fff4dc');
+    cx.textAlign='center'; cx.fillStyle='#3f4650'; cx.font='bold 9px "Courier New"';
+    cx.fillText('P U L L   A T   G O L D E N',gx+gw/2,gy+45);
+    cx.fillStyle='rgba(226,120,48,'+(0.02+0.014*Math.sin(last/170)).toFixed(3)+')';
+    cx.fillRect(0,0,IW,IH);
+  }
+}
+
+function drawBenchShot(){
+  if(state===ST_END && (endResult==='win'||endResult==='win-pale') && finalArtReady && finalArt.naturalWidth){
+    cx.drawImage(finalArt,0,0,IW,IH);
+    return;
+  }
+  cx.drawImage(bg,0,0);
+  drawSnow();
+  drawOvenGlow();
+  drawDish();
+  var browned=oven.doneness;
+  drawFillerBed(WB,totsWB,browned);
+  drawSteam(WB,browned,0.9);
+  for(var p=0;p<placed.length;p++){
+    var L=placed[p], lp=letterPos(L,WB);
+    drawLetter(L.ch,lp.x,lp.y,WB.tot,browned,L.bad,L.tilt);
+  }
+}
+
 function draw(){
   cx.clearRect(0,0,IW,IH);
   var sx=shakeT>0?Math.round(Math.random()*4-2):0;
   cx.save(); cx.translate(sx,0);
-  cx.drawImage(bg,0,0);
-  drawSnow();
-  drawOvenGlow();
 
-  /* While baking, the entire hotdish is inside the oven. The countertop stays
-     empty until the result appears, making the action spatially unambiguous. */
-  var dishVisible=(state!==ST_OVEN);
-  if(dishVisible){
-    drawDish();
-    var browned=(state===ST_END)?oven.doneness:0;
-    drawFillerBed(browned);
+  if(shot===SH_BENCH) drawBenchShot();
+  else drawCloseShot(shot===SH_OVEN);
 
-    /* subtle steam ribbons */
-    if(state!==ST_INTRO){
-      var stt=(last/620)%10;
-      for(var sm=0;sm<4;sm++){
-        var sxx=PAN_X+Math.round(PAN_W*0.16)+sm*Math.round(PAN_W*0.21)+Math.round(Math.sin(stt+sm)*4);
-        var sy=PAN_Y-25-((stt*3+sm*5)%16);
-        rect(sxx,sy,2,10,'rgba(244,239,229,.16)');
-        rect(sxx+2,sy-5,1,7,'rgba(244,239,229,.10)');
-      }
+  /* Crumbs kicked loose where the letter landed. */
+  if(puff&&shot===SH_TABLE){
+    var pt=puff.t/0.5, pa=(1-pt)*(1-pt);
+    for(var cb=0;cb<14;cb++){
+      var ang=(cb*0.61)+(cb%3)*0.4, spd=15+(cb%5)*8;
+      rect(puff.x+Math.cos(ang)*spd*pt*(cb%2?1:-1),
+           puff.y-Math.sin(Math.abs(ang))*spd*0.5*pt+pt*pt*15,
+           (cb%4===0)?2:1,(cb%3===0)?2:1,
+           (puff.bad?'rgba(120,62,26,':'rgba(226,186,110,')+(pa*0.8).toFixed(3)+')');
     }
-
-    if(state===ST_PLAY||state===ST_DROP){
-      for(var g2=li;g2<11;g2++){
-        cx.strokeStyle='rgba(255,216,128,.22)'; cx.lineWidth=1;
-        cx.strokeRect(slotX(g2)-1,SLOT_Y-1,LW+2,LH+2);
-      }
-      cx.strokeStyle='rgba(255,224,148,.82)'; cx.lineWidth=2;
-      cx.strokeRect(slotX(li)-2,SLOT_Y-2,LW+4,LH+4);
-    }
-
-    for(var p=0;p<placed.length;p++){
-      var L=placed[p]; drawLetter(L.ch,L.x,L.y,browned,L.bad,L.tilt);
-    }
-
-    if(state===ST_PLAY){
-      drawLetter(WORD[li],Math.round(slider.x),SLIDER_Y,0,false,0);
-      rect(Math.round(slider.x)+Math.floor(LW/2),SLIDER_Y+LH+4,2,SLOT_Y-(SLIDER_Y+LH)-8,'rgba(255,220,135,.34)');
-      rect(Math.round(slider.x)+Math.floor(LW/2)-2,SLOT_Y-5,6,3,'rgba(255,220,135,.55)');
-    }
-    if(state===ST_DROP&&drop) drawLetter(drop.ch,Math.round(drop.x),Math.round(drop.y),0,drop.bad,0);
+  }
+  if(flashT>0&&shot===SH_TABLE){
+    cx.fillStyle='rgba(255,222,150,'+(flashT/0.18*0.05).toFixed(3)+')';
+    cx.fillRect(TD.x,TD.y,TD.w,TD.h);
   }
 
-  if(state===ST_OVEN){
-    var bx=PAN_X+22, bw=PAN_W-44, by=242, bh=18;
-    bevelBox(cx,bx-4,by-4,bw+8,bh+8,P.wood0,P.wood3,P.deep,3);
-    rect(bx,by,bw,bh,P.deep);
-    ditherStrip(cx,bx+bw*GOLD0,by,bw*(GOLD1-GOLD0),bh,P.wood1,P.gold,.50,2);
-    var fill=oven.bar;
-    var col=fill<GOLD0?'#9b713a':fill<=GOLD1?P.gold:P.red;
-    rect(bx,by,bw*fill,bh,col);
-    rect(bx,by,bw*fill,3,fill>GOLD1?'#e07a56':P.goldHi);
-    cx.fillStyle=P.enamelHi; cx.font='bold 11px "Courier New"'; cx.textAlign='center';
-    cx.fillText('P U L L   A T   G O L D E N',bx+bw/2,by-9);
-  }
+  cx.drawImage(vig,0,0);
 
   if(state===ST_END){
     cx.fillStyle='rgba(12,16,20,.36)'; cx.fillRect(0,0,IW,IH);
-    bevelBox(cx,52,235,376,62,P.wood0,P.wood3,P.deep,4);
-    cx.fillStyle=P.enamelHi; cx.font='bold 17px "Courier New"'; cx.textAlign='center';
-    var t=(endResult==='win')?'HOTDISH ACHIEVED':(endResult==='win-pale')?'HOTDISH (PALE) ACHIEVED':(endResult==='lose-word')?'THE WORD IS WRONG':'CAJUN.';
-    cx.fillText(t,IW/2,262);
-    cx.font='10px "Courier New"'; cx.fillStyle=P.gold;
-    cx.fillText('T A P   T O   C O N T I N U E',IW/2,282);
+    card(cx,60,292,360,62);
+    cx.textAlign='center';
+    var t=(endResult==='win')?'HOTDISH ACHIEVED':(endResult==='win-pale')?'HOTDISH, PALE':(endResult==='lose-word')?'THE WORD IS WRONG':'CAJUN.';
+    var won=(endResult==='win'||endResult==='win-pale');
+    cx.fillStyle=won?'#fff4dc':'#e6a08f'; cx.font='bold 16px "Courier New"';
+    cx.fillText(t,IW/2,322);
+    rect(IW/2-46,329,92,1,'rgba(226,180,91,.3)');
+    cx.font='9px "Courier New"'; cx.fillStyle='#8d7147';
+    cx.fillText('T A P   T O   C O N T I N U E',IW/2,343);
   }
   if(state===ST_INTRO){
-    cx.fillStyle='rgba(12,16,20,.28)'; cx.fillRect(0,0,IW,IH);
-    bevelBox(cx,74,232,332,52,P.wood0,P.wood3,P.deep,4);
-    cx.fillStyle=P.enamelHi; cx.font='bold 15px "Courier New"'; cx.textAlign='center';
-    cx.fillText('T A P   T O   S T A R T',IW/2,263);
+    cx.fillStyle='rgba(9,12,18,.34)'; cx.fillRect(0,0,IW,IH);
+    card(cx,110,296,260,54);
+    cx.textAlign='center';
+    cx.fillStyle='#fff4dc'; cx.font='bold 15px "Courier New"';
+    cx.fillText('T A P   T O   S T A R T',IW/2,326);
+    cx.fillStyle='#8d7147'; cx.font='9px "Courier New"';
+    cx.fillText('E L E V E N   L E T T E R S',IW/2,341);
+  }
+
+  /* The cut itself: a fast dip to black, which reads as an edit rather than
+     a dissolve and costs nothing. */
+  if(cutT>0){
+    var half=CUT/2, a=1-Math.abs(cutT-half)/half;
+    cx.fillStyle='rgba(5,7,10,'+Math.min(1,a*1.25).toFixed(3)+')';
+    cx.fillRect(-8,0,IW+16,IH);
   }
   cx.restore();
 }
@@ -686,23 +1147,32 @@ var last=0;
 function tick(ts){
   var dt=Math.min(0.05,(ts-last)/1000||0.016); last=ts;
   if(shakeT>0) shakeT-=dt;
+  syncShot();
+  if(cutT>0){
+    cutT-=dt;
+    /* Swap the shot at the darkest point of the dip. */
+    if(cutT<=CUT/2 && pendingShot!==null){ shot=pendingShot; pendingShot=null; }
+    if(cutT<0) cutT=0;
+  }
+  if(flashT>0) flashT-=dt;
+  if(puff){ puff.t+=dt; if(puff.t>0.5) puff=null; }
   if(state===ST_PLAY){
     slider.phase += dt;
-    /* The first three letters move like a metronome. Later letters breathe:
-       one slow pulse plus a smaller high-frequency pulse. The result feels
-       less predictable while always remaining continuous and readable. */
     var pace=1;
+    /* Letters 1-3 are metronomic. Later letters gently accelerate and ease
+       within each pass, making their timing less predictable without jumps. */
     if(li>=3){
       var late=(li-2)/8;
-      pace += Math.sin(slider.phase*(2.1+late*.9)+li*.73)*(0.045+late*.055);
-      if(li>=6) pace += Math.sin(slider.phase*5.1+li*1.17)*0.045;
+      pace += Math.sin(slider.phase*(2.2+late*.8)+li*.71)*(0.04+late*.035);
+      if(li>=6) pace += Math.sin(slider.phase*5.0+li*1.11)*0.025;
     }
     slider.x += slider.dir*slider.speed*pace*(dt*60);
-    if(slider.x<PAN_X){ slider.x=PAN_X; slider.dir=1; slider.phase+=0.17; }
-    if(slider.x>PAN_X+PAN_W-LW){ slider.x=PAN_X+PAN_W-LW; slider.dir=-1; slider.phase+=0.17; }
+    var smin=sliderMinFor(li), smax=sliderMaxFor(li);
+    if(slider.x<smin){ slider.x=smin; slider.dir=1; }
+    if(slider.x>smax){ slider.x=smax; slider.dir=-1; }
   }
   if(state===ST_DROP && drop){
-    drop.vy += 900*dt; drop.y += drop.vy*dt;
+    drop.vy += 1500*dt; drop.y += drop.vy*dt;   /* longer top-down fall */
     if(drop.y>=drop.targetY){ settleDrop(); }
   }
   if(state===ST_OVEN && !oven.pulled){
