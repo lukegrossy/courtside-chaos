@@ -527,7 +527,7 @@
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-pass-1';
+window.__BUILD__ = 'season1-pass-3';
 console.log('Courtside Chaos build', window.__BUILD__);
 /* TEMPORARY: visible build marker. iOS home-screen web apps cache the shell
    aggressively and a Safari reload doesn't clear them, so a "fix didn't
@@ -2546,7 +2546,7 @@ window.addEventListener('unhandledrejection', function(e){
         desk:"Funds raised: real, receipted. Ricky's speech: about Ricky, per tradition, but pointed at the sick kids like a hose. Progress comes in strange shapes here.",
         gaz:"CHARITY DOES CHARITY; STAR TAKES QUESTIONS ABOUT SELF", news:"Following pre-gala paperwork arranged by the club, the Ricky Malone Foundation named the children's hospital as beneficiary in advance. Malone signed everything, delighted, having assumed charities handled themselves. Real money was raised, on purpose. Malone's remarks ran twenty minutes and concerned Malone.", mood:'pleased' } ] },
 
-  { id:'blizzard_game', venue:'home', needs:'blob', title:'THE BLIZZARD GAME', mood:'alarmed', scene:'blizzard', sceneIsTipoff:true,
+  { id:'blizzard_game', venue:'home', needs:'blob', title:'THE BLIZZARD GAME', mood:'alarmed', portraitMood:'sandra_blizzard', scene:'blizzard', sceneIsTipoff:true,
     setup:[
       "The forecast says fourteen inches by tip-off and the forecast has been underselling all winter. The visiting team is already here \u2014 their bus made it in this morning and their coach has been standing in our parking lot letting the snow accumulate on him, which their players say 'means yes.'",
       "The league says the game's our call. Half the staff can't get in. The other half is already here and refuses to leave, because of course they are. The concession stand has soup enough for two hundred, tops.",
@@ -2862,7 +2862,7 @@ window.addEventListener('unhandledrejection', function(e){
         gaz:"HOTDISH NIGHT CANCELLED; TOWN IN QUIET MOURNING",
         news:"An anticipated team hotdish supper did not take place during the club's open week. No official explanation was offered. A recipe was mailed to the club offices anonymously. Local sentiment has been characterized as disappointed but patient, in the regional tradition.", mood:'grim' } ],
     hotdishOutcomes:{
-      win:{ fx:{cash:-150, morale:12, buzz:4, cred:2}, when:null,
+      win:{ fx:{cash:-150, morale:12, buzz:4, cred:2}, when:null, preScene:'hotdish_team',
         out:["Sunday night, your house holds the entire franchise. Three hotdishes deep \u2014 the classic, one with wild rice for the sophisticates, and the centerpiece: yours, its tots spelling LUMBERJACKS in eleven golden letters, which nobody will stop photographing and which Hank has inspected twice, letter by letter, nodding like a man auditing a miracle.",
              "The rookie eats in silence, finishes, looks at the empty pan, and says his first full unprompted English sentence on record: 'There is more?' There was more. Leo's contribution sits unopened in the center of the table like a monument. Tiny gives a toast that starts as a bit and lands, by accident, somewhere true \u2014 and for one night in the middle of a long winter, this is just a family that plays basketball.",
              "Sam does the dishes. In costume. Nobody asked. The sleeves did not survive."],
@@ -3202,9 +3202,9 @@ window.addEventListener('unhandledrejection', function(e){
       { t:'Regular head. Regular rows. One team.', sub:'One photo. One size of head.',
         fx:{cred:5, morale:-4, buzz:-2},
         out:["Ricky complies with the posture of a man being photographed for a crime. Sam wears the regular head and holds the big head IN frame beside him, upright, like a fallen comrade, and no instruction anyone issues can get him to put it down.",
-             "The effect is quietly funereal. The Gazette runs it enormous. Three readers send condolence cards to the arena addressed to 'the big fella,' and Sam has answered all three, in character, which is a sentence I've now typed."],
+             "The effect is quietly funeral-like. The Gazette runs it enormous. Three readers send condolence cards to the arena addressed to 'the big fella,' and Sam has answered all three, in character, which is a sentence I've now typed."],
         desk:"Photo: achieved, one take, two heads (one worn, one mourned). Condolence cards: three, answered. I have opened a correspondence file for the big head. I want it known I resisted for a full day.",
-        gaz:"TEAM PHOTO STRIKES FUNEREAL NOTE; CARDS ARRIVE", news:"The club's annual photograph shows the mascot in regulation costume holding the oversized head upright beside him, an arrangement readers have interpreted as memorial in character. Three condolence cards have been received. All three have been answered, reportedly in character. The team's star is seated in the second row, ordinarily.", mood:'dry' },
+        gaz:"TEAM PHOTO STRIKES FUNERAL NOTE; CARDS ARRIVE", news:"The club's annual photograph shows the mascot in regulation costume holding the oversized head upright beside him, an arrangement readers have interpreted as memorial in character. Three condolence cards have been received. All three have been answered, reportedly in character. The team's star is seated in the second row, ordinarily.", mood:'dry' },
       { t:'Skip the photographer. Sandra takes it.', sub:"She was a beat reporter. She's held a camera.",
         fx:{cash:400, morale:3, cred:2},
         out:["Sandra takes one photograph. One. Nobody is warned. It catches the entire roster mid-laugh at something Tiny said off-frame that nobody will repeat and everyone remembers.",
@@ -4025,9 +4025,14 @@ window.addEventListener('unhandledrejection', function(e){
        No game: no tip-off, no score, no W/L, no gate. The week is the event
        itself (Hotdish Night). Payroll is still due \u2014 rest is not free. */
     if(current.rest){
-      var rSteps = ch.out.map(function(par,idx){
+      var rSteps = [];
+      /* Some rest-week minigames earn a clean post-game cutscene before the
+         narrative fallout begins. Hotdish uses this for the team gathering
+         around the successful centerpiece. Missing art still auto-skips. */
+      if(ch.preScene) rSteps.push({kind:'text', text:'', scene:ch.preScene, artOnly:true});
+      rSteps = rSteps.concat(ch.out.map(function(par,idx){
         return {kind:'text', text:par, scene: idx===0?(ch.scene||current.scene):null};
-      });
+      }));
       rSteps.push({kind:'gazette', head:ch.gaz, story:ch.news, date:'WEEK '+(S.week<10?'0':'')+S.week,
         extra:''});
       runSequence(rSteps, dash, function(){
@@ -4035,7 +4040,7 @@ window.addEventListener('unhandledrejection', function(e){
         var rBrief=[ch.desk,
           "The dark week's books: no gate, because no game. Payroll doesn't rest: "+fmtCash(ECON.PAYROLL)+" out. Some weeks you buy wins. This one we bought something that doesn't fit a column, and I'd pay it again."];
         setNote(rBrief, 'ledger');
-        setPortrait(current.grace?'grace':'sandra', current.grace?(ch.mood||'base'):(current.portraitMood||ch.mood||'base'));
+        setPortrait(current.grace?'grace':'sandra', current.grace?(ch.mood||'base'):(ch.mood||current.mood||'base'));
         el.noteh.textContent='FROM '+(current.grace?"GRACE'S":"SANDRA'S")+' DESK';
         pendingRoute='week';
         setNextBtn('NEXT WEEK \u25B6','');
@@ -4327,7 +4332,7 @@ window.addEventListener('unhandledrejection', function(e){
           phase='outcome';
           var who = current.grace?'GRACE':'SANDRA';
           el.noteh.textContent = 'FROM '+who+"'S DESK";
-          setPortrait(current.grace?'grace':'sandra', current.grace?(ch.mood||current.mood||'base'):(current.portraitMood||ch.mood||current.mood||'base'));
+          setPortrait(current.grace?'grace':'sandra', current.grace?(ch.mood||current.mood||'base'):(ch.mood||current.mood||'base'));
           var brief=[ isPO ? (won?ch.deskW:ch.deskL) : ch.desk ];
           var byGrace = !!current.grace;
           if(!isPO){
@@ -4969,7 +4974,7 @@ window.addEventListener('unhandledrejection', function(e){
     /* The opening sequence plays on the coldest cache the game ever sees, and
        a video that misses probeArt's window auto-skips silently \u2014 which is
        exactly how the blizzard scene went missing. Warm these too. */
-    ['intro_arrival','intro_files','intro_numbers','intro_cred'].forEach(preloadArt);
+    ['intro_arrival','intro_files','intro_numbers','intro_cred','hotdish_team'].forEach(preloadArt);
     /* Crowd variations for the home tip-off \u2014 same cold-load reasoning as
        the video preloads above: a fetch+decode that only starts when the
        sound is actually needed would race the moment it's meant to land in. */
@@ -4977,7 +4982,7 @@ window.addEventListener('unhandledrejection', function(e){
     /* Dashboard portrait swaps were showing the PREVIOUS emotion until the
        new file finished downloading \u2014 read as a glitch. Warming every mood
        up front makes each swap a cache hit, so it changes in one frame. */
-    ['base','dry','alarmed','pleased','tired','grim','holiday','sandra_gasstation','sandra_forbidden','sandra_awards','sandra_home_arena'].forEach(function(m){
+    ['base','dry','alarmed','pleased','tired','grim','holiday','sandra_gasstation','sandra_forbidden','sandra_awards','sandra_home_arena','sandra_blizzard'].forEach(function(m){
       var i=0;
       (function tryNext(){
         if(i>=PORTRAIT_EXTS.length) return;
