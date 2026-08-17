@@ -2,63 +2,18 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Hotdish Night</title>
 <style>
-  :root{ --ink:#0b0e13; --amber:#e2b45b; --amberdim:#8d7147; --cream:#f1e7d4;
-         --rule:#3d3427; --red:#a94d3f; }
-  *{box-sizing:border-box;}
-  html,body{margin:0;height:100%;background:var(--ink);}
-  body{font-family:"Courier New",Courier,monospace;color:var(--amber);
-    display:flex;justify-content:center;align-items:center;
-    padding:calc(8px + env(safe-area-inset-top)) 11px calc(12px + env(safe-area-inset-bottom));
-    min-height:100%;touch-action:manipulation;-webkit-user-select:none;user-select:none;
-    background:radial-gradient(125% 78% at 50% 32%, #191f27 0%, #0b0e13 74%);}
-  .wrap{width:100%;max-width:452px;display:flex;flex-direction:column;gap:10px;}
-
-  /* Narration sits in a fixed-height card so the canvas below never jumps
-     when the line length changes. Long lines shrink to fit instead. */
-  #narr{position:relative;background:#131820;color:var(--cream);
-    font-size:13.5px;line-height:1.46;letter-spacing:.2px;
-    padding:14px 16px 13px;height:94px;display:flex;align-items:center;
-    border:1px solid var(--rule);
-    box-shadow:inset 0 1px 0 rgba(255,222,158,.055), 0 9px 22px rgba(0,0,0,.45);}
-  #narr:before{content:"";position:absolute;left:-1px;right:-1px;top:-1px;height:2px;
-    background:linear-gradient(90deg,#6b512c,#e2b45b 42%,#6b512c);opacity:.72;}
-  #narrTxt{width:100%;}
-
-  #stage{position:relative;line-height:0;}
-  canvas#c{display:block;width:100%;height:auto;
-    image-rendering:pixelated;image-rendering:crisp-edges;
-    border:1px solid var(--rule);background:#0b0e13;
-    box-shadow:0 12px 34px rgba(0,0,0,.6);}
-
-  #hud{display:flex;justify-content:space-between;align-items:center;
-    font-size:9.5px;letter-spacing:2.2px;color:var(--amberdim);}
-  .grp{display:flex;align-items:center;gap:8px;}
-  .pips{display:flex;gap:3px;}
-  .pip{width:7px;height:12px;background:#1b212a;
-    box-shadow:inset 0 0 0 1px #2c343f;transition:background .12s linear;}
-  .pip.on{background:var(--amber);box-shadow:inset 0 -3px 0 rgba(0,0,0,.3);}
-  .pip.on.bad{background:var(--red);}
-  .xs{display:flex;gap:4px;}
-  .x{width:9px;height:12px;background:#1b212a;box-shadow:inset 0 0 0 1px #2c343f;}
-  .x.on{background:var(--red);box-shadow:inset 0 -3px 0 rgba(0,0,0,.3);}
-
-  #hint{text-align:center;font-size:10.5px;letter-spacing:1.9px;color:#7a6340;
-    min-height:14px;}
+  html,body{margin:0;padding:0;background:#000;height:100%;overflow:hidden;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none;}
+  body{font-family:"Courier New",Courier,monospace;}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;}
+  canvas#c{display:block;image-rendering:pixelated;image-rendering:crisp-edges;background:#000;}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div id="narr"><div id="narrTxt"></div></div>
-  <div id="stage"><canvas id="c" width="480" height="680"></canvas></div>
-  <div id="hud">
-    <div class="grp"><span>LETTERS</span><div class="pips" id="pips"></div></div>
-    <div class="grp"><span>CROOKED</span><div class="xs" id="xs"></div></div>
-  </div>
-  <div id="hint">TAP TO BEGIN</div>
-</div>
+<div id="wrap"><canvas id="c" width="480" height="680"></canvas></div>
 <script>
 /* ============================================================
    HOTDISH NIGHT — the tot layer.
@@ -68,32 +23,99 @@
    to the parent (Courtside Chaos). One shot, no replay.
    ============================================================ */
 var cv=document.getElementById('c'), cx=cv.getContext('2d');
-var narr=document.getElementById('narr'), narrTxt=document.getElementById('narrTxt');
-var hint=document.getElementById('hint');
-var pipWrap=document.getElementById('pips'), xWrap=document.getElementById('xs');
 var IW=480, IH=680;
-
-/* ---------- HUD: pips instead of a debug readout ---------- */
+var narrMsg='';
+var hintMsg='TAP TO START';
+var wrap=document.getElementById('wrap');
 var pips=[], xs=[];
-for(var pi=0;pi<11;pi++){ var el=document.createElement('i'); el.className='pip'; pipWrap.appendChild(el); pips.push(el); }
-for(var xi=0;xi<3;xi++){ var ex=document.createElement('i'); ex.className='x'; xWrap.appendChild(ex); xs.push(ex); }
-function syncHud(){
-  for(var i=0;i<11;i++){
-    pips[i].className='pip'+(i<placed.length?' on':'')+(placed[i]&&placed[i].bad?' bad':'');
+function syncHud(){}
+
+/* Match the tunnel game: the canvas itself is the full UI surface, scaled
+   up crisply and centered on black with no separate HTML cards around it. */
+function fit(){
+  /* Hotdish uses a much larger logical canvas than Tunnel. Integer-only
+     device-pixel scaling made it fall back to 320 CSS px wide on a modern
+     iPhone. Keep the 480x680 logical surface and scale the element itself
+     continuously so it fills the available width without changing aspect. */
+  var w=window.innerWidth, h=window.innerHeight;
+  var safeW=Math.max(1,w-8), safeH=Math.max(1,h-8);
+  var cssScale=Math.min(safeW/IW, safeH/IH);
+  var cssW=Math.floor(IW*cssScale), cssH=Math.floor(IH*cssScale);
+  cv.width=IW; cv.height=IH;
+  cv.style.width=cssW+'px';
+  cv.style.height=cssH+'px';
+  cx=cv.getContext('2d');
+  cx.imageSmoothingEnabled=false;
+  cx.setTransform(1,0,0,1,0,0);
+}
+window.addEventListener('resize',fit); fit();
+
+/* Tunnel-style 3x5 pixel font for the in-canvas UI. */
+var PF={
+ 'A':[2,5,7,5,5],'B':[6,5,6,5,6],'C':[3,4,4,4,3],'D':[6,5,5,5,6],'E':[7,4,6,4,7],
+ 'F':[7,4,6,4,4],'G':[3,4,5,5,3],'H':[5,5,7,5,5],'I':[7,2,2,2,7],'J':[1,1,1,5,2],
+ 'K':[5,5,6,5,5],'L':[4,4,4,4,7],'M':[5,7,7,5,5],'N':[6,5,5,5,5],'O':[2,5,5,5,2],
+ 'P':[6,5,6,4,4],'Q':[2,5,5,2,1],'R':[6,5,6,5,5],'S':[3,4,2,1,6],'T':[7,2,2,2,2],
+ 'U':[5,5,5,5,7],'V':[5,5,5,5,2],'W':[5,5,7,7,5],'X':[5,5,2,5,5],'Y':[5,5,2,2,2],
+ 'Z':[7,1,2,4,7],
+ '0':[7,5,5,5,7],'1':[2,6,2,2,7],'2':[6,1,2,4,7],'3':[6,1,2,1,6],'4':[5,5,7,1,1],
+ '5':[7,4,6,1,6],'6':[3,4,6,5,2],'7':[7,1,2,2,2],'8':[2,5,2,5,2],'9':[2,5,3,1,6],
+ '.':[0,0,0,0,2],',':[0,0,0,2,4],'!':[2,2,2,0,2],'?':[6,1,2,0,2],
+ "'":[2,2,0,0,0],'’':[2,2,0,0,0],':':[0,2,0,2,0],'-':[0,0,7,0,0],
+ '/':[1,1,2,4,4],'(':[1,2,2,2,1],')':[4,2,2,2,4],
+ '“':[0,0,0,0,0],'”':[0,0,0,0,0],'—':[0,0,7,0,0],' ': [0,0,0,0,0]
+};
+function ptxt(s,x,y,c,scale,center){
+  s=(''+s).toUpperCase(); scale=scale||2;
+  var cw=4*scale, w=s.length*cw-scale;
+  var x0=Math.round(center? x-w/2 : x), y0=Math.round(y);
+  cx.fillStyle=c;
+  for(var i=0;i<s.length;i++){
+    var gl=PF[s[i]]; if(!gl) gl=PF['?'];
+    for(var r=0;r<5;r++){
+      var bits=gl[r]||0;
+      for(var b=0;b<3;b++) if(bits&(4>>b)) cx.fillRect(x0+i*cw+b*scale, y0+r*scale, scale, scale);
+    }
   }
-  for(var j=0;j<3;j++) xs[j].className='x'+(j<misses?' on':'');
+  return w;
+}
+function ptxtW(s,scale){ scale=scale||2; return (''+s).length*4*scale-scale; }
+function wrapPF(s,maxChars){
+  s=(''+s).replace(/[“”]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+  var words=s.split(' '), lines=[], line='';
+  for(var i=0;i<words.length;i++){
+    var test=line? line+' '+words[i] : words[i];
+    if(test.length>maxChars && line){ lines.push(line); line=words[i]; }
+    else line=test;
+  }
+  if(line) lines.push(line);
+  return lines;
+}
+function uiPanel(x,y,w,h){
+  cx.fillStyle='rgba(8,12,20,.92)'; cx.fillRect(x,y,w,h);
+  cx.fillStyle='rgba(46,60,84,.55)'; cx.fillRect(x,y,w,1); cx.fillRect(x,y+h-1,w,1);
+  cx.fillStyle='rgba(210,220,232,.85)'; cx.fillRect(x,y+1,w,1); cx.fillRect(x,y+h-2,w,1);
+  cx.fillStyle='rgba(55,69,89,.55)'; cx.fillRect(x,y,1,h); cx.fillRect(x+w-1,y,1,h);
 }
 
-/* ---------- audio (tiny, optional) ---------- */
-var AC=null, acUnlocked=false;
+/* ---------- audio ----------
+   Hotdish keeps its own little drop/bake blips, but now shares the driving
+   crime-jazz chip score from Sam's tunnel escape. */
+var AC=null, acUnlocked=false, musGain=null;
+var seqStep=0, seqNext=0;
 function actx(){
-  if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+  if(!AC){
+    try{
+      AC=new (window.AudioContext||window.webkitAudioContext)();
+      musGain=AC.createGain();
+      musGain.gain.value=0.18;
+      musGain.connect(AC.destination);
+      seqNext=AC.currentTime+0.06;
+    }catch(e){}
+  }
   if(!AC) return null;
-  if(AC.state==='suspended') AC.resume();
-  /* iOS will hand back a running context that stays silent unless a real
-     buffer has been played from inside a user gesture. Explicit resume on
-     its own is not enough, and the failure is silent with no console error,
-     so the silent buffer goes out on the first press. */
+  /* iOS needs a real source started from the user gesture before scheduled
+     oscillator audio is reliably audible. */
   if(!acUnlocked){
     acUnlocked=true;
     try{
@@ -101,13 +123,78 @@ function actx(){
       sN.buffer=b; sN.connect(AC.destination);
       if(sN.start) sN.start(0); else if(sN.noteOn) sN.noteOn(0);
     }catch(e){}
+    seqStep=0;
+    seqNext=AC.currentTime+0.02;
+  }
+  if(AC.state==='suspended'){
+    try{ AC.resume(); }catch(e){}
   }
   return AC;
 }
-function blip(f,d,t){ var a=actx(); if(!a)return; var o=a.createOscillator(),g=a.createGain();
+function startScoreNow(){
+  var a=actx(); if(!a) return;
+  /* iOS Safari can accept resume() on the START tap yet keep scheduled audio
+     silent until the next gesture. Start the first score note synchronously
+     inside this same gesture, then let the scheduler continue from step 1. */
+  try{ if(a.state==='suspended') a.resume(); }catch(e){}
+  seqStep=0;
+  seqNext=a.currentTime+0.01;
+  try{
+    var b=RIFF[0], t=a.currentTime+0.005;
+    musicTone(b,t,0.13,'sawtooth',0.20);
+    musicTone(b-12,t,0.14,'triangle',0.50);
+    seqStep=1;
+    seqNext=t+0.16;
+  }catch(e){}
+  /* A second immediate scheduler call covers browsers whose AudioContext
+     reports running before the gesture handler returns. */
+  scheduleMusic();
+  setTimeout(function(){ scheduleMusic(); },30);
+}
+function blip(f,d,t){
+  var a=actx(); if(!a)return;
+  var o=a.createOscillator(),g=a.createGain();
   o.type=t||'square'; o.frequency.value=f; g.gain.value=.05;
   o.connect(g); g.connect(a.destination); o.start();
-  g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+(d||.09)); o.stop(a.currentTime+(d||.09)); }
+  g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+(d||.09));
+  o.stop(a.currentTime+(d||.09));
+}
+function mtof(m){ return 440*Math.pow(2,(m-69)/12); }
+function musicTone(m,t,d,type,gv){
+  if(!AC||!musGain) return;
+  var o=AC.createOscillator(),g=AC.createGain();
+  o.type=type; o.frequency.setValueAtTime(mtof(m),t);
+  g.gain.setValueAtTime(gv,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+d);
+  o.connect(g); g.connect(musGain); o.start(t); o.stop(t+d+0.02);
+}
+/* Same original tunnel ostinato: E-minor walking bass with square-wave
+   horn answers. */
+var RIFF=[40,40,43,40,45,40,47,45,40,40,43,40,50,47,45,43];
+var STAB_A=[0,0,0,0,52,0,0,0,0,0,0,0,55,0,52,0];
+function scheduleMusic(){
+  if(!AC||!acUnlocked||AC.state!=='running') return;
+  var playing=(state===ST_PLAY||state===ST_DROP||state===ST_OVEN);
+  if(!playing){
+    seqNext=AC.currentTime+0.05;
+    return;
+  }
+  var stepDur=(state===ST_OVEN)?0.14:0.16;
+  while(seqNext<AC.currentTime+0.18){
+    var i=seqStep%16, b=RIFF[i];
+    /* Gritty bass, deliberately underneath the Hotdish blips. */
+    musicTone(b,seqNext,stepDur*0.85,'sawtooth',0.20);
+    musicTone(b-12,seqNext,stepDur*0.90,'triangle',0.50);
+    var st=STAB_A[i];
+    if(st){
+      musicTone(st,seqNext,stepDur*1.40,'square',0.13);
+      musicTone(st+3,seqNext,stepDur*1.40,'square',0.10);
+    }
+    if(i%4===2) musicTone(84,seqNext,0.025,'square',0.05);
+    seqStep++;
+    seqNext+=stepDur;
+  }
+}
 
 /* ---------- 3x5 tot font: L U M B E R J A C K S (all distinct) ---------- */
 /* 5x7 dot-matrix \u2014 the classic legible LED-sign resolution. The old 3x5
@@ -216,22 +303,38 @@ var flashT=0;       /* brief warm lift on a clean drop */
 
 /* ---------- narration ---------- */
 function say(t){
-  narrTxt.textContent='\u201C'+t+'\u201D';
-  /* Measured shrink-to-fit: the card height is fixed, so long lines step down
-     in size rather than growing the box and shoving the canvas. */
-  var size=13.5;
-  narrTxt.style.fontSize=size+'px';
-  var room=narr.clientHeight-27;
-  while(narrTxt.scrollHeight>room && size>9.5){ size-=0.5; narrTxt.style.fontSize=size+'px'; }
+  narrMsg=(''+t).replace(/[“”]/g,'');
 }
-var GOOD=["Square. County-fair quality.","That's a letter. Keep going.","Centered. The county approves.","Clean. Don't get cocky."];
-var BAD=["That letter has had a drink.","Crooked. The county saw that.","It's leaning. Casseroles remember."];
+var GOOD=[
+  "Square. Don't congratulate it.",
+  "That's a letter. Ten more chances to interfere.",
+  "Centered. I am recording that without comment.",
+  "Clean. Leave it alone.",
+  "That one can stay.",
+  "It landed where the diagram said it should. Remarkable.",
+  "Good. Nobody adjust it.",
+  "Straight enough to survive inspection."
+];
+var BAD=[
+  "Crooked. It is still technically a letter.",
+  "That one is leaning. We are pretending not to see it.",
+  "That letter has made its own arrangements.",
+  "Leave it. Touching it again would make this a meeting.",
+  "That will have to become part of the design.",
+  "Off center. The potatoes have spoken."
+];
 say("Eleven letters. Two lines. Drop each one square in its slot \u2014 this hotdish is going to say LUMBERJACKS, or it's going to say something we all have to live with.");
 
 /* ---------- input ---------- */
 function press(){
   actx();
-  if(state===ST_INTRO){ state=ST_PLAY; hint.textContent="TAP TO DROP THE LETTER OVER ITS SLOT"; return; }
+  if(state===ST_INTRO){
+    state=ST_PLAY;
+    say("Eleven letters. Two lines. Keep them square.");
+    hintMsg="TAP TO DROP THE LETTER";
+    startScoreNow();
+    return;
+  }
   if(state===ST_PLAY){ beginDrop(); return; }
   if(state===ST_OVEN){ pullNow(); return; }
   if(state===ST_END){ report(); return; }
@@ -266,7 +369,7 @@ function settleDrop(){
     else {
       state=ST_OVEN; oven={t:0,bar:0,pulled:false,doneness:0};
       say("Now the oven. Pull at golden. Golden. Not blond. Not cajun.");
-      hint.textContent="TAP TO PULL AT GOLDEN";
+      hintMsg="TAP TO PULL AT GOLDEN";
     }
   } else {
     slider.speed=speedForLetter(li);
@@ -287,7 +390,7 @@ function pullNow(){
   state=ST_END; endNarr();
 }
 function endNarr(){
-  hint.textContent="TAP TO CONTINUE";
+  hintMsg="TAP TO CONTINUE";
   if(endResult==='win')       say("It says LUMBERJACKS. Golden. Nobody breathe on it.");
   if(endResult==='win-pale')  say("Pale, but it says LUMBERJACKS. Technically triumphant. The oven and I both know you flinched.");
   if(endResult==='lose-word') say("It says something, and what it says is not LUMBERJACKS, and Tiny is already calling us the Slumberjacks.");
@@ -1043,7 +1146,7 @@ function drawCloseShot(inOven){
   }
 
   if(inOven){
-    var gw=250, gx=Math.round((IW-gw)/2), gy=44, gh2=50;
+    var gw=250, gx=Math.round((IW-gw)/2), gy=76, gh2=50;
     rect(gx-5,gy+gh2+2,gw+10,6,'rgba(6,4,3,.55)');
     rect(gx,gy,gw,gh2,'#1b222b');
     rect(gx+2,gy+2,gw-4,gh2-4,'#cfc8b7');
@@ -1084,6 +1187,64 @@ function drawBenchShot(){
   }
 }
 
+function drawCanvasUI(){
+  /* Tunnel-style restraint: intro gets the full briefing panel; once play
+     starts, commentary collapses into a compact strip. In the oven phase it
+     deliberately ends above y=70 so the GOLDEN gauge remains unobstructed.
+     On the final art scene we suppress the top banner entirely so the hanging
+     lamp and kitchen composition stay visible. */
+  var showTopBanner = !(state===ST_END);
+  var panelY=14, panelH, maxLines, maxChars;
+  if(state===ST_INTRO){ panelH=88; maxLines=4; maxChars=44; }
+  else if(state===ST_OVEN){ panelH=50; maxLines=2; maxChars=58; }
+  else if(state===ST_END){ panelH=58; maxLines=2; maxChars=56; }
+  else { panelH=54; maxLines=2; maxChars=58; }
+
+  if(showTopBanner){
+    uiPanel(12,panelY,456,panelH);
+    var lines=wrapPF(narrMsg,maxChars);
+    var textScale=2;
+    var lineGap=15;
+    var total=Math.min(lines.length,maxLines)*lineGap-lineGap+10;
+    var sy=panelY+Math.max(9,Math.floor((panelH-total)/2)+1);
+    for(var i=0;i<Math.min(lines.length,maxLines);i++){
+      ptxt(lines[i],24,sy+i*lineGap,'#f2f5f8',textScale,false);
+    }
+  }
+
+  var hudY=632;
+  ptxt('LETTERS',14,hudY,'#d0d7e0',2,false);
+  var bx=98;
+  for(var i2=0;i2<11;i2++){
+    var on=i2<placed.length, bad=on&&placed[i2]&&placed[i2].bad;
+    cx.fillStyle=on?(bad?'#a94d3f':'#d4b159'):'#09111a';
+    cx.fillRect(bx+i2*15,hudY-1,11,11);
+    cx.fillStyle=on?(bad?'#d37d70':'#f1cf72'):'#2d3c4e';
+    cx.fillRect(bx+i2*15,hudY-1,11,1);
+    cx.fillRect(bx+i2*15,hudY+9,11,1);
+    cx.fillRect(bx+i2*15,hudY-1,1,11);
+    cx.fillRect(bx+i2*15+10,hudY-1,1,11);
+  }
+
+  ptxt('CROOKED',332,hudY,'#d0d7e0',2,false);
+  var cx0=428;
+  for(var j=0;j<3;j++){
+    var on2=j<misses;
+    cx.fillStyle=on2?'#a94d3f':'#09111a';
+    cx.fillRect(cx0+j*15,hudY-1,11,11);
+    cx.fillStyle=on2?'#d37d70':'#2d3c4e';
+    cx.fillRect(cx0+j*15,hudY-1,11,1);
+    cx.fillRect(cx0+j*15,hudY+9,11,1);
+    cx.fillRect(cx0+j*15,hudY-1,1,11);
+    cx.fillRect(cx0+j*15+10,hudY-1,1,11);
+  }
+
+  var prompt=hintMsg||'';
+  var scale=3;
+  while(ptxtW(prompt,scale)>440&&scale>1) scale--;
+  ptxt(prompt,240,656,'#e1b23b',scale,true);
+}
+
 function draw(){
   cx.clearRect(0,0,IW,IH);
   var sx=shakeT>0?Math.round(Math.random()*4-2):0;
@@ -1112,24 +1273,17 @@ function draw(){
 
   if(state===ST_END){
     cx.fillStyle='rgba(12,16,20,.36)'; cx.fillRect(0,0,IW,IH);
-    card(cx,60,292,360,62);
-    cx.textAlign='center';
-    var t=(endResult==='win')?'HOTDISH ACHIEVED':(endResult==='win-pale')?'HOTDISH, PALE':(endResult==='lose-word')?'THE WORD IS WRONG':'CAJUN.';
+    uiPanel(72,292,336,58);
+    var t=(endResult==='win')?'HOTDISH ACHIEVED':(endResult==='win-pale')?'HOTDISH PALE':(endResult==='lose-word')?'THE WORD IS WRONG':'CAJUN';
     var won=(endResult==='win'||endResult==='win-pale');
-    cx.fillStyle=won?'#fff4dc':'#e6a08f'; cx.font='bold 16px "Courier New"';
-    cx.fillText(t,IW/2,322);
-    rect(IW/2-46,329,92,1,'rgba(226,180,91,.3)');
-    cx.font='9px "Courier New"'; cx.fillStyle='#8d7147';
-    cx.fillText('T A P   T O   C O N T I N U E',IW/2,343);
+    ptxt(t,IW/2,309,won?'#fff4dc':'#e6a08f',3,true);
+    ptxt('TAP TO CONTINUE',IW/2,330,'#8d7147',2,true);
   }
   if(state===ST_INTRO){
     cx.fillStyle='rgba(9,12,18,.34)'; cx.fillRect(0,0,IW,IH);
-    card(cx,110,296,260,54);
-    cx.textAlign='center';
-    cx.fillStyle='#fff4dc'; cx.font='bold 15px "Courier New"';
-    cx.fillText('T A P   T O   S T A R T',IW/2,326);
-    cx.fillStyle='#8d7147'; cx.font='9px "Courier New"';
-    cx.fillText('E L E V E N   L E T T E R S',IW/2,341);
+    uiPanel(118,296,244,54);
+    ptxt('TAP TO START',IW/2,311,'#fff4dc',3,true);
+    ptxt('ELEVEN LETTERS',IW/2,331,'#8d7147',2,true);
   }
 
   /* The cut itself: a fast dip to black, which reads as an edit rather than
@@ -1139,6 +1293,8 @@ function draw(){
     cx.fillStyle='rgba(5,7,10,'+Math.min(1,a*1.25).toFixed(3)+')';
     cx.fillRect(-8,0,IW+16,IH);
   }
+
+  drawCanvasUI();
   cx.restore();
 }
 
@@ -1181,6 +1337,7 @@ function tick(ts){
     if(oven.bar>=1){ oven.pulled=true; endResult='lose-burnt'; state=ST_END; endNarr(); }
   }
   if(state===ST_END) oven.doneness=Math.min(1,oven.doneness);
+  scheduleMusic();
   draw();
   requestAnimationFrame(tick);
 }
