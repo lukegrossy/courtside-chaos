@@ -527,7 +527,7 @@
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-pass-3';
+window.__BUILD__ = 'season1-pass-4';
 console.log('Courtside Chaos build', window.__BUILD__);
 /* TEMPORARY: visible build marker. iOS home-screen web apps cache the shell
    aggressively and a Safari reload doesn't clear them, so a "fix didn't
@@ -2787,7 +2787,7 @@ window.addEventListener('unhandledrejection', function(e){
         desk:"Bowling: denied. The responsible call, which is a category of call that wins no friends. Ricky has filed the shoes away in his memory alongside other grievances, where they will age, and ferment, and return. They always return.",
         gaz:"AREA TEAM DECLINES BOWLING; RENTED SHOES RETURNED UNUSED", news:"Offered a bowling excursion during a thaw delay, the Lumberjacks declined and remained at the gymnasium. A player described the wait as the least fun associated with a dry pair of socks in recent memory. The rented shoes were returned unused.", mood:'dry' } ] },
 
-  { id:'sam_stowaway', venue:'road', title:'THE STOWAWAY', mood:'dry', once:true, special:'samtunnel',
+  { id:'sam_stowaway', venue:'road', title:'THE STOWAWAY', mood:'dry', portraitMood:'sandra_playoff_road', once:true, special:'samtunnel',
     setup:[
       "The equipment manager opened the uniform trunk at the away arena and found Sawdust Sam folded into it like a deck chair. Fully suited. Holding a thermos. He had been in there since we left, which is four hours, and nobody heard a thing, which he indicates was the point.",
       "Mascots do not travel. There's no budget line for it, no visiting credential, and the home club has its own \u2014 a Muskie \u2014 who I am told takes the role seriously, in a way that was described to me over the phone as 'territorial,' by a man who then declined to elaborate.",
@@ -2862,20 +2862,34 @@ window.addEventListener('unhandledrejection', function(e){
         gaz:"HOTDISH NIGHT CANCELLED; TOWN IN QUIET MOURNING",
         news:"An anticipated team hotdish supper did not take place during the club's open week. No official explanation was offered. A recipe was mailed to the club offices anonymously. Local sentiment has been characterized as disappointed but patient, in the regional tradition.", mood:'grim' } ],
     hotdishOutcomes:{
-      win:{ fx:{cash:-150, morale:12, buzz:4, cred:2}, when:null, preScene:'hotdish_team',
-        out:["Sunday night, your house holds the entire franchise. Three hotdishes deep \u2014 the classic, one with wild rice for the sophisticates, and the centerpiece: yours, its tots spelling LUMBERJACKS in eleven golden letters, which nobody will stop photographing and which Hank has inspected twice, letter by letter, nodding like a man auditing a miracle.",
-             "The rookie eats in silence, finishes, looks at the empty pan, and says his first full unprompted English sentence on record: 'There is more?' There was more. Leo's contribution sits unopened in the center of the table like a monument. Tiny gives a toast that starts as a bit and lands, by accident, somewhere true \u2014 and for one night in the middle of a long winter, this is just a family that plays basketball.",
+      golden:{ fx:{cash:-150, morale:12, buzz:4, cred:2}, when:null, preScene:'hotdish_team',
+        out:["Sunday night, your house holds the entire franchise. Three hotdishes deep — the classic, one with wild rice for the sophisticates, and the centerpiece: yours, its tots spelling LUMBERJACKS in eleven golden letters, which nobody will stop photographing and which Hank has inspected twice, letter by letter, nodding like a man auditing a miracle.",
+             "The rookie eats in silence, finishes, looks at the empty pan, and says his first full unprompted English sentence on record: 'There is more?' There was more. Leo's contribution sits unopened in the center of the table like a monument. Tiny gives a toast that starts as a bit and lands, by accident, somewhere true — and for one night in the middle of a long winter, this is just a family that plays basketball.",
              "Sam does the dishes. In costume. Nobody asked. The sleeves did not survive."],
-        desk:"Hotdish Night, year one, is in the books: $150 in groceries against returns I have no column for. The centerpiece spelled LUMBERJACKS and was photographed more than the Cup would be. Leftovers: none, on account of the rookie. The tradition is now annual \u2014 the team decided it on the way out the door, and traditions up here don't ask twice.",
+        desk:"Hotdish Night, year one, is in the books: $150 in groceries against returns I have no column for. The centerpiece spelled LUMBERJACKS and was photographed more than the Cup would be. Leftovers: none, on account of the rookie. The tradition is now annual — the team decided it on the way out the door, and traditions up here don't ask twice.",
         gaz:"OWNER'S HOTDISH SPELLS TEAM NAME; TRADITION DECLARED ANNUAL",
         news:"With no game scheduled, club ownership hosted the full roster for a tater tot hotdish supper at the owner's residence, the centerpiece of which spelled LUMBERJACKS in arranged tots. It was photographed extensively before being consumed entirely. The event was declared annual by consensus before departure, a mechanism this region recognizes as binding.", mood:'pleased' },
-      lose:{ fx:{cash:-150, morale:7, buzz:3},
-        out:["The centerpiece comes out of the oven saying something. What it says is not LUMBERJACKS. The team gathers around the pan in respectful silence, tilting their heads in unison like a flock changing direction, until Tiny \u2014 who has been waiting his whole life for this \u2014 pronounces it 'SLUMBERJACKS' and the kitchen comes apart.",
-             "They eat every tot of it. Loyally. Seconds, even, of the crooked letters specifically, which the rookie points at before taking. Hank declares the burnt corner 'the only part cooked with conviction' and eats it standing up, facing the door. The night, against the casserole's best efforts, lands anyway.",
+      word:{ fx:{cash:-150, morale:7, buzz:3}, preScene:'hotdish_team_fail',
+        out:["The centerpiece comes out of the oven saying something. What it says is not LUMBERJACKS. The team gathers around the pan in respectful silence, tilting their heads in unison like a flock changing direction, until Tiny — who has been waiting his whole life for this — pronounces it 'SLUMBERJACKS' and the kitchen comes apart.",
+             "They eat every tot of it. Loyally. Seconds, even, of the crooked letters specifically, which the rookie points at before taking. Hank takes the corner without comment. The night, against the casserole's spelling, lands anyway.",
              "Sam does the dishes. In costume. The sleeves did not survive. Some things are constants."],
-        desk:"Hotdish Night, year one: the centerpiece was, spelling-wise, an incident, and is now team lore under a name I refuse to write down twice. They ate all of it anyway, which is the whole town in a sentence. The tradition is annual regardless \u2014 possibly BECAUSE. Next year we practice the letters first.",
+        desk:"Hotdish Night, year one: the centerpiece was, spelling-wise, an incident, and is now team lore under a name I refuse to write down twice. They ate all of it anyway, which is the whole town in a sentence. The tradition is annual regardless — possibly BECAUSE. Next year we practice the letters first.",
         gaz:"TEAM HOTDISH SUPPER HELD; SPELLING DESCRIBED AS 'AMBITIOUS'",
-        news:"Club ownership hosted the full roster for a tater tot hotdish supper during the open week. The centerpiece, intended to spell the team name in arranged tots, was reported to spell something adjacent to it. It was nonetheless consumed in its entirety, portions of it by request. The event was declared annual by consensus.", mood:'dry' } } },
+        news:"Club ownership hosted the full roster for a tater tot hotdish supper during the open week. The centerpiece, intended to spell the team name in arranged tots, was reported to spell something adjacent to it. It was nonetheless consumed in its entirety, portions of it by request. The event was declared annual by consensus.", mood:'dry' },
+      burnt:{ fx:{cash:-150, morale:7, buzz:3},
+        out:["The oven gets the last word. When the door opens, the kitchen acquires weather. Nobody says anything for a moment because everybody is busy looking through it.",
+             "The top is black at the edges and several shades past brown everywhere else. Hank calls it 'a crust.' Two windows are opened in winter and the perimeter comes off with a knife. The middle survives. So does dinner.",
+             "They eat what can be eaten, standing around the table in coats while the smoke clears. Tiny proposes a toast to ventilation. Sam does the dishes. In costume. He smells faintly of campfire by the end."],
+        desk:"Hotdish Night, year one: smoke alarm at 6:42, windows open at 6:43, dinner resumed at 6:51 after what I am recording as perimeter removal. Nobody left. The pan will need soaking until spring. The tradition is annual, though the oven has been placed on notice.",
+        gaz:"OWNER OVERCOOKS HOTDISH; SUPPER CONTINUES UNDER VENTILATION",
+        news:"An open-week team hotdish supper briefly required ventilation after the centerpiece exceeded its intended bake time. The outer portion was removed and the meal continued. No guests departed. Two windows remained open for approximately twenty minutes despite winter conditions.", mood:'dry' },
+      undercooked:{ fx:{cash:-150, morale:12, buzz:4, cred:2},
+        out:["The letters are perfect. The color is not. Eleven immaculate tots spell LUMBERJACKS across a casserole the exact shade of February, and everybody stands around admiring the workmanship while avoiding the food.",
+             "Hank looks at it once and says, 'Needs five.' It gets eight. Nobody touches a letter. When the pan comes back, the edges have finally browned and the rookie applauds the oven exactly twice, which the oven accepts without reaction.",
+             "Dinner starts late and disappears fast. Sam does the dishes. In costume. The sleeves still do not survive."],
+        desk:"Hotdish Night, year one: technically undercooked, operationally recovered. Eight additional minutes, lettering preserved, no leftovers. The team has declared the evening annual and Hank has declared himself available for oven consultation, which I have not put on the calendar.",
+        gaz:"TEAM HOTDISH REQUIRES OVERTIME; LETTERING HOLDS",
+        news:"The centerpiece at the club's open-week hotdish supper was returned to the oven after being judged underdone on first inspection. Its arranged lettering was preserved during an additional eight-minute bake. Dinner proceeded without further delay and no leftovers were reported.", mood:'pleased' } } },
 
   { id:'assoc_rumor', minCred:55, title:'THE EXPANSION RUMOR', mood:'grim', once:true,
     setup:[
@@ -3881,6 +3895,7 @@ window.addEventListener('unhandledrejection', function(e){
      hands off to the normal resolution pipeline (proceedWithChoice) once
      it's actually settled (won, forced to pest control, or bailed). */
   var possumAttempt = 0, possumRetryMode = false;
+  var samTunnelResume = null;
   function openPossumFrame(){ openMinigame('possum-fusebox.html'); }
   function closePossumFrame(){ closeMinigame(); }
   function startPossumLoop(){
@@ -3928,9 +3943,15 @@ window.addEventListener('unhandledrejection', function(e){
       closeMinigame();
       var ho = current && current.hotdishOutcomes;
       if(!ho) return;
-      /* The night happens either way — lose just means the casserole has a
-         story. Both resolve through the normal rest-week pipeline. */
-      proceedWithChoice(d.result==='win' ? ho.win : ho.lose);
+      /* Preserve the exact bake result. Older cached minigames that only send
+         win/lose still resolve safely to golden/crooked-letter outcomes. */
+      var hr = d.reason || (d.result==='win' ? 'golden' : 'word');
+      var hk = hr==='win' ? 'golden'
+             : hr==='win-pale' ? 'undercooked'
+             : hr==='lose-word' ? 'word'
+             : hr==='lose-burnt' ? 'burnt'
+             : hr;
+      proceedWithChoice(ho[hk] || (d.result==='win' ? ho.golden : ho.word));
     } else if(phase==='samtunnel'){
       closeMinigame();
       var o = current && current.samOutcomes;
@@ -3946,6 +3967,14 @@ window.addEventListener('unhandledrejection', function(e){
       S.morale=clamp(S.morale+(fx.morale||0));
       S.buzz=clamp(S.buzz+(fx.buzz||0));
       S.cred=clamp(S.cred+(fx.cred||0));
+      if(samTunnelResume){
+        var resumeSam=samTunnelResume;
+        samTunnelResume=null;
+        resumeSam(pick);
+        return;
+      }
+      /* Legacy/resume fallback: if the tunnel was entered without a waiting
+         game-week callback, retain the old self-contained resolution path. */
       phase='sequence';
       var st = pick.out.map(function(p,idx){
         return {kind:'text', text:p, scene: idx===0?'samtunnel':null};
@@ -4324,16 +4353,19 @@ window.addEventListener('unhandledrejection', function(e){
           steps2.push({kind:'text', scene:'cup',
             text:'THE TIMBER CUP.\n\nForty pounds of brass and lake-country history, handed over at center court by Ernie Kowalski, because it was never going to be anyone else.\n\nUp here: champions.'});
         }
-        steps2.push({kind:'gazette', head:gazHeadTxt, story:gazNewsTxt, date:gazDateTxt,
+        var gazetteStep={kind:'gazette', head:gazHeadTxt, story:gazNewsTxt, date:gazDateTxt,
           extra: gazResultLine(won, home, FOELIST, swingW, swingL, GAMES, gsc)
-               + ' ' + gazQuote(castOf(current))});
+               + ' ' + gazQuote(castOf(current))};
+        var stowawayTunnel=!!(S.flags.samPending && !isPO);
+        if(!stowawayTunnel) steps2.push(gazetteStep);
 
-        runSequence(steps2, dash, function(){
+        function finishDashboard(samDesk){
           phase='outcome';
           var who = current.grace?'GRACE':'SANDRA';
           el.noteh.textContent = 'FROM '+who+"'S DESK";
           setPortrait(current.grace?'grace':'sandra', current.grace?(ch.mood||current.mood||'base'):(ch.mood||current.mood||'base'));
           var brief=[ isPO ? (won?ch.deskW:ch.deskL) : ch.desk ];
+          if(samDesk) brief.push(samDesk);
           var byGrace = !!current.grace;
           if(!isPO){
             if(GAMES>1){
@@ -4420,24 +4452,35 @@ window.addEventListener('unhandledrejection', function(e){
           } else {
             setNextBtn('NEXT WEEK \u25B6', won ? "Winner's coffee tastes the same. Drink it anyway." : "Sandra says: shake it off.");
           }
-          /* THE STOWAWAY, part two: if Sam performed at halftime, his escape
-             plays as a post-game event \u2014 the score is settled, the desk note
-             is up, and now he has to get out of their building. NEXT WEEK
-             stays hidden until the tunnel run resolves. */
-          if(S.flags.samPending && !isPO){
+          el.next.style.display='';
+          render(); saveGame();
+        }
+
+        if(stowawayTunnel){
+          /* The basketball score lands first. Sam's corridor escape then
+             resolves BEFORE the newspaper, so the Gazette reports the actual
+             ending instead of printing WHEREABOUTS UNKNOWN too early. */
+          runSequence(steps2, null, function(){
             S.flags.samPending=false;
             el.next.style.display='none';
             phase='samtunnel';
-            /* Overlay goes up FIRST — render() repaints Sandra's recap, and
-               painting that before the cover meant a visible flash of the
-               dashboard on the way into the tunnel run. */
+            samTunnelResume=function(pick){
+              phase='sequence';
+              var tunnelSteps=pick.out.map(function(p,idx){
+                return {kind:'text', text:p, scene:idx===0?'samtunnel':null};
+              });
+              tunnelSteps.push({kind:'gazette', head:pick.gaz||gazetteStep.head,
+                story:pick.news||gazetteStep.story, date:gazetteStep.date,
+                extra:gazetteStep.extra});
+              runSequence(tunnelSteps, dash, function(){
+                finishDashboard(pick.desk);
+              }, caw);
+            };
             openMinigame('sam-tunnel-escape.html');
-            render();
-            return;
-          }
-          el.next.style.display='';
-          render();
-        }, momentS);
+          }, momentS);
+        } else {
+          runSequence(steps2, dash, function(){ finishDashboard(null); }, momentS);
+        }
     }
   }
 
@@ -4974,7 +5017,7 @@ window.addEventListener('unhandledrejection', function(e){
     /* The opening sequence plays on the coldest cache the game ever sees, and
        a video that misses probeArt's window auto-skips silently \u2014 which is
        exactly how the blizzard scene went missing. Warm these too. */
-    ['intro_arrival','intro_files','intro_numbers','intro_cred','hotdish_team'].forEach(preloadArt);
+    ['intro_arrival','intro_files','intro_numbers','intro_cred','hotdish_team','hotdish_team_fail'].forEach(preloadArt);
     /* Crowd variations for the home tip-off \u2014 same cold-load reasoning as
        the video preloads above: a fetch+decode that only starts when the
        sound is actually needed would race the moment it's meant to land in. */
