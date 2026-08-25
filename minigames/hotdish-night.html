@@ -401,7 +401,8 @@ function endNarr(){
 function report(){
   if(reported) return; reported=true;
   var win=(endResult==='win'||endResult==='win-pale');
-  try{ window.parent.postMessage({type:'hotdish-result', result: win?'win':'lose'},'*'); }catch(e){}
+  var reason=endResult==='win'?'golden':endResult==='win-pale'?'undercooked':endResult==='lose-burnt'?'burnt':'word';
+  try{ window.parent.postMessage({type:'hotdish-result', result: win?'win':'lose', reason:reason},'*'); }catch(e){}
 }
 
 /* ---------- drawing ---------- */
@@ -1190,9 +1191,7 @@ function drawBenchShot(){
 function drawCanvasUI(){
   /* Tunnel-style restraint: intro gets the full briefing panel; once play
      starts, commentary collapses into a compact strip. In the oven phase it
-     deliberately ends above y=70 so the GOLDEN gauge remains unobstructed.
-     On the final art scene we suppress the top banner entirely so the hanging
-     lamp and kitchen composition stay visible. */
+     deliberately ends above y=70 so the GOLDEN gauge remains unobstructed. */
   var showTopBanner = !(state===ST_END);
   var panelY=14, panelH, maxLines, maxChars;
   if(state===ST_INTRO){ panelH=88; maxLines=4; maxChars=44; }
