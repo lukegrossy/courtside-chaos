@@ -527,7 +527,7 @@
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-pass-4';
+window.__BUILD__ = 'season1-pass-6';
 console.log('Courtside Chaos build', window.__BUILD__);
 /* TEMPORARY: visible build marker. iOS home-screen web apps cache the shell
    aggressively and a Safari reload doesn't clear them, so a "fix didn't
@@ -962,7 +962,7 @@ window.addEventListener('unhandledrejection', function(e){
       quote=document.getElementById('quote'), dash=document.getElementById('dash');
   function go(from,to,cb){
     from.classList.remove('on');
-    setTimeout(function(){ to.classList.add('on'); if(cb)cb(); }, 700);
+    setTimeout(function(){ to.classList.add('on'); if(cb)cb(); }, (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 0 : 700);
   }
   /* canvas snowfall (rAF-driven, immune to CSS animation quirks) */
   var snowC=document.getElementById('snowc'), sctx=snowC.getContext('2d');
@@ -1115,7 +1115,7 @@ window.addEventListener('unhandledrejection', function(e){
      now something you can actually lose. */
   var S = { cash:40000, morale:72, buzz:48, cred:36,
             week:1, wins:0, losses:0, streak:0, last:null,
-            venue:'HOME', foe:'FARGO', flags:{}, done:{}, met:{},
+            venue:'HOME', foe:'FARGO', flags:{}, done:{}, met:{}, triggeredAt:{},
             season:1, tw:1, stage:'regular', debtWeeks:0, champs:0,
             playoffResult:null, po:null };
 
@@ -1184,7 +1184,7 @@ window.addEventListener('unhandledrejection', function(e){
      GIF at assets/cutscenes/{scene}.gif and it appears behind
      the text automatically.                                    */
   var caw=document.getElementById('caw'), cawArt=document.getElementById('cawArt'),
-      cawTxt=document.getElementById('cawTxt'), cawRecord=document.getElementById('cawRecord'),
+      cawVid=document.getElementById('cawVid'), cawTxt=document.getElementById('cawTxt'), cawRecord=document.getElementById('cawRecord'),
       cawLabel=document.querySelector('#caw .cawlabel'), cawStamp=document.getElementById('cawStamp'),
       cawCard=document.getElementById('cawCard'), cawPort=document.getElementById('cawPort'),
       cawPlac=document.getElementById('cawPlac'), cawName=document.getElementById('cawName'),
@@ -1242,20 +1242,42 @@ window.addEventListener('unhandledrejection', function(e){
     });
   }
 
-  var videoCache={}, imageCache={};
-  var SCENE_FALLBACKS={
-    tipoff_home_blob:'tipoff_home',
-    roadtrip_bus_2:'roadtrip_bus'
+  /* ---------- CUTSCENE MEDIA MANIFEST ----------
+     Presentation is deterministic: each scene declares whether video or still
+     is authoritative. Video-first scenes get a real startup window and only
+     fall back after failure/timeout; still-first scenes do not probe MP4s.
+     New arena cutscenes are authored at the exact 853x1844 game stage. */
+  var SCENE_MEDIA={
+    tipoff_home:{prefer:'video'}, tipoff_home_blob:{prefer:'video',fallback:'tipoff_home'},
+    tipoff_playoff:{prefer:'video'}, tipoff_final:{prefer:'video'},
+    tipoff_road_1:{prefer:'video',fallback:'tipoff_road'}, tipoff_road_2:{prefer:'video',fallback:'tipoff_road'},
+    roadtrip:{prefer:'video'}, roadtrip_bus:{prefer:'video'}, roadtrip_bus_2:{prefer:'video',fallback:'roadtrip_bus'},
+    chainsaw:{prefer:'video'},
+    intro_arrival:{prefer:'image'}, intro_files:{prefer:'image'}, intro_numbers:{prefer:'image'}, intro_cred:{prefer:'image'},
+    arena:{prefer:'image'}, bank:{prefer:'image'}, bighead:{prefer:'image'}, blizzard:{prefer:'image'}, boxes:{prefer:'image'},
+    cheese:{prefer:'image'}, crate:{prefer:'image'}, cup:{prefer:'image'}, final:{prefer:'image'}, fire:{prefer:'image'},
+    fire_after:{prefer:'image'}, ice:{prefer:'image'}, lutefisk:{prefer:'image'}, photo:{prefer:'image'}, playoff:{prefer:'image'},
+    radio:{prefer:'image'}, statue:{prefer:'image'}, wedding:{prefer:'image'},
+    hotdish_team:{prefer:'image'}, hotdish_team_fail:{prefer:'image'}, samtunnel:{prefer:'image'}, tipoff_road:{prefer:'image'}
   };
+  var videoCache={}, videoLRU=[], VIDEO_CACHE_MAX=5, imageCache={};
+  function mediaSpec(scene){ return SCENE_MEDIA[scene] || {prefer:'image'}; }
+  function touchVideo(scene){
+    var i=videoLRU.indexOf(scene); if(i>=0) videoLRU.splice(i,1);
+    videoLRU.push(scene);
+    while(videoLRU.length>VIDEO_CACHE_MAX){
+      var old=videoLRU.shift(), v=videoCache[old];
+      if(v){ try{ v.pause(); v.removeAttribute('src'); v.load(); }catch(e){} delete videoCache[old]; }
+    }
+  }
   function preloadVideo(scene){
-    if(!scene) return null;
-    if(videoCache[scene]) return videoCache[scene];
+    if(!scene || mediaSpec(scene).prefer!=='video') return null;
+    if(videoCache[scene]){ touchVideo(scene); return videoCache[scene]; }
     var v=document.createElement('video');
-    v.muted=true; v.preload='auto';
+    v.muted=true; v.playsInline=true; v.preload='auto';
     v.addEventListener('error',function(){ v._failed=true; });
     v.src='assets/cutscenes/'+scene+'.mp4'; v.load();
-    videoCache[scene]=v;
-    return v;
+    videoCache[scene]=v; touchVideo(scene); return v;
   }
   function preloadImage(scene){
     if(!scene) return null;
@@ -1263,47 +1285,43 @@ window.addEventListener('unhandledrejection', function(e){
     var p=new Image();
     p.addEventListener('load',function(){ p._ready=true; });
     p.addEventListener('error',function(){ p._failed=true; });
-    p.src='assets/cutscenes/'+scene+'.webp';
-    imageCache[scene]=p;
-    return p;
+    p.src='assets/cutscenes/'+scene+'.webp'; imageCache[scene]=p; return p;
   }
-  function preloadArt(scene){ preloadVideo(scene); preloadImage(scene); }
+  function preloadArt(scene){
+    if(!scene) return;
+    if(mediaSpec(scene).prefer==='video') preloadVideo(scene);
+    preloadImage(scene);
+  }
   function probeArt(scene, cb){
     if(!scene){ cb(null); return; }
-    var vurl='assets/cutscenes/'+scene+'.mp4';
-    var v=videoCache[scene] || preloadVideo(scene);
-    var settled=false;
+    var spec=mediaSpec(scene), settled=false;
     function noAsset(){
       if(settled) return;
-      settled=true;
-      var fb=SCENE_FALLBACKS[scene];
-      if(fb && fb!==scene){ preloadArt(fb); probeArt(fb,cb); }
-      else cb(null);
+      var fb=spec.fallback;
+      if(fb && fb!==scene){ settled=true; preloadArt(fb); probeArt(fb,cb); }
+      else { settled=true; cb(null); }
     }
     function tryImage(){
       if(settled) return;
       var iurl='assets/cutscenes/'+scene+'.webp', p=imageCache[scene] || preloadImage(scene);
-      if(p._ready || (p.complete && p.naturalWidth)){
-        settled=true; cb({type:'image',url:iurl}); return;
-      }
+      if(p._ready || (p.complete && p.naturalWidth)){ settled=true; cb({type:'image',url:iurl}); return; }
       if(p._failed){ noAsset(); return; }
       p.addEventListener('load',function(){ if(!settled){ settled=true; cb({type:'image',url:iurl}); } },{once:true});
       p.addEventListener('error',noAsset,{once:true});
     }
+    if(spec.prefer!=='video'){ tryImage(); return; }
+    var vurl='assets/cutscenes/'+scene+'.mp4', v=videoCache[scene] || preloadVideo(scene);
     if(v && v._failed){ tryImage(); return; }
-    if(v && v.readyState>=2){ settled=true; cb({type:'video',url:vurl}); return; }
+    if(v && v.readyState>=2){ touchVideo(scene); settled=true; cb({type:'video',url:vurl}); return; }
     if(v){
-      v.addEventListener('canplay',function(){ if(!settled){ settled=true; cb({type:'video',url:vurl}); } },{once:true});
+      v.addEventListener('canplay',function(){ if(!settled){ touchVideo(scene); settled=true; cb({type:'video',url:vurl}); } },{once:true});
       v.addEventListener('error',tryImage,{once:true});
     }
-    /* Stills are preloaded alongside video now, so the common .webp path does
-       not wait for a doomed mp4 request at presentation time. Give an actual
-       video a short head start, then use the already-warm still. */
-    setTimeout(function(){ if(!settled && (!v || v.readyState<2)) tryImage(); }, 220);
+    setTimeout(function(){ if(!settled) tryImage(); },1400);
   }
   function fadeScreens(from,to,cb){
     from.classList.remove('on');
-    setTimeout(function(){ to.classList.add('on'); if(cb)cb(); },700);
+    setTimeout(function(){ to.classList.add('on'); if(cb)cb(); }, (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 0 : 700);
   }
   /* steps: {kind:'text',text,scene?} | {kind:'score',line} | {kind:'gazette',head}
      runSequence(steps, endScreen, done, startScreen):
@@ -1324,7 +1342,13 @@ window.addEventListener('unhandledrejection', function(e){
     },[]);
     var i=-1, from=startScreen||dash, finished=false;
     function show(step){
+      /* Any asynchronous one-shot ambience requested by the previous cutaway
+         is stale as soon as the sequence advances. A decode that completes
+         late must not start under the next scene. */
+      sceneAudioGen++;
       if(step.kind==='gazette'){
+        cawVid.pause(); cawVid.classList.remove('show');
+        stopRainLoop(); stopBlizzardLoop(); stopCupWin();
         gazHead.textContent=step.head;
         gazDate.textContent=step.date || ('WEEK '+(S.week<10?'0':'')+S.week);
         document.getElementById('gazStory').innerHTML =
@@ -1470,7 +1494,7 @@ window.addEventListener('unhandledrejection', function(e){
           els.forEach(function(e){ e.style.opacity=0; });
           setTimeout(function(){ show(step);
             els.forEach(function(e){ e.style.opacity=''; });
-            next.addEventListener('click',advance); },260);
+            next.addEventListener('click',advance); }, (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 0 : 260);
         } else {
           show(step);
           fadeScreens(prev,next,function(){ next.addEventListener('click',advance); });
@@ -1673,14 +1697,19 @@ window.addEventListener('unhandledrejection', function(e){
   }
   function preloadCrowd(){ CROWD_FILES.forEach(loadSfxFile); ROAD_FILES.forEach(loadSfxFile); loadSfxFile('rain_bus_loop.mp3'); loadSfxFile('blizzard_loop.mp3'); loadSfxFile('office_loop.mp3'); }
 
+  /* A cutaway can advance while an audio file is still fetching/decoding.
+     `show(step)` increments this generation before requesting scene audio; a
+     late decode from an older generation is discarded instead of starting
+     beneath whatever screen the player has reached since. */
+  var sceneAudioGen=0;
   var lastCrowdIdx = -1;
   function playCrowdMuffled(){
-    var idx;
+    var token=sceneAudioGen, idx;
     do{ idx = Math.floor(Math.random()*CROWD_FILES.length); }
     while(CROWD_FILES.length>1 && idx===lastCrowdIdx);
     lastCrowdIdx = idx;
     loadSfxFile(CROWD_FILES[idx]).then(function(buf){
-      if(!buf) return;    // file missing or still mid-download on a cold cache \u2014 skip, don't stall
+      if(!buf || token!==sceneAudioGen) return;
       var ac=sfxAudioCtx();
       var src=ac.createBufferSource(); src.buffer=buf;
       var g=ac.createGain(); g.gain.value=0.5;
@@ -1691,12 +1720,12 @@ window.addEventListener('unhandledrejection', function(e){
 
   var lastRoadIdx = -1;
   function playRoadAmbience(){
-    var idx;
+    var token=sceneAudioGen, idx;
     do{ idx = Math.floor(Math.random()*ROAD_FILES.length); }
     while(ROAD_FILES.length>1 && idx===lastRoadIdx);
     lastRoadIdx = idx;
     loadSfxFile(ROAD_FILES[idx]).then(function(buf){
-      if(!buf) return;
+      if(!buf || token!==sceneAudioGen) return;
       var ac=sfxAudioCtx();
       var src=ac.createBufferSource(); src.buffer=buf;
       var g=ac.createGain(); g.gain.value=0.5;
@@ -1705,42 +1734,41 @@ window.addEventListener('unhandledrejection', function(e){
     });
   }
 
-  /* Loops for as long as the roadtrip scene is on screen, stops the moment
-     the player taps past it \u2014 not a one-shot like the crowd sound above. */
-  var rainLoopSrc=null, rainLoopGain=null;
+  /* Loops for as long as their scene remains wanted. Each loop has a
+     generation token as well as a wanted flag: calling stop() invalidates an
+     in-flight decode even when no AudioBufferSource has been created yet. */
+  var rainLoopSrc=null, rainLoopGain=null, rainWanted=false, rainGen=0;
   function startRainLoop(){
-    if(rainLoopSrc) return;               // already running, nothing to do
+    if(rainLoopSrc || rainWanted) return;
+    rainWanted=true; var token=++rainGen;
     loadSfxFile('rain_bus_loop.mp3').then(function(buf){
-      if(!buf) return;                    // missing/cold-cache \u2014 fail silent, no loop, no crash
-      if(rainLoopSrc) return;             // a stop() could have raced in while this decoded
+      if(!buf || !rainWanted || token!==rainGen || rainLoopSrc) return;
       var ac=sfxAudioCtx();
       var src=ac.createBufferSource(); src.buffer=buf; src.loop=true;
       var g=ac.createGain(); g.gain.setValueAtTime(0.0001, ac.currentTime);
       g.gain.exponentialRampToValueAtTime(0.45, ac.currentTime+0.6);
-      src.connect(g); g.connect(ac.destination);
-      src.start();
+      src.connect(g); g.connect(ac.destination); src.start();
       rainLoopSrc=src; rainLoopGain=g;
     });
   }
   function stopRainLoop(){
+    rainWanted=false; rainGen++;
     if(!rainLoopSrc) return;
     var ac=sfxAudioCtx(), src=rainLoopSrc, g=rainLoopGain;
     rainLoopSrc=null; rainLoopGain=null;
     g.gain.cancelScheduledValues(ac.currentTime);
-    g.gain.setValueAtTime(g.gain.value, ac.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.35);  // fade, not a click
+    g.gain.setValueAtTime(Math.max(g.gain.value,0.0001), ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.35);
     setTimeout(function(){ try{ src.stop(); }catch(e){} }, 400);
   }
 
-
-  /* BLIZZARD GAME: dedicated exterior wind/structure bed. The file is an
-     optional asset: if it is not present yet the scene remains silent rather
-     than blocking play. */
-  var blizzardLoopSrc=null, blizzardLoopGain=null;
+  /* BLIZZARD GAME: dedicated exterior wind/structure bed. */
+  var blizzardLoopSrc=null, blizzardLoopGain=null, blizzardWanted=false, blizzardGen=0;
   function startBlizzardLoop(){
-    if(blizzardLoopSrc) return;
+    if(blizzardLoopSrc || blizzardWanted) return;
+    blizzardWanted=true; var token=++blizzardGen;
     loadSfxFile('blizzard_loop.mp3').then(function(buf){
-      if(!buf || blizzardLoopSrc) return;
+      if(!buf || !blizzardWanted || token!==blizzardGen || blizzardLoopSrc) return;
       var ac=sfxAudioCtx();
       var src=ac.createBufferSource(); src.buffer=buf; src.loop=true;
       var g=ac.createGain(); g.gain.setValueAtTime(0.0001, ac.currentTime);
@@ -1750,75 +1778,70 @@ window.addEventListener('unhandledrejection', function(e){
     });
   }
   function stopBlizzardLoop(){
+    blizzardWanted=false; blizzardGen++;
     if(!blizzardLoopSrc) return;
     var ac=sfxAudioCtx(), src=blizzardLoopSrc, g=blizzardLoopGain;
     blizzardLoopSrc=null; blizzardLoopGain=null;
     g.gain.cancelScheduledValues(ac.currentTime);
-    g.gain.setValueAtTime(g.gain.value, ac.currentTime);
+    g.gain.setValueAtTime(Math.max(g.gain.value,0.0001), ac.currentTime);
     g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.4);
     setTimeout(function(){ try{ src.stop(); }catch(e){} }, 450);
   }
 
-  /* THE TIMBER CUP: a straight, non-looping playthrough of the full 41s
-     track. Fires at most once a year, so it gets its own player rather
-     than reusing the generic one-shot machinery \u2014 mainly so it can be
-     cut short cleanly (fade instead of a click) if the player taps past
-     the win screen before the track finishes on its own. */
-  var cupSrc=null, cupGain=null;
+  /* THE TIMBER CUP: straight, non-looping playback, still cancellable while
+     its file is decoding so it can never begin after the Cup scene is gone. */
+  var cupSrc=null, cupGain=null, cupWanted=false, cupGen=0;
   function startCupWin(){
-    if(cupSrc) return;
+    if(cupSrc || cupWanted) return;
+    cupWanted=true; var token=++cupGen;
     loadSfxFile('timber_cup_win.mp3').then(function(buf){
-      if(!buf) return;
-      if(cupSrc) return;
+      if(!buf || !cupWanted || token!==cupGen || cupSrc) return;
       var ac=sfxAudioCtx();
       var src=ac.createBufferSource(); src.buffer=buf;
       var g=ac.createGain(); g.gain.setValueAtTime(0.0001, ac.currentTime);
       g.gain.exponentialRampToValueAtTime(0.6, ac.currentTime+0.5);
-      src.connect(g); g.connect(ac.destination);
-      src.start();
+      src.connect(g); g.connect(ac.destination); src.start();
       cupSrc=src; cupGain=g;
-      src.onended=function(){ if(cupSrc===src){ cupSrc=null; cupGain=null; } };
+      src.onended=function(){
+        if(cupSrc===src){ cupSrc=null; cupGain=null; cupWanted=false; }
+      };
     });
   }
   function stopCupWin(){
+    cupWanted=false; cupGen++;
     if(!cupSrc) return;
     var ac=sfxAudioCtx(), src=cupSrc, g=cupGain;
     cupSrc=null; cupGain=null;
     g.gain.cancelScheduledValues(ac.currentTime);
-    g.gain.setValueAtTime(g.gain.value, ac.currentTime);
+    g.gain.setValueAtTime(Math.max(g.gain.value,0.0001), ac.currentTime);
     g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.4);
     setTimeout(function(){ try{ src.stop(); }catch(e){} }, 450);
   }
 
-  /* OFFICE AMBIENCE: unlike every other trigger above, this isn't tied to a
-     specific story scene \u2014 it should simply be present whenever the
-     dashboard itself is the visible screen, and absent during any
-     full-screen cutaway (decision, moment, gazette, cutscene). Rather than
-     hunt down and instrument every place in the code that shows or hides
-     #dash, watch the element's own class directly \u2014 correct regardless of
-     which code path changed it, and immune to a future transition being
-     added somewhere that forgets to start/stop it explicitly. */
-  var officeLoopSrc=null, officeLoopGain=null;
+  /* OFFICE AMBIENCE follows dashboard visibility. The wanted/generation pair
+     closes the old cold-load race where the office bed could decode and start
+     after a decision/cutaway had already replaced the dashboard. */
+  var officeLoopSrc=null, officeLoopGain=null, officeWanted=false, officeGen=0;
   function startOfficeLoop(){
-    if(officeLoopSrc) return;
+    if(officeLoopSrc || officeWanted) return;
+    officeWanted=true; var token=++officeGen;
     loadSfxFile('office_loop.mp3').then(function(buf){
-      if(!buf) return;
-      if(officeLoopSrc) return;
+      if(!buf || !officeWanted || token!==officeGen || officeLoopSrc) return;
       var ac=sfxAudioCtx();
       var src=ac.createBufferSource(); src.buffer=buf; src.loop=true;
       var g=ac.createGain(); g.gain.setValueAtTime(0.0001, ac.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.5, ac.currentTime+1.4);  // settle in slowly, not a punctuated cue
-      src.connect(g); g.connect(ac.destination);
-      src.start();
+      g.gain.exponentialRampToValueAtTime(0.5, ac.currentTime+1.4);
+      src.connect(g); g.connect(ac.destination); src.start();
       officeLoopSrc=src; officeLoopGain=g;
     });
   }
   function stopOfficeLoop(){
+    officeWanted=false; officeGen++;
     if(!officeLoopSrc) return;
     var ac=sfxAudioCtx(), src=officeLoopSrc, g=officeLoopGain;
     officeLoopSrc=null; officeLoopGain=null;
     g.gain.cancelScheduledValues(ac.currentTime);
-    g.gain.setValueAtTime(g.gain.value, ac.currentTime);
+    g.gain.setValueAtTime(Math.max(g.gain.value,0.0001), ac.currentTime);
     g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.7);
     setTimeout(function(){ try{ src.stop(); }catch(e){} }, 800);
   }
@@ -2457,13 +2480,13 @@ window.addEventListener('unhandledrejection', function(e){
         out:["The lights drop at halftime, the spotlight finds Row F, and Ernie Kowalski \u2014 mid-sip \u2014 becomes the first man in league history to be immortalized while holding a thermos. He stands, waves the thermos, and the building comes apart.",
              "He's given the microphone. He critiques the modern pick-and-roll for six full minutes. It's the greatest speech anyone here has ever heard. His number ascends to the rafters while he tells the opposing coach, personally, to 'watch the baseline.'"],
         desk:"Ceremony cost: $1,200. Ernie's speech: unbudgeted, priceless. He has requested 'a word' about our defense. I've scheduled it, God help me.",
-        gaz:"MAN IMMORTALIZED MID-SIP; CRITIQUES DEFENSE FROM RAFTERS' SHADOW", news:"Ernie 'The Stilt' Kowalski has become the first man in league history immortalized while holding a thermos, the ceremony having been conducted as a surprise on a Tuesday. Handed the microphone, Kowalski critiqued the modern pick-and-roll for six minutes and advised the visiting coach, personally, to watch the baseline.", mood:'pleased' },
+        gaz:"MAN IMMORTALIZED MID-SIP; CRITIQUES DEFENSE FROM RAFTERS' SHADOW", news:"Ernie 'The Stilt' Kowalski has become the first man in league history immortalized while holding a thermos, the ceremony having been conducted as a surprise on a Tuesday. Handed the microphone, Kowalski critiqued the modern pick-and-roll for six minutes and advised the visiting coach, personally, to watch the baseline.", mood:'pleased', flag:'ernieRetired' },
       { t:"Tell him first. Do it proper.", sub:"He's earned a heads-up.", when:'game', gamePhase:'HALFTIME',
         fx:{buzz:5, morale:6, cred:6, cash:-1200},
         out:["You visit Row F \u2014 at his house, which is decorated substantially in Row F memorabilia \u2014 and tell him. Ernie says 'about time,' then asks if he can bring 'a few people.' The few people turn out to be the entire 1961 roster, four of whom are alive, all four of whom show up in blazers.",
              "The ceremony is dignified, the blazers are magnificent, and Ernie's speech still critiques the pick-and-roll, but this time with visual aids he prepared."],
         desk:"Blazers: four. Visual aids: laminated, not by me, which I note without emotion. A good night. We don't get many. This one's filed where I can find it.",
-        gaz:"1961 ROSTER REASSEMBLES; BLAZERS DESCRIBED AS 'MINT'", news:"Informed in advance of his number's retirement, Ernie Kowalski asked whether he might bring a few people. The few people proved to be the surviving 1961 roster, four in number, all in blazers. Kowalski's remarks again concerned the pick-and-roll, on this occasion with laminated visual aids.", mood:'pleased' },
+        gaz:"1961 ROSTER REASSEMBLES; BLAZERS DESCRIBED AS 'MINT'", news:"Informed in advance of his number's retirement, Ernie Kowalski asked whether he might bring a few people. The few people proved to be the surviving 1961 roster, four in number, all in blazers. Kowalski's remarks again concerned the pick-and-roll, on this occasion with laminated visual aids.", mood:'pleased', flag:'ernieRetired' },
       { t:"Postpone it. Do it right at season's end.", sub:"Bigger stage. Playoff push.",
         fx:{cred:2, buzz:-3},
         out:["You postpone for a grander occasion. Ernie, who was never told, notices nothing, and continues attending Tuesdays with his thermos and his opinions, unaware the rafters are keeping a space for him.",
@@ -2752,9 +2775,9 @@ window.addEventListener('unhandledrejection', function(e){
       { t:"Send the bus back for him. Everyone waits.", sub:"Nobody gets left. New rule.",
         fx:{cash:-300, morale:9, cred:4},
         out:["The bus turns around. Eleven players and Hank sit in a gas station parking lot for an hour while the rookie, mortified, buys the entire team snacks with money he does not have, running a tab with Deb that Deb waves off. The team decides, collectively and without a vote, that the rookie is now theirs.",
-             "They arrive late and tired and win anyway, on spite and gas-station jerky. From that night the bus does a headcount. Out loud. Every stop. Tiny reads the names like a substitute teacher who cares too much."],
+             "They arrive late and tired, with barely enough warmup to count. From that night the bus does a headcount. Out loud. Every stop. Tiny reads the names like a substitute teacher who cares too much."],
         desk:"Detour: an hour and $300 in gas. Return on investment: a rookie who now belongs to eleven people who waited for him in a parking lot. That's not on the balance sheet. It should be. Headcounts are now policy. Tiny volunteered.",
-        gaz:"TEAM BUS RETURNS FOR STRANDED ROOKIE; HEADCOUNTS INSTITUTED", news:"The Lumberjacks team bus, having departed a Brainerd station without a rookie, returned for him after ninety minutes, the roster waiting in the parking lot. The team arrived late and won. A verbal headcount is now conducted at every stop, read aloud by Tiny McGee.", mood:'pleased' },
+        gaz:"TEAM BUS RETURNS FOR STRANDED ROOKIE; HEADCOUNTS INSTITUTED", news:"The Lumberjacks team bus, having departed a Brainerd station without a rookie, returned for him after ninety minutes, the roster waiting in the parking lot. The team arrived late. A verbal headcount is now conducted at every stop, read aloud by Tiny McGee.", mood:'pleased' },
       { t:"Call Deb. Ask her to drive him.", sub:"$40 for gas. A local solution.",
         fx:{cash:-40, buzz:5, cred:2},
         out:["Deb closes the station early \u2014 hangs a sign reading BASKETBALL EMERGENCY, which is now, I'm told, a permanent sign she keeps under the counter \u2014 and drives the rookie two hours in a hatchback while explaining local politics with total authority. He arrives informed, terrified, and on time.",
@@ -2811,11 +2834,11 @@ window.addEventListener('unhandledrejection', function(e){
         mood:'dry' },
       { t:"Back in the trunk. He rides home.", sub:"He will take this personally.",
         fx:{morale:-6, cred:2},
-        out:["Sam gets back in the trunk without argument, which is the part that stings. The trunk goes back on the bus. We win the game in front of a crowd that has no idea a wolf is in the parking lot in a box, and the whole night is quieter and smaller for it.",
+        out:["Sam gets back in the trunk without argument, which is the part that stings. The trunk goes back on the bus. The game goes on in front of a crowd that has no idea a wolf is in the parking lot in a box, and the whole night is quieter and smaller for it.",
              "He hasn't mentioned it since. He mentions everything. The not-mentioning is the mention."],
         desk:"Wolf: returned to trunk, uncomplaining. There is a version of tonight where two thousand strangers in a hostile building learn what he is, and I chose the other one. I've written that down plainly so I can't soften it later.",
         gaz:"NOTHING UNUSUAL OCCURS AT AWAY GAME",
-        news:"The club's road game proceeded without incident of note. The visiting team won. No mascot was present in any official capacity.",
+        news:"The club's road game proceeded without incident of note. No mascot was present in any official capacity. The basketball result is recorded elsewhere on this page, which is more than can be said for the wolf.",
         mood:'grim' } ],
     samOutcomes:{
       win:{ fx:{buzz:14, morale:9, cred:-3},
@@ -3028,12 +3051,12 @@ window.addEventListener('unhandledrejection', function(e){
     choices:[
       { t:"Retire his number. Friday.", sub:"Do it while the town needs it.",
         fx:{morale:6, buzz:8, cred:4, cash:-1200}, when:'game',
-        out:["The ceremony is beautiful and the building is full and his mother speaks for four minutes without once raising her voice. The number goes to the rafters beside Ernie's.",
+        out:["The ceremony is beautiful and the building is full and his mother speaks for four minutes without once raising her voice. The number goes to the rafters over Row F, where Ernie watches without touching his thermos.",
              "Grown men in flannel weep in a way this town has no vocabulary for and needs none. Nobody leaves early. Nobody has anywhere to be.",
              "Afterward the banner just hangs there, in the dark, over an empty floor. It will hang there Tuesday too. That's the part nobody warns you about."],
         desk:"The ceremony was right. I want that written down somewhere permanent, so I'm writing it here. His mother asked me afterward whether we were sure. I said the lake doesn't give things back. I have been wrong before, but not often, and not about the lake.",
         gaz:"NUMBER RETIRED; TOWN GRIEVES CORRECTLY",
-        news:"The club retired the number of Vern Aho, missing since a blizzard on the lake, in a ceremony attended by a capacity crowd. His mother spoke for four minutes. The banner was raised beside that of Ernie Kowalski. No attendee left before the lights came up.",
+        news:"The club retired the number of Vern Aho, missing since a blizzard on the lake, in a ceremony attended by a capacity crowd. His mother spoke for four minutes. The banner was raised above a building that stayed standing until the lights came up. No attendee left before the lights came up.",
         mood:'grim', flag:'vernRetired', stamp:'vernWeek' },
       { t:"Leave the spot open. Say nothing.", sub:"He's not late. He's not anything yet.",
         fx:{morale:3, cred:6, buzz:-3},
@@ -3137,19 +3160,19 @@ window.addEventListener('unhandledrejection', function(e){
         out:["The crews come in overnight so the schedule holds. The northeast roof stops its commentary, sections 110\u2013114 stop flickering during free throws \u2014 a home-court advantage we quietly mourn \u2014 and the sound... stops. On the last night, one of the crew asks Sandra what it was. She says 'the building thinking.' He doesn't laugh. He'd heard it too.",
              "The inspector returns, taps things, and issues a pass with the closest thing to warmth the small hammer allows. The old girl makes it. The old girl was always going to make it. But now it's official."],
         desk:"Repairs: $12,000, paid, worth it. The sound has stopped and I find I miss it, which I'm admitting here and nowhere else.",
-        gaz:"ARENA PASSES INSPECTION; 'THE SOUND' UNAVAILABLE FOR COMMENT", news:"The club has funded $12,000 in overnight repairs to the northeast roof, sections 110 through 114, and the item the city inspector's letter described only as 'the sound.' All three have ceased. A crew member asked what the sound had been and was told it was the building thinking. He did not laugh. He had heard it too.", mood:'pleased', flag:'arenaFixed' },
+        gaz:"ARENA PASSES INSPECTION; 'THE SOUND' UNAVAILABLE FOR COMMENT", news:"The club has funded $12,000 in overnight repairs to the northeast roof, sections 110 through 114, and the item the city inspector's letter described only as 'the sound.' All three have ceased. A crew member asked what the sound had been and was told it was the building thinking. He did not laugh. He had heard it too.", mood:'pleased', flag:'arenaFixed', arenaResolution:'paid' },
       { t:"Play under the asterisk.", sub:"Spring's problem. Survive to spring.",
         fx:{buzz:5, cred:-6},
         out:["The season continues under provisional occupancy, a phrase Sandra prints on card stock and posts by the door 'for morale.' The building leans into its condition: the flickering in 114 becomes a fan ritual, the roof's opinions get louder in wind, and the sound now happens mostly during opponent free throws, which nobody instructed it to do.",
              "The inspector attends a game in a personal capacity. He's seen watching the rafters the whole night. On the way out he tells the usher: 'She's got one more winter in her. Maybe two.' He sounds like he's talking about a relative. Around here, he is."],
         desk:"Status: provisional, like everything here. The sound has taken sides and it's ours. I've noted the inspector's estimate: one winter, maybe two. The asterisk holds. For now.",
-        gaz:"BUILDING GRANTED ONE MORE WINTER; RAFTERS DEFIANT", news:"The arena will complete the season under a provisional occupancy variance. The flickering in section 114 has become a fan ritual. The sound now occurs predominantly during opposing free throws, which nobody instructed it to do. The inspector attended a game in a personal capacity and estimates one more winter. Possibly two.", mood:'grim', flag:'asteriskSeason' },
+        gaz:"BUILDING GRANTED ONE MORE WINTER; RAFTERS DEFIANT", news:"The arena will complete the season under a provisional occupancy variance. The flickering in section 114 has become a fan ritual. The sound now occurs predominantly during opposing free throws, which nobody instructed it to do. The inspector attended a game in a personal capacity and estimates one more winter. Possibly two.", mood:'grim', flag:'asteriskSeason', arenaResolution:'asterisk' },
       { t:"Launch a Save the Shack fund drive.", sub:"Make the town pay for its church.",
         fx:{cash:7000, buzz:10, morale:7, cred:3},
         out:["The fund drive begins with a coffee tin at the concession stand and gets out of hand immediately, in the good way. The 1961 blazers make appearances. Tiny does a benefit set. Ernie Kowalski personally guilt-trips three business owners by name from Row F. A child donates a jar of nickels and the Gazette runs the jar on the front page, above the fold, where it belongs.",
              "The drive clears seven thousand in two weeks. The repairs get scheduled. The tin stays out afterward, permanently, unlabeled, and people keep putting money in it, because the building isn't done needing things and the town isn't done either."],
         desk:"Raised: $7,000, one jar of nickels (counted: $4.35, value: infinite). The tin stays out. Some ledgers keep themselves.",
-        gaz:"JAR OF NICKELS LEADS ARENA FUNDING SURGE", news:"A coffee tin at the concession stand has raised $7,000 toward arena repairs in two weeks. Contributions include appearances by the 1961 roster, a benefit set by Tiny McGee, and the personal guilt-tripping of three business owners by Ernie Kowalski from Row F. A child's jar of nickels appears above the fold, where it belongs.", mood:'pleased', flag:'arenaFixed' } ] },
+        gaz:"JAR OF NICKELS LEADS ARENA FUNDING SURGE", news:"A coffee tin at the concession stand has raised $7,000 toward arena repairs in two weeks. Contributions include appearances by the 1961 roster, a benefit set by Tiny McGee, and the personal guilt-tripping of three business owners by Ernie Kowalski from Row F. A child's jar of nickels appears above the fold, where it belongs.", mood:'pleased', flag:'arenaFixed', arenaResolution:'fundraiser' } ] },
 
   { id:'halftime_wedding', venue:'home', when:'game', title:'THE HALFTIME WEDDING', mood:'base', portraitMood:'sandra_home_arena', scene:'wedding',
     setup:[
@@ -3229,15 +3252,15 @@ window.addEventListener('unhandledrejection', function(e){
   { id:'the_crate', venue:'home', when:'game', gamePhase:'PREGAME', title:'THE CRATE', mood:'base', scene:'crate',
     setup:[
       "The laundry service froze. Not figuratively \u2014 the truck, the pipes, and one employee's mustache, all of it, solid, outside Bemidji. Our uniforms are inside that truck and will remain there until what the driver is calling 'a thaw event.'",
-      "The game is Friday. However. In clearing the equipment room \u2014 for reasons, or possibly because of reasons, I've agreed not to reopen \u2014 somebody found a crate. Stenciled: LUMBERJACKS, 1961. Inside: a full set of wool uniforms from the year this team won everything. Ernie Kowalski's actual jersey is folded on top, the number long since hanging in the rafters, the cloth itself apparently just in a box this whole time.",
+      "The game is Friday. However. In clearing the equipment room \u2014 for reasons, or possibly because of reasons, I've agreed not to reopen \u2014 somebody found a crate. Stenciled: LUMBERJACKS, 1961. Inside: a full set of wool uniforms from the year this team won everything. Ernie Kowalski's actual jersey is folded on top, the cloth apparently just in a box this whole time, waiting for somebody to remember it.",
       "The wool has opinions. The moths have made contributions. And Ernie, informed by means nobody will admit to, is already in the parking lot."],
     choices:[
       { t:'The Jacks wear 1961.', sub:'Ernie lends the rookie the old jersey for one night.', when:'game',
         fx:{buzz:12, morale:8, cred:4},
-        out:["The wool itches like history. The team takes the floor looking like a photograph, and the building makes a sound it has been saving since 1961. Ernie drapes the old jersey over the rookie's shoulders at center court \u2014 the cloth, not the number; the number stays up in the rafters where it lives \u2014 says two sentences nobody caught on tape, and the rookie plays the night of his life in it, sneezing.",
+        out:["The wool itches like history. The team takes the floor looking like a photograph, and the building makes a sound it has been saving since 1961. Ernie drapes the old jersey over the rookie's shoulders at center court \u2014 an old piece of the club handed forward for one night \u2014 says two sentences nobody caught on tape, and the rookie plays the night of his life in it, sneezing.",
              "The visitors spend the whole game vaguely unsettled, the way you would be if you looked up and the past was running a fast break at you."],
-        desk:"The rookie wore the cloth for one night and has asked to keep it. Ernie ruled \u2014 his word \u2014 'custody.' Weekends and holidays. The number stays retired; only the jersey travels. I am not drafting the schedule.",
-        gaz:"1961 RETURNS FOR ONE NIGHT; PRESENT DAY OUTSCORED", news:"A frozen laundry truck obliged the Lumberjacks to compete in wool uniforms recovered from a crate stenciled 1961, the club's championship year. Ernie Kowalski draped his old jersey over the team's rookie at center court \u2014 a loan of the cloth only, his retired number remaining in the rafters. The rookie's performance is being described as historic and congested.", mood:'pleased', flag:'crate61' },
+        desk:"The rookie wore the cloth for one night and has asked to keep it. Ernie ruled \u2014 his word \u2014 'custody.' Weekends and holidays. The jersey travels for one night. I am not drafting a custody schedule for wool.",
+        gaz:"1961 RETURNS FOR ONE NIGHT; PRESENT DAY OUTSCORED", news:"A frozen laundry truck obliged the Lumberjacks to compete in wool uniforms recovered from a crate stenciled 1961, the club's championship year. Ernie Kowalski draped his old jersey over the team's rookie at center court \u2014 a loan of the old cloth for one night. The rookie's performance is being described as historic and congested.", mood:'pleased', flag:'crate61' },
       { t:'Buy plain grays off the rack in town.', sub:'$700. Dignity optional.',
         fx:{cash:-700, buzz:-3, morale:1}, when:'game',
         out:["The team plays in practice grays with numbers in electrical tape, applied by Sandra, straight-edged, level, correct. The tape starts peeling in the second quarter and the scorer's table begins identifying players by 'vibe,' their word, entered in an official league document.",
@@ -3401,7 +3424,7 @@ window.addEventListener('unhandledrejection', function(e){
       if(st.postseason) continue;
       if(st.minCred==null) continue;
       if(S.cred >= st.minCred) continue;
-      if(st.once && S.flags['done_'+st.id]) continue;
+      if(S.done[st.id] || (st.once && S.flags['done_'+st.id])) continue;
       if(st.minSeason && S.season < st.minSeason) continue;
       if(st.needs && !S.flags[st.needs]) continue;
       n++;
@@ -3409,57 +3432,208 @@ window.addEventListener('unhandledrejection', function(e){
     }
     return {n:n, nearest:nearest};
   }
+  /* ---------- FIXED SEASON ONE SCHEDULER ----------
+     Season One is exactly 18 regular-season weeks. Twelve Core stories are
+     guaranteed; triggered follow-ups consume variable slots; ordinary rotation
+     fills what remains. A trigger or Core beat never creates Week 19. */
+  var SEASON1_WEEKS=18;
+  var CORE_WINDOWS={
+    tiny_openmic:[1,1], possum_fusebox:[2,2],
+    chainsaw_night:[3,6], ricky_statue:[3,7], mascot_bighead:[4,8],
+    grace_1:[5,8], hotdish_night:[7,11], northern_swing:[8,13],
+    sam_stowaway:[9,14], blizzard_game:[10,15], retired_number:[11,16],
+    arena_condemned:[14,17]
+  };
+  var CORE_IDS=Object.keys(CORE_WINDOWS);
+  var CORE_DEPS={ blizzard_game:['ricky_statue'], sam_stowaway:['northern_swing'] };
+  function isCore(id){ return CORE_WINDOWS.hasOwnProperty(id); }
+  function storyDone(id){ return !!(S.done[id] || S.flags['done_'+id]); }
+  function shuffleIds(a){
+    for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+  function ensureSeason1Scheduler(reset){
+    if(S.season!==1) return null;
+    if(reset || !S.scheduler){
+      var rot=STORY.filter(function(st){
+        return !st.postseason && !st.needs && !isCore(st.id) && st.id!=='arena_reckoning'
+          && st.id!=='tiny_openmic' && !(st.once && S.flags['done_'+st.id]);
+      }).map(function(st){ return st.id; });
+      shuffleIds(rot);
+      /* Fresh stories deal before anything a migrated/restarted profile has
+         already seen, but the order within each band stays shuffled. */
+      var ever=S.doneEver||{};
+      rot.sort(function(a,b){ return (ever[a]?1:0)-(ever[b]?1:0); });
+      var targets={};
+      CORE_IDS.forEach(function(id){
+        var w=CORE_WINDOWS[id];
+        targets[id]=w[0]===w[1]?w[0]:(w[0]+Math.floor(Math.random()*(w[1]-w[0]+1)));
+      });
+      /* Sandra makes the promise at the end of Week 4; Grace therefore owns
+         Week 5. It remains a Core slot, not an extra week. */
+      targets.grace_1=5;
+      S.scheduler={rotation:rot, triggerQueue:[], triggerSeq:0, coreTargets:targets};
+    }
+    S.scheduler.rotation=S.scheduler.rotation||[];
+    S.scheduler.triggerQueue=S.scheduler.triggerQueue||[];
+    S.scheduler.coreTargets=S.scheduler.coreTargets||{};
+    CORE_IDS.forEach(function(id){
+      if(S.scheduler.coreTargets[id]==null){
+        var w=CORE_WINDOWS[id];
+        S.scheduler.coreTargets[id]=w[0]===w[1]?w[0]:w[0]+Math.floor(Math.random()*(w[1]-w[0]+1));
+      }
+    });
+    S.scheduler.coreTargets.grace_1=5;
+    return S.scheduler;
+  }
+  function coreDepsOK(id){
+    var deps=CORE_DEPS[id]||[];
+    for(var i=0;i<deps.length;i++) if(!storyDone(deps[i])) return false;
+    var st=STORY_BY_ID[id];
+    if(st && st.needs && !S.flags[st.needs]) return false;
+    return true;
+  }
+  function refreshTriggerQueue(){
+    var sch=ensureSeason1Scheduler(false); if(!sch) return;
+    var queued={}; sch.triggerQueue.forEach(function(q){ queued[q.id]=true; });
+    STORY.forEach(function(st){
+      if(st.postseason || !st.needs || isCore(st.id) || st.id==='arena_reckoning') return;
+      if(storyDone(st.id) || !S.flags[st.needs] || queued[st.id]) return;
+      /* Preserve the order in which consequences were actually caused, not
+         merely the order STORY happens to be declared in. Older saves without
+         trigger timestamps fall back to their notBefore stamp/current week. */
+      var at=(S.triggeredAt && S.triggeredAt[st.needs]) ||
+             (st.notBefore && S.flags[st.notBefore.flag]) || S.tw;
+      sch.triggerQueue.push({id:st.id, at:at, seq:++sch.triggerSeq});
+    });
+    sch.triggerQueue.sort(function(a,b){ return a.at-b.at || a.seq-b.seq; });
+  }
+  function triggerEligible(st){
+    if(!st || storyDone(st.id) || !st.needs || !S.flags[st.needs]) return false;
+    if(st.minSeason && S.season<st.minSeason) return false;
+    if(st.notBefore && S.tw < (S.flags[st.notBefore.flag]||0)+st.notBefore.plus) return false;
+    return credOK(st);
+  }
+  function chooseTriggered(){
+    var sch=S.scheduler;
+    for(var i=0;i<sch.triggerQueue.length;i++){
+      var st=STORY_BY_ID[sch.triggerQueue[i].id];
+      if(triggerEligible(st)){ sch.triggerQueue.splice(i,1); return st; }
+    }
+    return null;
+  }
+  function chooseRotation(){
+    var sch=S.scheduler;
+    for(var i=0;i<sch.rotation.length;i++){
+      var st=STORY_BY_ID[sch.rotation[i]];
+      if(!st || storyDone(st.id)){ sch.rotation.splice(i--,1); continue; }
+      if(st.minSeason && S.season<st.minSeason) continue;
+      /* CRED is evaluated NOW. A locked card stays in the pool and can become
+         available later; a card whose threshold is lost locks again. */
+      if(!credOK(st)) continue;
+      sch.rotation.splice(i,1); return st;
+    }
+    return null;
+  }
+  function pendingCore(){
+    return CORE_IDS.filter(function(id){ return !storyDone(id); });
+  }
+  function readyCore(week, dueOnly){
+    var sch=S.scheduler, out=[];
+    pendingCore().forEach(function(id){
+      if(id==='tiny_openmic' || id==='possum_fusebox' || id==='grace_1') return;
+      var w=CORE_WINDOWS[id], target=sch.coreTargets[id]||w[0];
+      if(week<w[0] || !coreDepsOK(id)) return;
+      if(dueOnly && week<target && week<w[1]) return;
+      out.push(STORY_BY_ID[id]);
+    });
+    out.sort(function(a,b){
+      var wa=CORE_WINDOWS[a.id], wb=CORE_WINDOWS[b.id];
+      var da=wa[1]-week, db=wb[1]-week;
+      if(da!==db) return da-db;
+      return (sch.coreTargets[a.id]||wa[0])-(sch.coreTargets[b.id]||wb[0]);
+    });
+    return out;
+  }
+  function dependencyRescue(week){
+    /* If a Core beat is at/past its deadline but blocked by another Core beat,
+       pull the prerequisite forward instead of silently dropping either. */
+    var pend=pendingCore();
+    for(var i=0;i<pend.length;i++){
+      var id=pend[i], w=CORE_WINDOWS[id];
+      if(week<w[1]) continue;
+      var deps=CORE_DEPS[id]||[];
+      for(var d=0;d<deps.length;d++){
+        if(!storyDone(deps[d])){
+          var dep=STORY_BY_ID[deps[d]], dw=CORE_WINDOWS[deps[d]];
+          if(dep && week>=dw[0] && coreDepsOK(dep.id)) return dep;
+        }
+      }
+    }
+    return null;
+  }
   function buildDeck(){
     deck=[]; deckPos=0;
-    var mains = STORY.filter(function(st){
+    if(S.season===1){ ensureSeason1Scheduler(true); return; }
+    /* Dormant future-season plumbing: retain the old generic dealer without
+       developing new Season Two content. */
+    var mains=STORY.filter(function(st){
       return st.id!=='tiny_openmic' && !st.postseason && !st.needs && !(st.once && S.flags['done_'+st.id])
-        && (!st.minSeason || S.season>=st.minSeason)
-        && credOK(st);
+        && (!st.minSeason || S.season>=st.minSeason);
     });
-    var arena  = mains.filter(function(st){return st.id==='arena_condemned';});
-    var possum = mains.filter(function(st){return st.id==='possum_fusebox';});
-    var hot    = mains.filter(function(st){return st.id==='hotdish_night';});
-    var rest   = mains.filter(function(st){return st.id!=='arena_condemned' && st.id!=='possum_fusebox' && st.id!=='hotdish_night';});
-    for(var i=rest.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=rest[i]; rest[i]=rest[j]; rest[j]=t; }
-    /* Stories the player has EVER seen deal last: a new season deals every
-       fresh story before any repeat. Stable sort keeps the shuffle otherwise. */
-    var ever=S.doneEver||{};
-    rest.sort(function(a,b){ return (ever[a.id]?1:0)-(ever[b.id]?1:0); });
-    /* Fuse box fires week 2, right after the opener \u2014 an early-ownership
-       problem, not a random mid-season one. The Estate now lives in the
-       Season One off-season sequence, outside the regular story deck. */
-    var head = (S.season===1) ? [STORY[0]].concat(possum) : [];
-    /* Hotdish Night pins to mid-season, every season — it's annual. */
-    deck = head.concat(rest.slice(0, Math.ceil(rest.length/2)), hot, arena, rest.slice(Math.ceil(rest.length/2)));
+    shuffleIds(mains);
+    deck=mains;
   }
   function nextStory(){
-    /* Hard pin: the fuse box is the first real problem of the franchise.
-       Week 2, season 1, no exceptions \u2014 fires before deck or conditional logic
-       so it can't be pre-empted by a shuffled card or a needs-gated insert. */
-    if(S.season===1 && S.stage==='regular' && !S.done['possum_fusebox']){
-      var pf=STORY_BY_ID['possum_fusebox'];
-      if(pf) return pf;
+    if(S.season===1 && S.stage==='regular'){
+      var week=S.week, sch=ensureSeason1Scheduler(false);
+      if(week>SEASON1_WEEKS) return null;
+      if(week===1 && !storyDone('tiny_openmic')) return STORY_BY_ID.tiny_openmic;
+      if(week===2 && !storyDone('possum_fusebox')) return STORY_BY_ID.possum_fusebox;
+      /* Sandra's promise is literal: after the Week 4 announcement, Grace is
+         the very next week. No probability roll and no shuffled card can cut in. */
+      if(S.flags.graceWarned && !storyDone('grace_1') && S.tw >= (S.flags.graceWeek||0)+1){
+        return STORY_BY_ID.grace_1;
+      }
+      refreshTriggerQueue();
+      var rescue=dependencyRescue(week); if(rescue) return rescue;
+      /* Deadline first. A guaranteed Core beat at the end of its window owns
+         the week before any triggered or rotation story. */
+      var forced=readyCore(week,false).filter(function(st){ return week>=CORE_WINDOWS[st.id][1]; });
+      if(forced.length) return forced[0];
+      /* Capacity guard: all Core beats must be complete by the end of the
+         regular-season spine. If slack has run out, spend this week on Core. */
+      var pend=pendingCore().filter(function(id){ return id!=='grace_1' || !storyDone(id); });
+      var slotsThrough17=Math.max(0,18-week); /* inclusive week..17 */
+      if(week<=17 && pend.length>=slotsThrough17){
+        var cap=readyCore(week,false); if(cap.length) return cap[0];
+      }
+      /* A Core story becomes required once its randomized target inside the
+         approved window arrives. This is what makes repeats vary without ever
+         violating the window/dependency contract. */
+      var due=readyCore(week,true); if(due.length) return due[0];
+      var trig=chooseTriggered(); if(trig) return trig;
+      var rot=chooseRotation(); if(rot) return rot;
+      /* No eligible variable card: use a started Core beat rather than create
+         a blank week. Week 18 may absorb a delayed Core only as a last resort. */
+      var any=readyCore(week,false); if(any.length) return any[0];
+      return null;
     }
-    // conditional inserts: scout_speaks after scoutSeen; grace_2 after graceGrudge;
-    // arena_reckoning the season after the asterisk. Sequels can cross seasons.
-    // notBefore holds a sequel back N weeks from the week its trigger fired,
-    // so arcs like Vern's breathe instead of resolving on the spot.
+
+    /* Dormant generic dealer for future-season plumbing only. */
     var pool=STORY.filter(function(st){
-      if(st.postseason) return false;
-      if(!st.needs || !S.flags[st.needs]) return false;
-      if(S.done[st.id]) return false;
+      if(st.postseason || st.id==='arena_reckoning') return false;
+      if(!st.needs || !S.flags[st.needs] || S.done[st.id]) return false;
       if(st.once && S.flags['done_'+st.id]) return false;
       if(st.minSeason && S.season<st.minSeason) return false;
-      if(st.notBefore && S.tw < (S.flags[st.notBefore.flag]||0) + st.notBefore.plus) return false;
-      if(!credOK(st)) return false;
-      return true;
+      if(st.notBefore && S.tw < (S.flags[st.notBefore.flag]||0)+st.notBefore.plus) return false;
+      return credOK(st);
     });
-    if(pool.length && Math.random()<0.6){ return pool[0]; }
+    if(pool.length) return pool[0];
     while(deckPos<deck.length){
       var st=deck[deckPos++];
-      if(!S.done[st.id]) return st;
+      if(!S.done[st.id] && credOK(st)) return st;
     }
-    if(pool.length) return pool[0];
     return null;
   }
 
@@ -3580,20 +3754,22 @@ window.addEventListener('unhandledrejection', function(e){
      cred sells season tickets, winning sells the rest. Run the
      numbers into the ground and Gerald from First Federal will
      run them for you.                                          */
-  function applyLedger(games, home, won, po, grace){
+  function applyLedger(games, home, won, po, grace, gateBuzz, gateCred){
+    gateBuzz = gateBuzz==null ? S.buzz : gateBuzz;
+    gateCred = gateCred==null ? S.cred : gateCred;
     var gate=0, costs=ECON.PAYROLL;
     /* The estate's arena, both versions: 8,000 seats sells more of everything;
        the cheap firm's work invoices you a little every single week, forever. */
     if(S.flags.shoddyArena) costs += 250;
     if(home){
       for(var g=0; g<games; g++){
-        var take = ECON.HOME_BASE + S.buzz*ECON.BUZZ_K + S.cred*ECON.CRED_K + (won?ECON.WIN_K:0);
+        var take = ECON.HOME_BASE + gateBuzz*ECON.BUZZ_K + gateCred*ECON.CRED_K + (won?ECON.WIN_K:0);
         if(S.flags.premiumArena) take = take*1.30;
         if(po) take = take*ECON.PO_HOME;
         gate += take;
       }
     } else {
-      gate = (ECON.ROAD_SHARE + S.cred*ECON.ROAD_CRED_K)*games;
+      gate = (ECON.ROAD_SHARE + gateCred*ECON.ROAD_CRED_K)*games;
       if(po) gate = gate*ECON.PO_ROAD;
       costs += ECON.TRAVEL*games;
     }
@@ -3631,6 +3807,8 @@ window.addEventListener('unhandledrejection', function(e){
     S.po={ semiFoe:fs[0], finalFoe:fs[1],
            homeSemi: pl<=2,
            homeFinal: (pl===1) || (pl===2 && Math.random()<0.5) };
+    preloadArt('tipoff_playoff');
+    preloadArt('tipoff_final');
   }
   function makeSemi(){
     var foe=S.po.semiFoe, home=S.po.homeSemi, pf=properFoe(foe);
@@ -3679,6 +3857,13 @@ window.addEventListener('unhandledrejection', function(e){
     var newsW="The Lumberjacks are Timber Cup champions, defeating "+pf+" in the final. The Cup was handed over at center court by Ernie Kowalski, to whom the league's presentation official simply gave way. The Gazette has printed a souvenir edition. It is this one. Keep it somewhere dry.";
     var gazL='CUP SLIPS AWAY AT THE LAST; FOUR-MINUTE OVATION FOLLOWS';
     var newsL="The Lumberjacks fell to "+pf+" in the Timber Cup final. The Cup will winter elsewhere. The crowd remained standing for four minutes following the final horn, an ovation directed, by general consensus, at the season itself.";
+    var samFinalChoice = S.flags.bigHeadReturned
+      ? { t:'Let Sam attempt The Stunt.', sub:"No big head. He says he adapted.", when:'game', gamePhase:'PREGAME', beforeTipoff:true, finalEdge:0.35,
+          fx:{buzz:14, morale:3, cred:-5},
+          out:["Sam has adapted The Stunt since October: the rafters, a rope, two folding chairs lashed together in a manner Facilities refuses to inspect, and the regular head worn backwards for reasons he considers aerodynamic. He lands it. He lands it, then lies very still for a while in a satisfied way, and the trainer walks over without hurrying, because it's Sam."] }
+      : { t:'Let Sam attempt The Stunt.', sub:"He's been saving one. God help us.", when:'game', gamePhase:'PREGAME', beforeTipoff:true, finalEdge:0.35,
+          fx:{buzz:14, morale:3, cred:-5},
+          out:["Sam has, it emerges, been saving The Stunt since October: the rafters, a rope, the big head, and a finish that violates three league bylaws and one law of motion. He lands it. He lands it, and then lies very still for a while in a satisfied way, and the trainer walks over without hurrying, because it's Sam, and the building is already too loud for sirens anyway."] };
     var st={ playoff:'final', title:'THE TIMBER CUP FINAL', mood:'alarmed',
       venue: home?'home':'road', foes:[foe], when:'game', gamePhase:'PREGAME', scene:'final',
       setup:[
@@ -3694,9 +3879,7 @@ window.addEventListener('unhandledrejection', function(e){
         { t:'No ceremony. Just basketball.', sub:"Hank's request. His only one all year.", when:'game', gamePhase:'PREGAME', beforeTipoff:true, finalEdge:0.60,
           fx:{morale:5, cred:5},
           out:["The building comes in loud and goes quiet weird \u2014 playoff quiet, church quiet. Hank writes one word on the locker room board. The players decline to say what it was, and Hank, asked directly, says 'grammar.'"] },
-        { t:'Let Sam attempt The Stunt.', sub:"He's been saving one. God help us.", when:'game', gamePhase:'PREGAME', beforeTipoff:true, finalEdge:0.35,
-          fx:{buzz:14, morale:3, cred:-5},
-          out:["Sam has, it emerges, been saving The Stunt since October: the rafters, a rope, the big head, and a finish that violates three league bylaws and one law of motion. He lands it. He lands it, and then lies very still for a while in a satisfied way, and the trainer walks over without hurrying, because it's Sam, and the building is already too loud for sirens anyway."] } ] };
+        samFinalChoice ] };
     for(var i=0;i<st.choices.length;i++){
       st.choices[i].deskW=deskW; st.choices[i].deskL=deskL;
       st.choices[i].gazW=gazW; st.choices[i].newsW=newsW;
@@ -3811,7 +3994,7 @@ window.addEventListener('unhandledrejection', function(e){
       S.flags.lastPhoneWeek = S.tw;
       distantPhone();
     }
-    /* probeArt gives a cold video 1200ms to become playable, then silently
+    /* probeArt gives a declared video-first scene 1400ms to become playable, then silently
        falls back to a .webp still \u2014 and for a video-only scene that means the
        art step auto-skips and the player sees no cutscene at all. Warm this
        week's scene as soon as the week opens so it's cached well before the
@@ -3832,6 +4015,14 @@ window.addEventListener('unhandledrejection', function(e){
 
   function beginWeek(){
     pendingRoute=null;
+    if(S.season===1 && S.stage==='regular' && S.week>SEASON1_WEEKS){
+      if((S.wins+S.losses)>0 && placeNow()<=4){
+        S.stage='semi'; setupPlayoffs(); current=makeSemi();
+        S.venue=current.venue==='home'?'HOME':'ROAD'; S.foe=current.foes[0];
+        presentWeek(); saveGame(); return;
+      }
+      S.playoffResult='missed'; seasonRecap(); return;
+    }
     /* the quiet page comes due */
     if(S.stage==='regular' && S.flags.arenaDoomed && S.flags.doomWeek && S.tw>=S.flags.doomWeek){ runFire(); return; }
     if(S.stage==='semi' || S.stage==='final'){
@@ -3872,21 +4063,27 @@ window.addEventListener('unhandledrejection', function(e){
   }
 
   /* ---------- SHARED MINIGAME BRIDGE ----------
-     One overlay/iframe serves every minigame. A minigame signals its result
-     by posting {result:'win'|'lose'} (we accept any type string, so a game
-     whose id differs from what's assumed here still resolves correctly).
-     Which game is running is tracked by `phase`, not by the message. */
+     One overlay/iframe serves every minigame. Each launch receives a session
+     token in its query string. The host always verifies the message came from
+     the active iframe; minigames updated to echo `ccSession` also get strict
+     stale-session rejection. Legacy Season 1 minigames that have not yet been
+     updated to echo the token remain source-validated for compatibility. */
+  var mgSessionSeq=0, mgSession=null;
   function openMinigame(file){
-    var ov=document.getElementById('mgOverlay');
-    document.getElementById('mgFrame').src = 'minigames/'+file;
+    var ov=document.getElementById('mgOverlay'), frame=document.getElementById('mgFrame');
+    mgSession='cc-'+Date.now().toString(36)+'-'+(++mgSessionSeq).toString(36);
+    frame.dataset.session=mgSession;
+    frame.src='minigames/'+file+(file.indexOf('?')>=0?'&':'?')+'cc_session='+encodeURIComponent(mgSession);
     ov.classList.add('instant');
     ov.classList.add('on');
   }
   function closeMinigame(){
-    var ov=document.getElementById('mgOverlay');
+    var ov=document.getElementById('mgOverlay'), frame=document.getElementById('mgFrame');
     ov.classList.remove('on');
     ov.classList.remove('instant');
-    document.getElementById('mgFrame').src = 'about:blank';
+    mgSession=null;
+    frame.dataset.session='';
+    frame.src='about:blank';
   }
 
   /* ---------- POSSUM FUSEBOX: minigame loop, owner-call driven ----------
@@ -3926,8 +4123,12 @@ window.addEventListener('unhandledrejection', function(e){
      e.data.type \u2014 only that a win/lose result arrived while a minigame phase
      is active \u2014 so a game whose internal id differs still resolves. */
   window.addEventListener('message', function(e){
-    var d = e.data;
+    var frame=document.getElementById('mgFrame'), d=e.data;
+    if(e.source!==frame.contentWindow) return;
     if(!d || (d.result!=='win' && d.result!=='lose')) return;
+    var returnedSession=d.ccSession || d.session || null;
+    if(returnedSession && returnedSession!==mgSession) return;
+    if(!mgSession) return;
     if(phase==='possum'){
       closeMinigame();
       if(d.result==='win'){
@@ -4011,18 +4212,24 @@ window.addEventListener('unhandledrejection', function(e){
       S.doneEver[current.id]=true;
       if(current.once) S.flags['done_'+current.id]=true;
     }
+    S.triggeredAt=S.triggeredAt||{};
     if(ch.flag){
       S.flags[ch.flag]=true;
+      if(S.triggeredAt[ch.flag]==null) S.triggeredAt[ch.flag]=S.tw;
       if(ch.flag==='arenaDoomed'){ S.flags.doomWeek = S.tw + 2 + Math.floor(Math.random()*3); }
     }
     if(ch.flags){
-      for(var cf=0;cf<ch.flags.length;cf++) S.flags[ch.flags[cf]]=true;
+      for(var cf=0;cf<ch.flags.length;cf++){
+        S.flags[ch.flags[cf]]=true;
+        if(S.triggeredAt[ch.flags[cf]]==null) S.triggeredAt[ch.flags[cf]]=S.tw;
+      }
     }
     if(current.id==='mascot_bighead'){
       S.flags.bigHeadOccurred=true; S.flags.bigHeadWeek=S.tw;
     }
     /* records WHEN this fired, so a sequel can be held back N weeks */
     if(ch.stamp){ S.flags[ch.stamp] = S.tw; }
+    if(ch.arenaResolution){ S.flags.arenaResolution=ch.arenaResolution; }
     var fx=ch.fx||{};
     S.cash += fx.cash||0;
     S.morale = clamp(S.morale + (fx.morale||0));
@@ -4033,6 +4240,13 @@ window.addEventListener('unhandledrejection', function(e){
        No payroll/game layer here: the season is over and the decision itself
        is the event. Renovation is completed before Awards Night. */
     if(current.postseason==='estate'){
+      /* The Estate is the definitive arena resolution. Preserve the history
+         (arenaResolution) for copy, but clear every obsolete in-season danger
+         state before installing the new renovated-arena state. */
+      ['arenaDoomed','doomWeek','arenaShaky','asteriskSeason','arenaFixed'].forEach(function(k){ delete S.flags[k]; });
+      if(ch.flag==='shoddyArena'){ delete S.flags.premiumArena; }
+      else { delete S.flags.shoddyArena; }
+      S.flags.arenaRenovated=true;
       var eSteps = ch.out.map(function(par,idx){
         return {kind:'text', text:par, scene:idx===0?(ch.scene||current.scene):null};
       });
@@ -4080,6 +4294,7 @@ window.addEventListener('unhandledrejection', function(e){
       return;
     }
 
+    var gateBuzz=S.buzz, gateCred=S.cred;
     var gamePhase = ch.gamePhase || current.gamePhase || null;
     var moment = (current.id==='blizzard_game' && ch.when==='game')
       ? BLIZZARD_MOMENT
@@ -4182,11 +4397,11 @@ window.addEventListener('unhandledrejection', function(e){
 
 
     function runSeasonOneFinal(){
-      /* Four owner calls, one basketball game. Season One cannot quite get
-         over the line, but the calls determine how alive the game stays and
-         therefore how much the final margin hurts. Nothing exposes this rule. */
+      /* Four owner calls, one basketball game. The chronology is literal:
+         first-quarter call -> first-quarter score -> halftime score -> halftime
+         call -> late-fourth state -> fourth-quarter call -> final horn. */
       var finalEdge = ((S.morale-50)/25) + (ch.finalEdge||0);
-      var q1Us=0, q1Them=0, halfUs=0, halfThem=0;
+      var q1Us=0, q1Them=0, halfUs=0, halfThem=0, lateUs=0, lateThem=0;
       function rint(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
       function bankFinalCall(m){
         S.cash += m.cash||0;
@@ -4199,35 +4414,58 @@ window.addEventListener('unhandledrejection', function(e){
         return {kind:'checkpoint', label:label,
           line:'LUMBERJACKS '+us+'\n'+FOELIST[0]+' '+them};
       }
+      function finalMoment(idx){
+        var base=FINAL_MOMENTS[idx];
+        if(idx!==0 || !S.flags.waltGone) return base;
+        return {
+          stamp:base.stamp,
+          sit:"Sold out means sold out. It has not, apparently, meant go home. There are a hundred and seventy-three people outside the west wall listening through the cinderblock. The old PA rack has a spare horn speaker and Facilities says they can run it through the loading door if somebody finds two extension cords. The league's broadcast man says the rights agreement covers the building. He has pointed at the building while saying this.",
+          a:{t:base.a.t, sub:base.a.sub, edge:base.a.edge, buzz:base.a.buzz, cred:base.a.cred,
+             out:"Facilities gets the spare speaker working with two extension cords, one adapter nobody claims, and a chair under the loading door so the cable doesn't get pinched. The outside crowd hears everything about a second late. For the rest of the quarter every roar from inside is followed by another one from the parking lot. The players notice the echo. They stop asking what it is."},
+          b:base.b
+        };
+      }
       function ask(idx, fromScreen){
-        var mo=FINAL_MOMENTS[idx];
+        var mo=finalMoment(idx);
         showMomentUI(mo);
         momentChoice=function(pick){
           var m=pick===0?mo.a:mo.b;
-          bankFinalCall(m);
           if(idx===0){
+            bankFinalCall(m);
             q1Us=20+rint(0,5)+Math.max(0,Math.min(2,Math.floor(finalEdge/1.5)));
             q1Them=22+rint(0,5)-Math.max(0,Math.min(1,Math.floor(finalEdge/2.4)));
-            runSequence([{kind:'text',text:m.out},checkpoint('END OF THE FIRST',q1Us,q1Them)],null,
-              function(){ ask(1,caw); },momentS);
+            /* The second quarter happens before the halftime owner decision. */
+            halfUs=q1Us+19+rint(0,6)+Math.max(0,Math.min(2,Math.floor(finalEdge/1.8)));
+            halfThem=q1Them+19+rint(0,6)-Math.max(0,Math.min(1,Math.floor(finalEdge/2.8)));
+            runSequence([
+              {kind:'text',text:m.out},
+              checkpoint('END OF THE FIRST',q1Us,q1Them),
+              checkpoint('HALFTIME',halfUs,halfThem)
+            ],null,function(){ ask(1,caw); },momentS);
             return;
           }
           if(idx===1){
-            halfUs=q1Us+19+rint(0,6)+Math.max(0,Math.min(2,Math.floor(finalEdge/1.8)));
-            halfThem=q1Them+19+rint(0,6)-Math.max(0,Math.min(1,Math.floor(finalEdge/2.8)));
-            runSequence([{kind:'text',text:m.out},checkpoint('HALFTIME',halfUs,halfThem)],null,
-              function(){ ask(2,caw); },momentS);
+            bankFinalCall(m);
+            /* The halftime choice affects the second half only. By 3:12 the
+               script says down four, so the scoreboard now establishes exactly
+               that state before the presentation-table decision appears. */
+            lateUs=halfUs+25+rint(0,8)+Math.max(0,Math.min(2,Math.floor(finalEdge/2)));
+            lateThem=lateUs+4;
+            runSequence([
+              {kind:'text',text:m.out},
+              checkpoint('3:12 \u2022 4TH',lateUs,lateThem)
+            ],null,function(){ ask(2,caw); },momentS);
             return;
           }
-          /* The last call happens at 3:12, down four. Strong ownership does
-             not magically reverse Season One; it earns the crueler, closer
-             version of the loss. */
+          bankFinalCall(m);
+          /* Season One remains secretly unwinnable. Better ownership buys the
+             crueler, closer loss; it never rewrites the ending. */
           var quality=finalEdge + (Math.random()-.5)*0.45;
           var margin = quality>=3.0 ? rint(1,3)
                      : quality>=2.2 ? rint(4,7)
                      : quality>=1.35 ? rint(8,12)
                      : rint(13,18);
-          var us=Math.max(halfUs+32, 80+rint(0,8)+Math.max(0,Math.min(3,Math.floor(finalEdge))));
+          var us=Math.max(lateUs+rint(5,12), halfUs+32, 80+rint(0,8)+Math.max(0,Math.min(3,Math.floor(finalEdge))));
           var them=us+margin;
           S.losses++;
           S.streak=(S.streak<0?S.streak-1:-1);
@@ -4383,7 +4621,7 @@ window.addEventListener('unhandledrejection', function(e){
                        : 'We dropped the game, for the record. '+S.wins+'-'+S.losses+'. The town noticed that too.'));
             }
           }
-          var led=applyLedger(GAMES, home, won, isPO, byGrace);
+          var led=applyLedger(GAMES, home, won, isPO, byGrace, gateBuzz, gateCred);
           brief.push(led.line);
           /* Grace signs off at the end of her week. Her farewell shifts with how
              she was treated \u2014 respected, tolerated, or crossed. */
@@ -4449,6 +4687,10 @@ window.addEventListener('unhandledrejection', function(e){
             S.playoffResult = won?'champ':'finalL';
             pendingRoute='recap';
             setNextBtn('SEASON RECAP \u25B6', won?'Bring the Cup.':'Close the book right.');
+          } else if(S.season===1 && S.stage==='regular' && S.week>=SEASON1_WEEKS){
+            pendingRoute='regular_end';
+            if(placeNow()<=4) setNextBtn('NORTH COUNTRY PLAYOFFS \u25B6','The bracket is set.');
+            else setNextBtn('SEASON RECAP \u25B6','Eighteen weeks. Close the book right.');
           } else {
             setNextBtn('NEXT WEEK \u25B6', won ? "Winner's coffee tastes the same. Drink it anyway." : "Sandra says: shake it off.");
           }
@@ -4572,17 +4814,61 @@ window.addEventListener('unhandledrejection', function(e){
     setNote(recap, 'ledger');
     el.call.style.display='none';
     S.lastState = clubState();
-    pendingRoute='estate';
-    setNextBtn('THE OFF-SEASON \u25B6','Monday arrived.');
+    pendingRoute=(S.season===1?'estate':'season1_complete');
+    setNextBtn(S.season===1?'THE OFF-SEASON \u25B6':'SEASON COMPLETE \u25B6','Monday arrived.');
     el.next.style.display='';
     render();
     document.getElementById('ticker').textContent='SEASON '+S.season+' \u2022 COMPLETE';
     saveGame();
   }
 
+  function makeEstateStory(){
+    var base=STORY_BY_ID['estate_bequest'];
+    if(!base) return null;
+    var st={}; Object.keys(base).forEach(function(k){ st[k]=base[k]; });
+    st.setup=base.setup.slice();
+    st.choices=base.choices.map(function(ch){
+      var c={}; Object.keys(ch).forEach(function(k){ c[k]=ch[k]; });
+      c.out=(ch.out||[]).slice(); return c;
+    });
+    var prior=S.flags.arenaResolution;
+    var line='';
+    if(prior==='paid'){
+      line="One thing before the will: the inspector's recent pass is in the file. The emergency roof and wiring work we paid for is sound. Arvid's contractor has looked at it and says it stays; they build around good work instead of charging us to pretend it never happened.";
+    } else if(prior==='asterisk'){
+      line="One thing before the will: the provisional variance is still clipped to the front of the building file. The first line of this renovation is the roof, the wiring in 110 through 114, and the sound. The inspector says the asterisk comes off when all three are actually resolved.";
+    } else if(prior==='fundraiser'){
+      line="One thing before the will: the coffee-tin repair money and the work already scheduled are being folded into the larger job. Nobody gets refunded; that money bought us a safe finish to the season. The contractor calls the recent work a useful head start.";
+    }
+    if(line) st.setup.splice(2,0,line);
+    return st;
+  }
+
+  function runPostseasonErnieCeremony(done){
+    if(!S.flags.ernieWaiting || S.flags.erniePostseasonResolved){ done(); return; }
+    phase='sequence'; el.next.style.display='none'; el.call.style.display='none';
+    var steps=[
+      {kind:'text',text:"SEASON'S END.\n\nThe banner finally comes out of storage on a Tuesday afternoon. No television lights. No surprise spotlight. Just the 1961 fellas, the current team, Row F, and Ernie, who was told to come by because Sandra needed him to check something."},
+      {kind:'text',text:"He looks at the banner, then at you.\n\n'About time,' he says.\n\nThat's the speech. The number goes up while four old teammates stand beside him and the current roster watches from the floor. Ernie keeps the thermos in one hand the whole time."},
+      {kind:'gazette',date:'OFF-SEASON',head:'KOWALSKI NUMBER RAISED AT SEASON\'S END',
+       story:"Ernie 'The Stilt' Kowalski's number was retired in a private season-end ceremony at the Lumberjack Shack attended by former teammates, the current roster and invited family. Kowalski, informed only shortly beforehand, offered two words on the timing. The banner now hangs above Row F."}
+    ];
+    runSequence(steps,dash,function(){
+      S.flags.erniePostseasonResolved=true;
+      S.flags.ernieRetired=true;
+      delete S.flags.ernieWaiting;
+      saveGame(); done();
+    },dash);
+  }
+
   function beginPostseasonEstate(){
-    current=STORY_BY_ID['estate_bequest'];
-    if(!current){ startNewSeason(); return; }
+    if(S.season!==1){ return; } /* Season 1-only chapter; later-season plumbing stays dormant. */
+    if(S.flags['done_estate_bequest']){ runAwardsNight(); return; }
+    if(S.flags.ernieWaiting && !S.flags.erniePostseasonResolved){
+      runPostseasonErnieCeremony(beginPostseasonEstate); return;
+    }
+    current=makeEstateStory();
+    if(!current){ return; }
     phase='setup'; S.stage='postseason_estate'; pendingRoute=null;
     S.showResultStamp=false;
     el.noteh.textContent=current.title;
@@ -4594,6 +4880,7 @@ window.addEventListener('unhandledrejection', function(e){
   }
 
   function runAwardsNight(){
+    if(S.season!==1) return;
     phase='sequence'; S.stage='postseason_awards'; current=null;
     S.showResultStamp=false;
     el.next.style.display='none'; el.call.style.display='none';
@@ -4604,12 +4891,13 @@ window.addEventListener('unhandledrejection', function(e){
     var steps=[
       {kind:'text',text:"LEAGUE AWARDS NIGHT.\n\nThere are chandeliers.\n\nRicky has been looking at one of them for ten minutes as though he may eventually own it.\n\nWe have four nominees, which is three more than anyone here expected in October."},
       {kind:'text',text:"MOST VALUABLE PLAYER.\n\nRicky has dressed for the walk to the podium. Better tuxedo than everybody else. Aisle seat. Nothing left to chance except the voting.\n\nHe finishes second.\n\nHe applauds properly, then for about two beats after everybody else has stopped, because stopping first would look bitter."},
-      {kind:'text',text:"ROOKIE OF THE YEAR.\n\nStokes gets to the name on the card. He starts it once, stops, then begins again from a different syllable and gets further without getting closer.\n\n\"...of the Lumberjacks, originally from\u2014\"\n\nHe looks down. Turns the card over. Turns it back.\n\n\"\u2014the country indicated here.\"\n\nThe rookie accepts the trophy. Stokes leans in. \"Was I close?\"\n\n\"No.\""},
+      {kind:'text',text:"ROOKIE OF THE YEAR.\n\nStokes gets to the name on the card. He starts it once, stops, then begins again from a different syllable and gets further without getting closer.\n\n\"...of the Lumberjacks, originally from\u2014\"\n\nHe looks down. Turns the card over. Turns it back.\n\n\"\u2014the country indicated here.\"\n\nThe rookie accepts the trophy. Stokes leans in. \"Was I close?\"\n\n\"No.\"\n\nAt the microphone he thanks his teammates, then the people of the North Country. It is the longest sentence anybody here has heard from him all year."},
       {kind:'text',text:"MASCOT OF THE YEAR.\n\nEvery other nominee has sent the person who plays the mascot, in evening clothes.\n\nSam has come as Sam. Full wolf. Tuxedo over the costume. The rental place has cut a hole in the back for the tail. Nobody discusses it.\n\nHe wins. He accepts the trophy without removing the head.\n\nHe is the only nominee who attended as the mascot. I don't know if that affected the voting."},
       {kind:'text',text:"COACH OF THE YEAR.\n\nHank does not win.\n\nHe does, however, drink six glasses of water during the ceremony. Six. Full glasses.\n\nI watch all six.\n\nHe knows I watch all six.\n\nNeither of us says a word."}
     ];
     runSequence(steps,dash,function(){
-      phase='outcome'; pendingRoute='season2';
+      S.flags.awardsNightDone=true;
+      phase='outcome'; pendingRoute='season1_complete';
       el.noteh.textContent='LEAGUE AWARDS NIGHT';
       setPortrait('sandra','sandra_awards');
       setNote([
@@ -4617,7 +4905,7 @@ window.addEventListener('unhandledrejection', function(e){
         "By dessert, Sam still has the head on. The rookie's trophy is sitting beside a bread roll. Hank is on glass six. Ricky is not looking at the MVP trophy across the room with considerable concentration.",
         "The ballroom staff have started stacking chairs around us. Nobody at our table has noticed."
       ],'ledger');
-      setNextBtn('SEASON 2 \u25B6','When you\'re ready.');
+      setNextBtn('SEASON COMPLETE \u25B6','Close the book.');
       el.next.style.display=''; el.call.style.display='none';
       document.getElementById('ticker').textContent='LEAGUE AWARDS NIGHT \u2022 TWO WINNERS';
       render(); saveGame();
@@ -4754,10 +5042,10 @@ window.addEventListener('unhandledrejection', function(e){
         "This is the thickest folder in the cabinet. It is also, structurally, holding up the cabinet. I made my peace with that metaphor a long time ago."
       ]},
     { who:'ernie', tab:'ERNIE', thick:'\u25AE', name:'ERNIE KOWALSKI', meta:'\u201CThe Stilt\u201D \u2014 Row F',
-      intro:"\u201CErnie Kowalski. Played here '58 to '64. Sits in Row F now, seat twelve, every home game since.\n\nWe retired his number while he was alive and sitting in it. League says that's unusual. Town says that's just sense.\u201D",
+      intro:"\u201CErnie Kowalski. Played here '58 to '64. Scored the first basket this franchise ever made. Sits in Row F now, seat twelve, every home game since.\n\nThermos, opinions, and a standing objection to the modern pick-and-roll. Around here, that counts as institutional memory.\u201D",
       file:[
         "KOWALSKI, ERNIE. \u201CThe Stilt.\u201D Center, 1958\u201364. Row F, seat 12, every home game since, including the ones nobody else came to.",
-        "We retired his number while he was still alive and sitting under it. The league called that irregular. This town called it overdue.",
+        "Scored the first basket in team history. His number is still his for now; marketing has opinions about that, and Ernie has stronger ones about the modern pick-and-roll.",
         "Guilt-trips area business owners by name, from his seat, at volume. It works every single time. I've stopped questioning it and started scheduling around it."
       ]},
     { who:'grace', tab:'GRACE', thick:'\u25AE\u25AE', name:'GRACE', meta:'Secretary, Retired \u2014 Filling In',
@@ -4870,13 +5158,17 @@ window.addEventListener('unhandledrejection', function(e){
      old save and decide what to do with it. MIGRATIONS runs in order for
      any version below current; anything it can't repair is discarded
      honestly rather than half-loaded into an inconsistent state. */
-  var SAVE_KEY='courtside_save', SAVE_VERSION=3;
+  var SAVE_KEY='courtside_save', SAVE_VERSION=4;
   var MIGRATIONS = {
+    /* legacy/v1 -> v2: preserve old seasons instead of discarding them. */
+    1: function(d){ d.S=d.S||{}; d.S.flags=d.S.flags||{}; d.S.done=d.S.done||{}; d.S.met=d.S.met||{}; return d; },
     /* v2 -> v3: cred became a content gate and the season-end state band
        was introduced. Both default cleanly, so this is a no-op beyond the
        stamp \u2014 but it's here so the path exists and the next one has
        somewhere obvious to go. */
-    2: function(d){ d.S.lastState = d.S.lastState || null; return d; }
+    2: function(d){ d.S.lastState = d.S.lastState || null; return d; },
+    /* v3 -> v4: fixed Season 1 scheduler rebuilds lazily from live state. */
+    3: function(d){ d.S.scheduler = d.S.scheduler || null; return d; }
   };
   function migrate(d){
     var v = d.v || 1;
@@ -4925,7 +5217,7 @@ window.addEventListener('unhandledrejection', function(e){
       var d=JSON.parse(raw); if(!d || !d.S) return false;
       d = migrate(d);
       if(!d){ clearSave(); return false; }
-      S=d.S; S.flags=S.flags||{}; S.done=S.done||{}; S.met=S.met||{}; S.tw=S.tw||S.week||1;
+      S=d.S; S.flags=S.flags||{}; S.done=S.done||{}; S.met=S.met||{}; S.triggeredAt=S.triggeredAt||{}; S.tw=S.tw||S.week||1;
       var byId={}; STORY.forEach(function(st){ byId[st.id]=st; });
       deck=(d.deckIds||[]).map(function(id){ return byId[id]; }).filter(Boolean);
       deckPos=d.deckPos||0;
@@ -4951,7 +5243,7 @@ window.addEventListener('unhandledrejection', function(e){
       if(S.stage==='postseason_awards'){
         /* Awards Night is observational; if a save exists here, resume at the
            completed ballroom dashboard rather than replaying five cutaways. */
-        current=null; phase='outcome'; pendingRoute='season2'; S.showResultStamp=false;
+        current=null; phase='outcome'; pendingRoute='season1_complete'; S.showResultStamp=false;
         el.noteh.textContent='LEAGUE AWARDS NIGHT';
         setPortrait('sandra','sandra_awards');
         setNote([
@@ -4959,7 +5251,7 @@ window.addEventListener('unhandledrejection', function(e){
           "By dessert, Sam still has the head on. The rookie's trophy is sitting beside a bread roll. Hank is on glass six. Ricky is not looking at the MVP trophy across the room with considerable concentration.",
           "The ballroom staff have started stacking chairs around us. Nobody at our table has noticed."
         ],'ledger');
-        setNextBtn('SEASON 2 ▶',"When you're ready.");
+        setNextBtn('SEASON COMPLETE ▶',"Close the book.");
         el.next.style.display=''; el.call.style.display='none'; render();
         return true;
       }
@@ -4992,11 +5284,27 @@ window.addEventListener('unhandledrejection', function(e){
     if(phase==='recap'){ beginPostseasonEstate(); return; }
     if(phase!=='outcome') return;
     if(pendingRoute==='bankrupt'){ runBankruptcy(); return; }
+    if(pendingRoute==='regular_end'){
+      if((S.wins+S.losses)>0 && placeNow()<=4){
+        S.stage='semi'; setupPlayoffs(); S.week++; S.tw++; beginWeek();
+      } else {
+        S.playoffResult='missed'; seasonRecap();
+      }
+      return;
+    }
     if(pendingRoute==='final'){ S.stage='final'; S.week++; S.tw++; beginWeek(); return; }
     if(pendingRoute==='recap'){ seasonRecap(); return; }
     if(pendingRoute==='estate'){ beginPostseasonEstate(); return; }
     if(pendingRoute==='awards'){ runAwardsNight(); return; }
-    if(pendingRoute==='season2'){ startNewSeason(); return; }
+    if(pendingRoute==='season1_complete'){
+      terminalPage([
+        "That's Season One. Eighteen weeks, the playoffs, the Estate, and one league banquet nobody will admit enjoying.",
+        "The next folder is empty on purpose. Season Two can wait until it has earned the paper.",
+        "For now, the ledger closes here. \u2014 S."
+      ], 'SEASON 1 \u2022 COMPLETE');
+      return;
+    }
+    if(pendingRoute==='season2'){ return; } /* dormant plumbing only */
     S.week++; S.tw++;
     beginWeek();
   });
@@ -5011,9 +5319,10 @@ window.addEventListener('unhandledrejection', function(e){
     for(var i=0;i<CAST.length;i++){
       probePortrait(CAST[i].who, function(url){ if(url){ var im=new Image(); im.src=url; } });
     }
-    /* the four tip-off cutscenes are used almost every week \u2014 warm them now
-       instead of racing a cold load the first time a game night needs one */
-    ['tipoff_home','tipoff_home_blob','tipoff_playoff','tipoff_final'].concat(ROAD_TIP_VARIANTS).forEach(preloadArt);
+    /* Keep the regular-season tip-offs warm on the title screen. Playoff and
+       Final clips are warmed when the bracket is created, keeping the video
+       LRU small instead of retaining the whole season at boot. */
+    ['tipoff_home','tipoff_home_blob'].concat(ROAD_TIP_VARIANTS).forEach(preloadArt);
     /* The opening sequence plays on the coldest cache the game ever sees, and
        a video that misses probeArt's window auto-skips silently \u2014 which is
        exactly how the blizzard scene went missing. Warm these too. */
@@ -5025,7 +5334,7 @@ window.addEventListener('unhandledrejection', function(e){
     /* Dashboard portrait swaps were showing the PREVIOUS emotion until the
        new file finished downloading \u2014 read as a glitch. Warming every mood
        up front makes each swap a cache hit, so it changes in one frame. */
-    ['base','dry','alarmed','pleased','tired','grim','holiday','sandra_gasstation','sandra_forbidden','sandra_awards','sandra_home_arena','sandra_blizzard'].forEach(function(m){
+    ['base','dry','alarmed','pleased','tired','grim','holiday','sandra_gasstation','sandra_forbidden','sandra_awards','sandra_home_arena','sandra_blizzard','sandra_playoff_road'].forEach(function(m){
       var i=0;
       (function tryNext(){
         if(i>=PORTRAIT_EXTS.length) return;
@@ -5053,7 +5362,7 @@ window.addEventListener('unhandledrejection', function(e){
   S.venue='HOME'; S.foe=FOES[Math.floor(Math.random()*FOES.length)];
   presentWeek();
   try{
-    var SHOW_CONTINUE = false;  /* Continue button disabled per request; save system stays live */
+    var SHOW_CONTINUE = true;   /* Valid saves expose CONTINUE; START still clears and begins fresh. */
     if(SHOW_CONTINUE && localStorage.getItem(SAVE_KEY)){
       var _cb=document.getElementById('contbtn');
       if(_cb) _cb.style.display='flex';
@@ -5063,7 +5372,7 @@ window.addEventListener('unhandledrejection', function(e){
   window.__continueGame=function(fromScreen){
     loadGame();
     fromScreen.classList.remove('on');
-    setTimeout(function(){ dash.classList.add('on'); },700);
+    setTimeout(function(){ dash.classList.add('on'); }, (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 0 : 700);
   };
   window.__enterGame=function(fromScreen){
     /* Sandra does these four herself at Week Zero; the rest of the cast
