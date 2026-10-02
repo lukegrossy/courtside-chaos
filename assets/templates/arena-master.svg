@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="853" height="1844" viewBox="0 0 853 1844">
+  <rect width="853" height="1844" fill="#090b0d"/>
+  <rect y="0" width="853" height="650" fill="#11161a"/>
+  <g fill="#1d2022" stroke="#303338" stroke-width="3">
+    <path d="M0 0H853V180H0Z"/>
+    <path d="M0 180H853V365H0Z"/>
+    <path d="M0 365H853V650H0Z"/>
+  </g>
+  <g fill="#24282b" opacity=".9">
+    <circle cx="62" cy="300" r="11"/><circle cx="95" cy="289" r="10"/><circle cx="128" cy="313" r="10"/>
+    <circle cx="164" cy="294" r="12"/><circle cx="198" cy="318" r="10"/><circle cx="234" cy="295" r="11"/>
+    <circle cx="270" cy="320" r="10"/><circle cx="308" cy="291" r="12"/><circle cx="348" cy="315" r="10"/>
+    <circle cx="390" cy="292" r="11"/><circle cx="432" cy="318" r="11"/><circle cx="474" cy="291" r="10"/>
+    <circle cx="516" cy="317" r="12"/><circle cx="558" cy="291" r="10"/><circle cx="600" cy="318" r="11"/>
+    <circle cx="642" cy="294" r="12"/><circle cx="684" cy="316" r="10"/><circle cx="727" cy="291" r="11"/><circle cx="790" cy="311" r="12"/>
+    <circle cx="80" cy="420" r="12"/><circle cx="120" cy="448" r="10"/><circle cx="160" cy="418" r="11"/>
+    <circle cx="202" cy="452" r="12"/><circle cx="248" cy="423" r="10"/><circle cx="294" cy="454" r="11"/>
+    <circle cx="340" cy="421" r="12"/><circle cx="389" cy="455" r="11"/><circle cx="438" cy="422" r="10"/>
+    <circle cx="487" cy="452" r="12"/><circle cx="536" cy="420" r="11"/><circle cx="585" cy="454" r="10"/>
+    <circle cx="634" cy="423" r="12"/><circle cx="683" cy="451" r="10"/><circle cx="735" cy="420" r="11"/><circle cx="786" cy="451" r="12"/>
+  </g>
+
+  <g fill="#d9b46b" opacity=".9">
+    <ellipse cx="160" cy="98" rx="46" ry="16"/><ellipse cx="426.5" cy="72" rx="50" ry="17"/><ellipse cx="693" cy="98" rx="46" ry="16"/>
+  </g>
+  <g fill="#8a5e2d" opacity=".5">
+    <path d="M145 110L95 460H225Z"/><path d="M413 88L347 520H506Z"/><path d="M708 110L628 460H758Z"/>
+  </g>
+
+  <g id="court">
+    <path d="M120 650 L733 650 L838 1680 L15 1680 Z" fill="#9a682f" stroke="#efe6d2" stroke-width="5"/>
+    <path d="M120 650 L733 650 L838 1680 L15 1680 Z" fill="none" stroke="#3e2b18" stroke-width="10" opacity=".35"/>
+    <g stroke="#efe6d2" stroke-width="5" fill="none" stroke-linecap="round">
+      <path d="M426.5 650 L426.5 1680"/>
+      <path d="M57 1160 L796 1160"/>
+      <ellipse cx="426.5" cy="1160" rx="88" ry="46"/>
+
+      <!-- far key -->
+      <path d="M351 650 L363 842 L490 842 L502 650"/>
+      <ellipse cx="426.5" cy="842" rx="68" ry="34"/>
+      <path d="M201 650 C211 920 642 920 652 650"/>
+      <path d="M318 650 C322 762 531 762 535 650"/>
+
+      <!-- near key -->
+      <path d="M315 1680 L336 1440 L517 1440 L538 1680"/>
+      <ellipse cx="426.5" cy="1440" rx="95" ry="50"/>
+      <path d="M118 1680 C136 1300 717 1300 735 1680"/>
+      <path d="M284 1680 C296 1518 557 1518 569 1680"/>
+    </g>
+
+    <g stroke="#d8c7a3" stroke-width="5" fill="#171a1d">
+      <rect x="392" y="687" width="69" height="44" rx="2"/>
+      <rect x="380" y="1585" width="93" height="54" rx="2"/>
+    </g>
+    <g stroke="#b14a35" stroke-width="6" fill="none">
+      <ellipse cx="426.5" cy="758" rx="24" ry="8"/>
+      <ellipse cx="426.5" cy="1576" rx="31" ry="10"/>
+    </g>
+  </g>
+
+  <g id="sideline-crowd" fill="#171a1c">
+    <circle cx="72" cy="760" r="14"/><circle cx="88" cy="830" r="14"/><circle cx="102" cy="900" r="14"/>
+    <circle cx="112" cy="970" r="14"/><circle cx="120" cy="1040" r="14"/><circle cx="126" cy="1110" r="14"/>
+    <circle cx="781" cy="760" r="14"/><circle cx="765" cy="830" r="14"/><circle cx="751" cy="900" r="14"/>
+    <circle cx="741" cy="970" r="14"/><circle cx="733" cy="1040" r="14"/><circle cx="727" cy="1110" r="14"/>
+  </g>
+
+  <g id="blank-scoreboard">
+    <rect x="290" y="135" width="273" height="118" rx="4" fill="#090b0d" stroke="#51452f" stroke-width="5"/>
+    <rect x="309" y="155" width="235" height="78" fill="#040506" stroke="#292d2f" stroke-width="3"/>
+  </g>
+
+  <g id="neutral-bench-zones" fill="#111416" stroke="#51452f" stroke-width="3">
+    <rect x="90" y="576" width="245" height="48" rx="4"/>
+    <rect x="518" y="576" width="245" height="48" rx="4"/>
+  </g>
+</svg>
