@@ -13,6 +13,31 @@
   #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;}
   canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block;}
 </style>
+<script>
+(function(){
+  var session='';
+  try{ session=new URLSearchParams(location.search).get('cc_session')||''; }catch(_){}
+  window.__CC_SESSION__=session;
+  window.__ccMiniError=function(err){
+    try{
+      if(!(err instanceof Error)) err=new Error(String(err==null?'Unknown minigame error':err));
+      window.parent.postMessage({
+        type:'cc-minigame-error',
+        minigame:'sam-tunnel-escape',
+        message:err.message||'Unknown minigame error',
+        stack:err.stack||'',
+        ccSession:session
+      },location.origin);
+    }catch(_){}
+  };
+  window.addEventListener('error',function(e){
+    window.__ccMiniError(e.error||new Error(e.message||'Unknown minigame error'));
+  });
+  window.addEventListener('unhandledrejection',function(e){
+    window.__ccMiniError(e.reason instanceof Error?e.reason:new Error(String(e.reason)));
+  });
+})();
+</script>
 </head>
 <body>
 <div id="wrap"><canvas id="cv"></canvas></div>
@@ -185,7 +210,7 @@ function reportResult(){
     (state===ST_WIN)    ? {type:'samtunnel-result', result:'win'} :
     (state===ST_CAUGHT) ? {type:'samtunnel-result', result:'lose', reason:'caught'} :
                           {type:'samtunnel-result', result:'lose', reason:'missed'};
-  try{ window.parent.postMessage(payload,'*'); }catch(e){}
+  payload.ccSession=window.__CC_SESSION__||''; try{ window.parent.postMessage(payload,location.origin); }catch(e){}
 }
 var state = ST_INTRO;
 var BUS_TIME = 75;

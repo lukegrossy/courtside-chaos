@@ -521,13 +521,46 @@
   }
 </style>
 <script>
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],Object.defineProperty(u,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e}}),Object.defineProperty(u.people,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(){return u.toString(1)+".people (stub)"}}),o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init('phc_tQTiDWWVCnoE8dnKSqUfugPuBTtf9rK2o5ZPBJ4ruhxB',{
+  api_host:'https://us.i.posthog.com',
+  defaults:'2026-05-30',
+  person_profiles:'identified_only',
+  autocapture:false,
+  capture_pageview:false,
+  capture_pageleave:false,
+  disable_session_recording:true,
+  capture_exceptions:false,
+  advanced_disable_flags:true
+});
+</script>
+<script>
 /* BUILD STAMP + ERROR SURFACE.
    Safari's console reports inline-script failures as a bare "Script error."
    with no message, file or line, which makes on-device debugging guesswork.
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-pass-6';
+window.__BUILD__ = 'season1-pass-7';
+window.__ccTrack = function(name, props){
+  try{
+    if(!window.posthog || typeof window.posthog.capture!=='function') return;
+    var out={cc_build:window.__BUILD__||'unknown'};
+    props=props||{};
+    for(var k in props){ if(Object.prototype.hasOwnProperty.call(props,k)) out[k]=props[k]; }
+    window.posthog.capture(name,out);
+  }catch(_){}
+};
+window.__ccException = function(err, props){
+  try{
+    if(!window.posthog || typeof window.posthog.captureException!=='function') return;
+    if(!(err instanceof Error)) err=new Error(String(err==null?'Unknown error':err));
+    var out={cc_build:window.__BUILD__||'unknown'};
+    props=props||{};
+    for(var k in props){ if(Object.prototype.hasOwnProperty.call(props,k)) out[k]=props[k]; }
+    window.posthog.captureException(err,out);
+  }catch(_){}
+};
 console.log('Courtside Chaos build', window.__BUILD__);
 /* TEMPORARY: visible build marker. iOS home-screen web apps cache the shell
    aggressively and a Safari reload doesn't clear them, so a "fix didn't
@@ -539,11 +572,16 @@ document.addEventListener('DOMContentLoaded', function(){
   t.style.cssText='position:fixed;right:3px;bottom:2px;z-index:99997;'
     +'font:9px/1 monospace;color:rgba(255,255,255,.38);pointer-events:none;';
   document.body.appendChild(t);
+  window.__ccTrack('game loaded',{
+    has_save:(function(){ try{return !!localStorage.getItem('courtside_save');}catch(_){return false;} })(),
+    standalone:!!((window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true)
+  });
 });
 window.addEventListener('error', function(e){
   var msg = (e.message||'?') + ' @ ' + (e.filename||'inline') + ':' + (e.lineno||'?') + ':' + (e.colno||'?');
   if(e.error && e.error.stack) msg += '\n' + e.error.stack.split('\n').slice(0,3).join('\n');
   console.log('[ERR] ' + msg);
+  window.__ccException(e.error || new Error(msg),{cc_source:'window.error',cc_message:e.message||'?'});
   try{
     var box = document.getElementById('__errbox');
     if(!box){
@@ -559,7 +597,9 @@ window.addEventListener('error', function(e){
   }catch(_){}
 });
 window.addEventListener('unhandledrejection', function(e){
-  console.log('[REJECT] ' + (e.reason && (e.reason.stack||e.reason.message) || e.reason));
+  var reason=e.reason && (e.reason.stack||e.reason.message) || e.reason;
+  console.log('[REJECT] ' + reason);
+  window.__ccException(e.reason instanceof Error ? e.reason : new Error(String(reason)),{cc_source:'unhandledrejection'});
 });
 </script>
 </head>
@@ -4072,6 +4112,7 @@ window.addEventListener('unhandledrejection', function(e){
   function openMinigame(file){
     var ov=document.getElementById('mgOverlay'), frame=document.getElementById('mgFrame');
     mgSession='cc-'+Date.now().toString(36)+'-'+(++mgSessionSeq).toString(36);
+    window.__ccTrack('minigame started',{minigame:file,season:S.season,week:S.week,stage:S.stage});
     frame.dataset.session=mgSession;
     frame.src='minigames/'+file+(file.indexOf('?')>=0?'&':'?')+'cc_session='+encodeURIComponent(mgSession);
     ov.classList.add('instant');
@@ -4124,11 +4165,28 @@ window.addEventListener('unhandledrejection', function(e){
      is active \u2014 so a game whose internal id differs still resolves. */
   window.addEventListener('message', function(e){
     var frame=document.getElementById('mgFrame'), d=e.data;
-    if(e.source!==frame.contentWindow) return;
-    if(!d || (d.result!=='win' && d.result!=='lose')) return;
+    if(e.source!==frame.contentWindow || e.origin!==location.origin) return;
+    if(!mgSession || !d) return;
     var returnedSession=d.ccSession || d.session || null;
-    if(returnedSession && returnedSession!==mgSession) return;
-    if(!mgSession) return;
+    if(returnedSession!==mgSession) return;
+    if(d.type==='cc-minigame-error'){
+      window.__ccTrack('minigame error',{
+        minigame:d.minigame||'unknown',
+        message:d.message||'Unknown minigame error',
+        stack:d.stack||'',
+        season:S.season,week:S.week,stage:S.stage
+      });
+      return;
+    }
+    if(d.result!=='win' && d.result!=='lose') return;
+    var mgName=phase==='possum'?'possum-fusebox':phase==='hotdish'?'hotdish-night':phase==='samtunnel'?'sam-tunnel-escape':'unknown';
+    window.__ccTrack('minigame completed',{
+      minigame:mgName,
+      result:d.result,
+      reason:d.reason||null,
+      attempt:phase==='possum'?(possumAttempt+1):null,
+      season:S.season,week:S.week,stage:S.stage
+    });
     if(phase==='possum'){
       closeMinigame();
       if(d.result==='win'){
@@ -4599,6 +4657,11 @@ window.addEventListener('unhandledrejection', function(e){
 
         function finishDashboard(samDesk){
           phase='outcome';
+          window.__ccTrack('week completed',{
+            season:S.season,week:S.week,total_week:S.tw,stage:S.stage,
+            story:(current&&current.id)||null,venue:home?'home':'road',
+            wins:S.wins,losses:S.losses,cash:S.cash,morale:S.morale,buzz:S.buzz,cred:S.cred
+          });
           var who = current.grace?'GRACE':'SANDRA';
           el.noteh.textContent = 'FROM '+who+"'S DESK";
           setPortrait(current.grace?'grace':'sandra', current.grace?(ch.mood||current.mood||'base'):(ch.mood||current.mood||'base'));
@@ -4926,6 +4989,10 @@ window.addEventListener('unhandledrejection', function(e){
 
   /* ---------- ENDINGS ---------- */
   function terminalPage(paras, tickerTxt){
+    window.__ccTrack('game ended',{
+      ending:tickerTxt||'unknown',season:S.season,week:S.week,total_week:S.tw,
+      stage:S.stage,wins:S.wins,losses:S.losses,cash:S.cash,morale:S.morale,buzz:S.buzz,cred:S.cred
+    });
     phase='over'; S.stage='over'; current=null; clearSave();
     el.noteh.textContent='THE LAST PAGE';
     setPortrait('sandra','grim');
@@ -5297,6 +5364,10 @@ window.addEventListener('unhandledrejection', function(e){
     if(pendingRoute==='estate'){ beginPostseasonEstate(); return; }
     if(pendingRoute==='awards'){ runAwardsNight(); return; }
     if(pendingRoute==='season1_complete'){
+      window.__ccTrack('season completed',{
+        season:S.season,wins:S.wins,losses:S.losses,playoff_result:S.playoffResult||null,
+        cash:S.cash,morale:S.morale,buzz:S.buzz,cred:S.cred
+      });
       terminalPage([
         "That's Season One. Eighteen weeks, the playoffs, the Estate, and one league banquet nobody will admit enjoying.",
         "The next folder is empty on purpose. Season Two can wait until it has earned the paper.",
@@ -5371,10 +5442,15 @@ window.addEventListener('unhandledrejection', function(e){
   window.__newGame=function(){ clearSave(); };
   window.__continueGame=function(fromScreen){
     loadGame();
+    window.__ccTrack('game continued',{
+      season:S.season,week:S.week,total_week:S.tw,stage:S.stage,
+      wins:S.wins,losses:S.losses,cash:S.cash,morale:S.morale,buzz:S.buzz,cred:S.cred
+    });
     fromScreen.classList.remove('on');
     setTimeout(function(){ dash.classList.add('on'); }, (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 0 : 700);
   };
   window.__enterGame=function(fromScreen){
+    window.__ccTrack('game started',{season:S.season,week:S.week,total_week:S.tw,stage:S.stage,start_type:'new'});
     /* Sandra does these four herself at Week Zero; the rest of the cast
        introduce themselves the first time they turn up. */
     S.met={ sandra:true, hank:true, ricky:true, tiny:true, leo:true, import:true, sam:true };

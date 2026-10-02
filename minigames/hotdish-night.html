@@ -11,6 +11,31 @@
   #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;}
   canvas#c{display:block;image-rendering:pixelated;image-rendering:crisp-edges;background:#000;}
 </style>
+<script>
+(function(){
+  var session='';
+  try{ session=new URLSearchParams(location.search).get('cc_session')||''; }catch(_){}
+  window.__CC_SESSION__=session;
+  window.__ccMiniError=function(err){
+    try{
+      if(!(err instanceof Error)) err=new Error(String(err==null?'Unknown minigame error':err));
+      window.parent.postMessage({
+        type:'cc-minigame-error',
+        minigame:'hotdish-night',
+        message:err.message||'Unknown minigame error',
+        stack:err.stack||'',
+        ccSession:session
+      },location.origin);
+    }catch(_){}
+  };
+  window.addEventListener('error',function(e){
+    window.__ccMiniError(e.error||new Error(e.message||'Unknown minigame error'));
+  });
+  window.addEventListener('unhandledrejection',function(e){
+    window.__ccMiniError(e.reason instanceof Error?e.reason:new Error(String(e.reason)));
+  });
+})();
+</script>
 </head>
 <body>
 <div id="wrap"><canvas id="c" width="480" height="680"></canvas></div>
@@ -402,7 +427,7 @@ function report(){
   if(reported) return; reported=true;
   var win=(endResult==='win'||endResult==='win-pale');
   var reason=endResult==='win'?'golden':endResult==='win-pale'?'undercooked':endResult==='lose-burnt'?'burnt':'word';
-  try{ window.parent.postMessage({type:'hotdish-result', result: win?'win':'lose', reason:reason},'*'); }catch(e){}
+  try{ window.parent.postMessage({type:'hotdish-result', result: win?'win':'lose', reason:reason, ccSession:window.__CC_SESSION__||''},location.origin); }catch(e){}
 }
 
 /* ---------- drawing ---------- */

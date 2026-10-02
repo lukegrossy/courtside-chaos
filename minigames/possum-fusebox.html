@@ -106,6 +106,31 @@
   }
   .replay:active{transform:translateY(1px);}
 </style>
+<script>
+(function(){
+  var session='';
+  try{ session=new URLSearchParams(location.search).get('cc_session')||''; }catch(_){}
+  window.__CC_SESSION__=session;
+  window.__ccMiniError=function(err){
+    try{
+      if(!(err instanceof Error)) err=new Error(String(err==null?'Unknown minigame error':err));
+      window.parent.postMessage({
+        type:'cc-minigame-error',
+        minigame:'possum-fusebox',
+        message:err.message||'Unknown minigame error',
+        stack:err.stack||'',
+        ccSession:session
+      },location.origin);
+    }catch(_){}
+  };
+  window.addEventListener('error',function(e){
+    window.__ccMiniError(e.error||new Error(e.message||'Unknown minigame error'));
+  });
+  window.addEventListener('unhandledrejection',function(e){
+    window.__ccMiniError(e.reason instanceof Error?e.reason:new Error(String(e.reason)));
+  });
+})();
+</script>
 </head>
 <body>
 <button class="mute" id="mute" aria-label="sound">♪</button>
@@ -875,13 +900,13 @@
   function win(){
     phase="lock"; sWin();
     setTimeout(function(){
-      window.parent.postMessage({type:'possum-result', result:'win'}, '*');
+      window.parent.postMessage({type:'possum-result', result:'win', ccSession:window.__CC_SESSION__||''}, location.origin);
     }, 500);
   }
   function lose(){
     phase="lock";
     setTimeout(function(){
-      window.parent.postMessage({type:'possum-result', result:'lose'}, '*');
+      window.parent.postMessage({type:'possum-result', result:'lose', ccSession:window.__CC_SESSION__||''}, location.origin);
     }, 500);
   }
 
