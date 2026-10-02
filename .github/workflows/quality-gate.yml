@@ -1,0 +1,95 @@
+name: Courtside Chaos quality gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  release-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify core release files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required=(
+            "index.html"
+            "minigames/hotdish-night.html"
+            "minigames/possum-fusebox.html"
+            "minigames/sam-tunnel-escape.html"
+            "assets/ui/cover.webp"
+            "assets/ui/icon.png"
+            "assets/portraits/sandra/base.webp"
+            "assets/portraits/sandra/sandra_home_arena.webp"
+            "assets/portraits/sandra/sandra_awards.webp"
+            "assets/sfx/office_loop.mp3"
+          )
+
+          for file in "${required[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              echo "::error file=$file::Required release file is missing"
+              exit 1
+            fi
+          done
+
+      - name: Protect locked Season 1 invariants
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          import sys
+
+          index = Path("index.html").read_text(encoding="utf-8")
+
+          checks = [
+              ("Starting cash must remain $40,000", r"cash\s*:\s*40000"),
+              ("Season 1 regular season must remain 18 weeks", r"SEASON1_WEEKS\s*=\s*18"),
+              ("CONTINUE must remain enabled for valid saves", r"SHOW_CONTINUE\s*=\s*true"),
+              ("Season 1 must route to its completion state", r"pendingRoute\s*=\s*['\"]season1_complete['\"]"),
+          ]
+
+          failed = False
+          for label, pattern in checks:
+              if not re.search(pattern, index):
+                  print(f"::error::{label}")
+                  failed = True
+
+          html_files = [Path("index.html"), *Path("minigames").glob("*.html")]
+          forbidden = "duluth"
+          for path in html_files:
+              text = path.read_text(encoding="utf-8", errors="ignore").lower()
+              if forbidden in text:
+                  print(f"::error file={path}::The city must never be named; found forbidden city reference")
+                  failed = True
+
+          if failed:
+              sys.exit(1)
+
+          print("Locked Season 1 invariants passed.")
+
+      - name: Verify minigame host references
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          import sys
+
+          index = Path("index.html").read_text(encoding="utf-8")
+          names = set(re.findall(r"openMinigame\(['\"]([^'\"]+\.html)['\"]\)", index))
+          missing = [name for name in sorted(names) if not (Path("minigames") / name).is_file()]
+
+          if missing:
+              for name in missing:
+                  print(f"::error::index.html references missing minigame: minigames/{name}")
+              sys.exit(1)
+
+          print("Minigame references:", ", ".join(sorted(names)) or "none")
