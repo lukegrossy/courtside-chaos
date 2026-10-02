@@ -41,6 +41,44 @@ jobs:
             fi
           done
 
+      - name: Parse inline JavaScript
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          import subprocess
+          import sys
+          import tempfile
+
+          html_files = [Path("index.html"), *sorted(Path("minigames").glob("*.html"))]
+          failed = False
+
+          for path in html_files:
+              html = path.read_text(encoding="utf-8", errors="strict")
+              scripts = re.findall(r"<script(?:\s[^>]*)?>(.*?)</script>", html, flags=re.I | re.S)
+
+              for number, script in enumerate(scripts, 1):
+                  if not script.strip():
+                      continue
+                  with tempfile.NamedTemporaryFile("w", suffix=".js", encoding="utf-8", delete=False) as tmp:
+                      tmp.write(script)
+                      temp_path = tmp.name
+
+                  checked = subprocess.run(
+                      ["node", "--check", temp_path],
+                      text=True,
+                      capture_output=True,
+                  )
+                  if checked.returncode:
+                      print(f"::error file={path}::Inline script {number} failed JavaScript syntax check")
+                      print(checked.stderr)
+                      failed = True
+
+          if failed:
+              sys.exit(1)
+
+          print("Inline JavaScript syntax passed.")
+
       - name: Protect locked Season 1 invariants
         shell: python
         run: |
