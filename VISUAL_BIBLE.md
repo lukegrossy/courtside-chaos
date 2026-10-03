@@ -107,6 +107,8 @@ The raster masters lock the Shack's architecture, modest semi-pro scale, crowd d
 
 The Shack is a somewhat struggling 1984 semi-pro building in an unnamed North Country city — **not an NBA arena**. Do not add championship banners, luxury/major-league architecture, a sophisticated video scoreboard, a city name or invented arena lore.
 
+**Signage rule: less is more.** One strong arena identity sign is enough. Do not fill blank walls or forecourt space with extra slogans, repeated team branding, civic mottos or decorative copy such as “JACKS PLAY HERE” unless a story specifically requires it. Empty, weathered architecture is part of the visual language.
+
 When a raster reference contains a minor generated floor-line artifact, the documented court geometry takes precedence.
 
 Exterior continuity is also locked:

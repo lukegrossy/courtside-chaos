@@ -85,6 +85,19 @@ It is **not** an NBA arena and must never drift toward one.
 
 The building should feel loved, useful and slightly behind the times.
 
+### Signage restraint
+
+**Less is more.** The Shack should not be covered in slogans, mottos or decorative copy.
+
+- one primary arena identity sign is enough
+- secondary signage should be sparse, functional and period-plausible
+- avoid stacking slogans such as “JACKS PLAY HERE,” civic mottos, motivational phrases or multiple team-name signs unless a specific story beat requires one
+- blank wall, weathered siding, snow, doors, windows and practical fixtures are preferable to filling empty space with text
+- readable text should carry narrative purpose, not simply decorate the frame
+- if a generated image looks visually stronger with extra signage, remove the signage unless it is canonically necessary
+
+The goal is a real semi-pro building, not a themed attraction.
+
 ## Locked court geometry
 
 - Canvas: **853 × 1844**
