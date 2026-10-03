@@ -109,6 +109,13 @@ The Shack is a somewhat struggling 1984 semi-pro building in an unnamed North Co
 
 When a raster reference contains a minor generated floor-line artifact, the documented court geometry takes precedence.
 
+Exterior continuity is also locked:
+
+- `assets/templates/shack_exterior_master_pre_blob.mp4` — exterior before Ricky's statue story
+- `assets/templates/shack_exterior_master_post_blob.webp` — exterior after the Blob exists
+
+Once `S.flags.blob` is true, THE BLOB is permanent exterior canon: the lumpy abstract bronze on a low granite plinth, plaque **MOMENTUM — #33**. Later exterior Shack art must not revert to the pre-Blob state. The building remains the same building; only the permanent landmark changes.
+
 ### Promotional exception
 
 `assets/ui/cover.webp` is deliberately more like painted box/poster art.
