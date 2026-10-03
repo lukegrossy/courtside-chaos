@@ -91,6 +91,24 @@ The target is polished early-1990s VGA adventure-game illustration: dense ordere
 
 Do not smooth this into generic digital painting.
 
+### Lumberjack Shack / arena
+
+Canonical visual angle masters:
+
+- `assets/templates/shack_arena_master_wide.webp`
+- `assets/templates/shack_arena_master_behind_basket.webp`
+
+Canonical court geometry:
+
+- `assets/templates/arena-master.svg`
+- `assets/templates/arena-guides.svg`
+
+The raster masters lock the Shack's architecture, modest semi-pro scale, crowd density, industrial rafters, worn hardwood, blue/cream institutional materials, practical lighting and simple period scoreboard. The SVG files lock the court geometry.
+
+The Shack is a somewhat struggling 1984 semi-pro building in an unnamed North Country city — **not an NBA arena**. Do not add championship banners, luxury/major-league architecture, a sophisticated video scoreboard, a city name or invented arena lore.
+
+When a raster reference contains a minor generated floor-line artifact, the documented court geometry takes precedence.
+
 ### Promotional exception
 
 `assets/ui/cover.webp` is deliberately more like painted box/poster art.
@@ -179,18 +197,29 @@ Arena scenes:
 
 ## 8. Arena rules
 
+The Lumberjack Shack has two canonical views: the wide arena master and the behind-the-basket master listed above. All new arena art must depict the **same building**.
+
 Before approving an arena image, verify:
 
+- arena remains a modest mid-size semi-pro building, never NBA-scale
+- exposed rafters, practical warm lamps, worn institutional walls and crowd scale match the canonical masters
+- scoreboard remains simple and period-appropriate: score, HOME/VISITOR, clock and period; no giant video display
+- no championship banners or invented historical achievements
+- no city name or generated sponsor/lore signage
 - centre circle is geometrically centred
-- half-court line actually passes through the centre circle
-- three-point line exists and reads correctly
+- the **single half-court line runs sideline-to-sideline through the centre circle**
+- there is **no longitudinal line running from one key/basket through centre court to the other**
+- key/lane treatment reads as early-1980s semi-pro, not modern NBA
+- three-point marking exists where required and reads correctly
 - hoop/backboard belongs to the court, never the stands
 - players have plausible basketball spacing and movement
 - front-row crowd reaches the court edge without blocking the action
 - no random timber clutter
 - feet/legs are visible when the scene requires full-body action
 - no centre-court logo unless a story explicitly requires one
-- court perspective remains consistent across an animation
+- court perspective remains consistent across an animation and between matched camera angles
+
+If a generated raster conflicts with the locked geometry in `ARENA_MASTER.md`, the geometry rules win.
 
 Comedy comes after believable space.
 
