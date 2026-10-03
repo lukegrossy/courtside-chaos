@@ -31,6 +31,8 @@ jobs:
             "assets/portraits/sandra/base.webp"
             "assets/portraits/sandra/sandra_home_arena.webp"
             "assets/portraits/sandra/sandra_awards.webp"
+            "assets/templates/shack_exterior_master_pre_blob.mp4"
+            "assets/templates/shack_exterior_master_post_blob.webp"
             "assets/sfx/office_loop.mp3"
           )
 

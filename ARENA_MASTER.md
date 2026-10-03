@@ -25,6 +25,39 @@ These two images lock:
 
 Future arena scenes change the **event**, not the building.
 
+### Exterior continuity masters
+
+The Shack has **two canonical exterior states**:
+
+- `assets/templates/shack_exterior_master_pre_blob.mp4` — **PRE-BLOB**. The arena exterior before `ricky_statue` resolves.
+- `assets/templates/shack_exterior_master_post_blob.webp` — **POST-BLOB**. The established Blob exterior reference after `S.flags.blob` is set.
+
+These are continuity states of the **same building**, not alternate arena designs.
+
+#### PRE-BLOB
+
+Before Ricky's statue story:
+
+- no sculpture or plinth outside the Shack
+- exterior architecture, entrances, signage, snow/night treatment and modest semi-pro scale remain canonical
+- this is the exterior state used for opening/early-season Shack establishing art
+
+#### POST-BLOB
+
+After Ricky's statue story, every branch establishes `blob` permanently.
+
+From that point onward:
+
+- THE BLOB must be present in later exterior Shack art
+- it is the same lumpy, ambiguous bronze established in `statue.webp`
+- it sits on a low granite plinth
+- plaque: **MOMENTUM — #33**
+- it must not become a realistic statue of Ricky
+- it must not disappear in later exterior shots, including Blizzard-era exterior continuity
+- the building itself does not change merely because the Blob appeared
+
+Runtime continuity already distinguishes `tipoff_home` from `tipoff_home_blob`; future exterior media should honor that same state boundary.
+
 ### Spatial / court masters
 
 - `assets/templates/arena-master.svg` — neutral 853 × 1844 court/camera geometry.
