@@ -91,7 +91,7 @@
     background:radial-gradient(closest-side, rgba(255,233,180,.34), rgba(255,233,180,0) 72%);
     animation:flick 3.4s steps(1,end) infinite;}
   @keyframes flick{
-    0%,100%{opacity:.9} 7%{opacity:.72} 11%{opacity:.95} 42%{opacity:.82}
+    0%,100%{opacity:.88} 7%{opacity:.08} 11%{opacity:.95} 42%{opacity:.82}
     47%{opacity:1} 71%{opacity:.78} 76%{opacity:.92}}
   #snowc{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2;}
 
@@ -519,6 +519,14 @@
       scroll-behavior:auto !important;
     }
   }
+  #introDoor{width:100%;height:100%;object-fit:cover}
+  .introProfile .cawcard{top:0;left:0;width:100%;height:51%;transform:none;mask-image:linear-gradient(#000 88%,transparent)}
+  .introProfile .pimg{border:0;box-shadow:none;image-rendering:auto;object-position:50% 36%}
+  .introProfile .cawname,.introProfile .cawmeta,.introProfile.cardmode .cawtxt{left:7%;right:7%;text-align:left;font-family:Georgia,serif}
+  .introProfile .cawname{top:52%;letter-spacing:3px}
+  .introProfile .cawmeta{top:55%;letter-spacing:0;font-weight:400}
+  .introProfile.cardmode .cawtxt{top:60%}
+  .courtReveal .cawshade,.courtReveal .cawreadband{display:none}
 </style>
 <script>
 !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],Object.defineProperty(u,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e}}),Object.defineProperty(u.people,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(){return u.toString(1)+".people (stub)"}}),o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
@@ -610,7 +618,7 @@ window.addEventListener('unhandledrejection', function(e){
     <!-- SPLASH -->
     <div class="screen on" id="splash">
       <img alt="" src="assets/ui/cover.webp">
-      <div class="startbtn contbtn" id="contbtn">CONTINUE</div>
+
       <div class="startbtn" id="startbtn"><span class="ball"></span>START</div>
     </div>
 
@@ -618,8 +626,8 @@ window.addEventListener('unhandledrejection', function(e){
     <div class="screen" id="cut">
       <div class="art">
         <video id="cutvid" muted autoplay loop playsinline preload="auto"
-          onerror="var iv=document.getElementById('shackFallback'); if(iv){iv.src='assets/cutscenes/shack.webp'; iv.style.display='block';} this.style.display='none'; var c=document.getElementById('snowc'); if(c)c.style.display='none'; var g=this.parentElement.querySelector('.glow'); if(g)g.style.display='none';"
-          oncanplay="var c=document.getElementById('snowc'); if(c)c.style.display='none'; var g=this.parentElement.querySelector('.glow'); if(g)g.style.display='none';">
+          onerror="var iv=document.getElementById('shackFallback'); if(iv){iv.src='assets/cutscenes/shack.webp'; iv.style.display='block';} this.style.display='none'; var c=document.getElementById('snowc'); if(c)c.style.display='none'; var g=this.parentElement.querySelector('.glow'); if(g)g.style.display='block';"
+          oncanplay="document.getElementById('shackFallback').style.display='none'; var c=document.getElementById('snowc'); if(c)c.style.display='none'; var g=this.parentElement.querySelector('.glow'); if(g)g.style.display='block';">
           <source src="assets/cutscenes/shack.mp4" type="video/mp4"></video>
         <img id="shackFallback" alt="" style="display:none;">
         <div class="glow" style="left:504px; top:352px;"></div>
@@ -642,6 +650,7 @@ window.addEventListener('unhandledrejection', function(e){
       <div class="cawreadband"></div>
       <div class="cawlabel">FINAL</div>
       <div class="pcard cawcard" id="cawCard">
+        <video id="introDoor" hidden muted loop playsinline preload="none" poster="assets/cutscenes/intro_door.webp" src="assets/cutscenes/intro_door.mp4"></video>
         <img class="pimg" id="cawPort" alt="">
         <div class="pplac" id="cawPlac"><span>FILE PHOTO</span><span>PENDING</span></div>
       </div>
@@ -1055,6 +1064,7 @@ window.addEventListener('unhandledrejection', function(e){
     ev.stopPropagation();
     if(this._introStarted) return;   // a second tap during the title hold used to be
     this._introStarted = true;       // able to re-fire this whole handler mid-transition
+    if(window.__resumeTitle && window.__resumeTitle(splash)) return;
     if(window.__newGame) window.__newGame();   // fresh franchise: clear any save
     startMusic();                // user gesture unlocks audio \u2014 starts right here, on the title
     var _v=document.getElementById('cutvid'); if(_v){ _v.play().catch(function(){}); }
@@ -1065,13 +1075,6 @@ window.addEventListener('unhandledrejection', function(e){
        zero perceptible time. */
     setTimeout(function(){ go(splash,cutS,startSnow); }, BAR*1000);
   });
-  var contbtn=document.getElementById('contbtn');
-  if(contbtn){
-    contbtn.addEventListener('click',function(ev){
-      ev.stopPropagation();
-      if(window.__continueGame) window.__continueGame(splash);
-    });
-  }
   cutS.addEventListener('click',function(){
     go(cutS,quote,function(){ stopMusic(2.2); stopSnow(); });   // theme fades into the black
   });
@@ -1293,7 +1296,7 @@ window.addEventListener('unhandledrejection', function(e){
     tipoff_road_1:{prefer:'video',fallback:'tipoff_road'}, tipoff_road_2:{prefer:'video',fallback:'tipoff_road'},
     roadtrip:{prefer:'video'}, roadtrip_bus:{prefer:'video'}, roadtrip_bus_2:{prefer:'video',fallback:'roadtrip_bus'},
     chainsaw:{prefer:'video'},
-    intro_arrival:{prefer:'image'}, intro_files:{prefer:'image'}, intro_numbers:{prefer:'image'}, intro_cred:{prefer:'image'},
+    intro_arrival:{prefer:'image'}, intro_court:{prefer:'video'}, intro_numbers:{prefer:'image'}, intro_cred:{prefer:'image'},
     arena:{prefer:'image'}, bank:{prefer:'image'}, bighead:{prefer:'image'}, blizzard:{prefer:'image'}, boxes:{prefer:'image'},
     cheese:{prefer:'image'}, crate:{prefer:'image'}, cup:{prefer:'image'}, final:{prefer:'image'}, fire:{prefer:'image'},
     fire_after:{prefer:'image'}, ice:{prefer:'image'}, lutefisk:{prefer:'image'}, photo:{prefer:'image'}, playoff:{prefer:'image'},
@@ -1386,6 +1389,16 @@ window.addEventListener('unhandledrejection', function(e){
          is stale as soon as the sequence advances. A decode that completes
          late must not start under the next scene. */
       sceneAudioGen++;
+      seqArtToken++;
+      caw.classList.toggle('introProfile',!!step.profile);
+      caw.classList.toggle('courtReveal',step.scene==='intro_court');
+      cawVid.controls=false;
+      cawVid.removeAttribute('poster');
+      cawVid.muted=step.scene!=='intro_court';
+      cawVid.loop=step.scene!=='intro_court';
+      var door=document.getElementById('introDoor');
+      door.hidden=!step.doorway;
+      if(step.doorway){door.play().catch(function(){});}else{door.pause();}
       if(step.kind==='gazette'){
         cawVid.pause(); cawVid.classList.remove('show');
         stopRainLoop(); stopBlizzardLoop(); stopCupWin();
@@ -1404,7 +1417,7 @@ window.addEventListener('unhandledrejection', function(e){
       caw.classList.toggle('cardmode', step.kind==='card');
       caw.classList.toggle('textmode', step.kind==='text' && !step.artOnly);
       cawLabel.textContent = step.label || 'FINAL';
-      cawTxt.textContent=step.text||step.line;
+      cawTxt.textContent=step.text||step.line||'';
       if(step.kind==='checkpoint') cawRecord.textContent=step.record||'';
       fitCawTxt();
       cawArt.classList.remove('show');
@@ -1440,7 +1453,24 @@ window.addEventListener('unhandledrejection', function(e){
         cawName.textContent=step.name||'';
         cawMeta.textContent=step.meta||'';
         var tok=++portToken;
+        if(step.doorway){
+          cawPort.classList.remove('show');
+          cawPlac.classList.add('hide');
+          return;
+        }
+        if(step.profile && cawPort.dataset.profile===step.who && cawPort.classList.contains('show')) return;
+        cawPort.dataset.profile=step.profile ? step.who : '';
         paintCard(step.who, cawPort, cawPlac, function(){ return tok===portToken; });
+        return;
+      }
+      if(step.scene==='intro_court'){
+        cawVid.src='assets/cutscenes/intro_court.mp4';
+        cawVid.poster='assets/cutscenes/intro_court.webp';
+        cawVid.classList.add('show');
+        cawVid.play().catch(function(){
+          if(!caw.classList.contains('courtReveal')) return;
+          cawVid.controls=true;
+        });
         return;
       }
       if(step.kind==='text'){
@@ -1510,6 +1540,7 @@ window.addEventListener('unhandledrejection', function(e){
          dead screen. Fast tapping is normal on a phone, so the sequence latches
          shut instead of trusting listener removal to win the race. */
       if(finished) return;
+      if(cawVid.controls && arguments[0] && arguments[0].target===cawVid) return;
       i++;
       if(i>=steps.length){
         finished=true;
@@ -1529,8 +1560,12 @@ window.addEventListener('unhandledrejection', function(e){
       } else {
         var prev=screenFor(steps[i-1]), next=screenFor(step);
         prev.removeEventListener('click',advance);
-        if(prev===next){
-          var els = (next===gazS) ? [gazPage] : [cawTxt, cawCard, cawName, cawMeta];
+        if(step.scene==='intro_court' && prev===next){
+          show(step); /* Start audible playback inside the player's tap on iOS. */
+          next.addEventListener('click',advance);
+        }else if(prev===next){
+          var sameProfile=step.profile && steps[i-1].profile && step.who===steps[i-1].who;
+          var els = sameProfile ? [cawTxt] : (next===gazS) ? [gazPage] : [cawTxt, cawCard, cawName, cawMeta];
           els.forEach(function(e){ e.style.opacity=0; });
           setTimeout(function(){ show(step);
             els.forEach(function(e){ e.style.opacity=''; });
@@ -2836,7 +2871,7 @@ window.addEventListener('unhandledrejection', function(e){
         out:["The team bowls for two hours and something happens that no amount of practice buys: they become a team on the road, in rented shoes, under a flickering sign, in a town whose name half of them will forget. Leo bowls a 268 without changing his expression and refuses to explain where that came from. Tiny bowls with the wrong hand for laughs and then, horrifyingly, with the right hand for a strike.",
              "They arrive at the gym loose, unified, and quoting a bowling movie at each other in a shared dialect that did not exist this morning. The weeping roof holds. Ricky has trophies made. Small ones. He was serious about the league."],
         desk:"Bowling: $180, sanctioned, transcendent. Leo's high game: 268, unexplained, and I've decided not to pursue it, having learned my lesson with the age. Ricky's league now has a commissioner (Ricky), a trophy (small), and a bylaw about shoe rental I have been asked to notarize. I did. It felt correct.",
-        gaz:"AREA TEAM BONDS AT BOWLING ALLEY DURING RAIN DELAY", news:"With tip-off delayed by a leaking gymnasium roof, the Lumberjacks spent two hours at a local bowling alley. Veteran Leo James recorded a 268. Ricky Malone established a league, of which he is commissioner, and commissioned trophies. Players arrived at the gym reportedly quoting a bowling movie in unison.", mood:'pleased' },
+        gaz:"AREA TEAM BONDS AT BOWLING ALLEY DURING RAIN DELAY", news:"With tip-off delayed by a leaking gymnasium roof, the Lumberjacks spent two hours at a local bowling alley. Veteran Leo G. Ross recorded a 268. Ricky Malone established a league, of which he is commissioner, and commissioned trophies. Players arrived at the gym reportedly quoting a bowling movie in unison.", mood:'pleased' },
       { t:"Let a few go. Keep the starters resting.", sub:"Balance. Someone has to be sensible.",
         fx:{morale:4, cred:3},
         out:["Half the team bowls, half the team naps at the gym, and the two halves reunite as slightly different people. The bowlers have inside jokes and a running feud with a local league team called the Pin Pals who challenged them and lost. The nappers are rested and vaguely suspicious they missed the best night of the season. They did.",
@@ -3771,7 +3806,7 @@ window.addEventListener('unhandledrejection', function(e){
     {who:'hank', q:"Coach Hank Willis, asked to account for his whereabouts during the third quarter, said the fourth quarter had taken care of it."},
     {who:'ricky', q:"Ricky Malone assessed his own contribution as \u201Cthe story here, if anybody\u2019s writing one.\u201D"},
     {who:'tiny', q:"Tiny McGee delivered a nine-minute review in the concourse afterward. A crowd formed. Very little of it concerned basketball."},
-    {who:'leo', q:"Leo James, asked whether the minutes were catching up with him, said he felt fine. He is understood to be forty-nine. This newspaper has agreed not to pursue it."},
+    {who:'leo', q:"Leo G. Ross, asked whether the minutes were catching up with him, said he felt fine. He is understood to be forty-nine. This newspaper has agreed not to pursue it."},
     {who:'import', q:"The club's rookie was made available to reporters. The session ran four minutes and produced four words. Both parties later described it as productive."},
     {who:'sam', q:"Mascot Sawdust Sam was unavailable for comment, being in the trainer\u2019s room, as is customary."},
     {who:'ernie', q:"Ernie Kowalski, of Row F, offered an evaluation of the officiating that this newspaper has elected to summarize as unfavorable."},
@@ -5060,7 +5095,7 @@ window.addEventListener('unhandledrejection', function(e){
         "There's no more to the file. I wrote it."
       ]},
     { who:'hank', tab:'HANK', thick:'\u25AE\u25AE', name:'HANK WILLIS', meta:'Head Coach',
-      intro:"\u201CCoach Willis. Wins basketball games. I've stopped asking how.\n\nEvery third quarter he disappears into the men's room. I've timed how long he's gone. Knowing the number has not once helped me.\n\nHe's also banned water at practice. Says comfort is the enemy. I write that down. I don't ratify it.\u201D",
+      intro:"\u201CCoach Willis. Wins basketball games. I've stopped asking how.\n\nEvery third quarter he disappears into the men's room. I've timed how long he's gone. Knowing the number has not once helped me.\n\nHe's also banned water at practice. Says comfort is the enemy. I don’t agree with that one.\u201D",
       file:[
         "WILLIS, HANK. Head coach. Hired 1979. Record: better than this roster has any business posting.",
         "Method: unestablished. Every third quarter he leaves for the men's room and returns with the plan that wins the fourth. I have never seen him write it down. I have checked. Twice.",
@@ -5080,10 +5115,10 @@ window.addEventListener('unhandledrejection', function(e){
         "Performs downtown most weeks. Material is largely us. Material is largely accurate. That's the problem and also the ticket sales.",
         "Note for the new owner: there is no dialing Tiny back. There is only aiming him. Four owners have learned this. Three learned it late."
       ]},
-    { who:'leo', tab:'LEO', thick:'\u25AE\u25AE\u25AE', name:'LEO JAMES', meta:'Forward \u2014 Age Contested',
-      intro:"\u201CLeo James. Forty-nine years old. Still starts. Still finishes.\n\nHe was thirty-four the year I started here. That was nine years ago. You can do that sum yourself. I have, several times, and then I've put my pen down and left it alone, the way you leave a sleeping dog or a load-bearing wall.\n\nThirty minutes a night. I have never once seen the man breathe hard.\u201D",
+    { who:'leo', tab:'LEO', thick:'\u25AE\u25AE\u25AE', name:'LEO G. ROSS', meta:'Forward \u2014 Age Contested',
+      intro:"\u201CLeo G. Ross. Forty-nine years old. Still starts. Still finishes.\n\nHe was thirty-four the year I started here. That was nine years ago. You can do that sum yourself.\n\nThirty minutes a night. I have never once seen the man breathe hard.\u201D",
       file:[
-        "JAMES, LEO. Forward. Listed at forty-nine. Also listed at thirty-four the year I started, which was nine years ago. Both numbers are in the file, in ink, and I have decided the file is allowed to contradict itself as long as he keeps scoring.",
+        "ROSS, LEO G. Forward. Listed at forty-nine. Also listed at thirty-four the year I started, which was nine years ago. Both numbers are in the file, in ink, and I have decided the file is allowed to contradict itself as long as he keeps scoring.",
         "I have raised this with him twice. The first time he agreed with me. The second time he agreed with me again, warmly, and then the conversation was over and I could not tell you how it ended.",
         "Plays thirty minutes a night and has never asked to come out. The young fellas go to him before they go to Hank. Hank knows. Hank has never once mentioned it. That's the arrangement, it works, and I'd rather not be the one who examines it."
       ]},
@@ -5099,10 +5134,10 @@ window.addEventListener('unhandledrejection', function(e){
         "Country of origin: stated on three documents, spelled three ways. I have consulted the office atlas and then a second atlas, purchased at my own expense, on a Saturday. The place may exist. I am not currently prepared to go further than that.",
         "Barely speaks English. Understands every single thing that happens in this building. I know this because I said something unkind about the coffee within earshot and he laughed. He has never let on since. Neither have I. We're square.",
         "Left at a filling station outside Brainerd for ninety minutes and did not once telephone to complain about it, which told the room more than fourteen months of practice had.",
-        "Filed next to Leo James, which I did not plan and cannot now undo. One of them may be sixty. One of them may be twelve. The paperwork is equally confident about both. I have stopped opening these two folders on the same day."
+        "Filed next to Leo G. Ross, which I did not plan and cannot now undo. One of them may be sixty. One of them may be twelve. The paperwork is equally confident about both. I have stopped opening these two folders on the same day."
       ]},
     { who:'sam', tab:'SAM', thick:'\u25AE\u25AE\u25AE\u25AE\u25AE\u25AE', name:'SAWDUST SAM', meta:'Mascot \u2014 Injured',
-      intro:"\u201CSawdust Sam. The mascot. Perpetually injured, permanently magnificent, and the reason that folder's load-bearing.\n\nHe has never once been cleared to perform.\n\nHe has never once not performed.\u201D",
+      intro:"\u201CSawdust Sam. The mascot. Perpetually injured, permanently magnificent, and the reason why our first aid kit is out of bandages.\n\nHe has never once been cleared to perform.\n\nHe has never once not performed.\u201D",
       file:[
         "SAM (SAWDUST). Mascot. Legal name is on file. I have never once needed it.",
         "Medical status: continuous. Cleared to perform: never. Performed: always. The doctors have stopped writing \u201Crest\u201D and started writing \u201CSam,\u201D which I've accepted as a diagnosis.",
@@ -5165,18 +5200,18 @@ window.addEventListener('unhandledrejection', function(e){
   var INTRO_STEPS=[
     {kind:'text', scene:'intro_arrival',
      text:"WINTER, 1984.\n\nYou bought a basketball team.\n\nNobody up here has asked why. Not the bank, not the league, not the fella who sold it to you \u2014 who shook your hand with both of his, which you have since had time to think about."},
-    {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
+    {kind:'card', doorway:true, who:'sandra', name:'SANDRA', meta:'Secretary',
      text:"She's at the door before you are, holding a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CI keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those. I'll let you pick which.\u201D"},
-    {kind:'text', scene:'intro_files',
+    {kind:'text', scene:'intro_court',
      text:"The tour takes eleven minutes.\n\nThe arena smells like woodsmoke and old rubber. The lights over the court need a full minute to come up, and she waits through it without comment, because that's just the minute. There's a longer list of things like that \u2014 things the previous owner appeared to negotiate around instead of fix. She doesn't itemize it now."},
     {kind:'text',
-     text:"\u201CRight. The people.\n\nYou'll meet all of 'em whether you plan to or not \u2014 better we do it here, where nobody's bleeding and I control the order.\u201D\n\nShe starts with the coach."},
+     text:"\u201CRight. The people.\n\nYou'll meet all of 'em whether you plan to or not \u2014 better we do it here, where nobody's bleeding and I control the order.\u201D\n\nShe starts with the mascot."},
+    castCard('sam'),
     castCard('hank'),
     castCard('ricky'),
     castCard('tiny'),
     castCard('leo'),
     castCard('import'),
-    castCard('sam'),
     {kind:'text', scene:'intro_numbers',
      text:"\u201CFour numbers run this franchise. Top of the desk, every Monday.\n\nCASH is cash. Gate money in, payroll out.\n\nMORALE wins games. It's the only thing that does.\n\nBUZZ fills seats. It won't win you a single basket \u2014 but seats are the money.\u201D"},
     {kind:'text', scene:'intro_cred',
@@ -5397,7 +5432,7 @@ window.addEventListener('unhandledrejection', function(e){
     /* The opening sequence plays on the coldest cache the game ever sees, and
        a video that misses probeArt's window auto-skips silently \u2014 which is
        exactly how the blizzard scene went missing. Warm these too. */
-    ['intro_arrival','intro_files','intro_numbers','intro_cred','hotdish_team','hotdish_team_fail'].forEach(preloadArt);
+    ['intro_arrival','intro_court','intro_numbers','intro_cred','hotdish_team','hotdish_team_fail'].forEach(preloadArt);
     /* Crowd variations for the home tip-off \u2014 same cold-load reasoning as
        the video preloads above: a fetch+decode that only starts when the
        sound is actually needed would race the moment it's meant to land in. */
@@ -5432,29 +5467,33 @@ window.addEventListener('unhandledrejection', function(e){
   current = STORY[0]; phase='setup';
   S.venue='HOME'; S.foe=FOES[Math.floor(Math.random()*FOES.length)];
   presentWeek();
-  try{
-    var SHOW_CONTINUE = true;   /* Valid saves expose CONTINUE; START still clears and begins fresh. */
-    if(SHOW_CONTINUE && localStorage.getItem(SAVE_KEY)){
-      var _cb=document.getElementById('contbtn');
-      if(_cb) _cb.style.display='flex';
-    }
-  }catch(e){}
-  window.__newGame=function(){ clearSave(); };
-  window.__continueGame=function(fromScreen){
-    loadGame();
-    window.__ccTrack('game continued',{
-      season:S.season,week:S.week,total_week:S.tw,stage:S.stage,
-      wins:S.wins,losses:S.losses,cash:S.cash,morale:S.morale,buzz:S.buzz,cred:S.cred
-    });
-    fromScreen.classList.remove('on');
-    setTimeout(function(){ dash.classList.add('on'); }, (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 0 : 700);
+  var SHOW_CONTINUE = true;
+  window.__resumeTitle=function(fromScreen){
+    if(!SHOW_CONTINUE) return false;
+    try{
+      if(!localStorage.getItem(SAVE_KEY) && !localStorage.getItem('courtside_save_v2')) return false;
+    }catch(e){return false;}
+    if(!window.confirm("Resume your saved franchise? Choose Cancel to start a new game.")) return false;
+    if(!loadGame()) return false;
+    window.__ccTrack('game continued',{season:S.season,week:S.week,total_week:S.tw});
+    fadeScreens(fromScreen,dash);
+    return true;
   };
+  window.__newGame=function(){ clearSave(); };
   window.__enterGame=function(fromScreen){
     window.__ccTrack('game started',{season:S.season,week:S.week,total_week:S.tw,stage:S.stage,start_type:'new'});
     /* Sandra does these four herself at Week Zero; the rest of the cast
        introduce themselves the first time they turn up. */
     S.met={ sandra:true, hank:true, ricky:true, tiny:true, leo:true, import:true, sam:true };
-    runSequence(INTRO_STEPS, dash, null, fromScreen);
+    var arrival=[];
+    INTRO_STEPS.forEach(function(step){
+      if(step.kind==='card' && (step.doorway || step.who!=='sandra')){
+        step.text.split('\n\n').forEach(function(paragraph){
+          arrival.push(Object.assign({},step,{profile:true,text:paragraph}));
+        });
+      }else arrival.push(step);
+    });
+    runSequence(arrival, dash, null, fromScreen);
   };
 })();
 
