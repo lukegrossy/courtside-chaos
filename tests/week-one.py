@@ -11,6 +11,7 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
     Thread(target=server.serve_forever, daemon=True).start()
     browser = pw.webkit.launch()
     page = browser.new_page(**pw.devices["iPhone 13"], reduced_motion="reduce")
+    page.on("pageerror", lambda err: print("Game error:", err, flush=True))
     page.goto(f"http://127.0.0.1:{server.server_port}", wait_until="domcontentloaded")
     page.locator("#startbtn").tap()
     for screen in ("cut", "quote"):
@@ -30,7 +31,7 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
         cutaway.tap(position={"x": 12, "y": 60})
         page.wait_for_timeout(100)
     page.locator("#dash.on").wait_for()
-    for width, height, top, bottom in [(393, 852, 59, 34), (375, 667, 20, 0), (430, 932, 62, 34)]:
+    for width, height, top, bottom in [(393, 852, 59, 34), (375, 667, 20, 0), (393, 650, 0, 0), (430, 932, 62, 34)]:
         page.set_viewport_size({"width": width, "height": height})
         page.locator("#dash").evaluate(
             "(el, [t,b]) => { el.style.setProperty('--safe-top',t+'px'); el.style.setProperty('--safe-bottom',b+'px'); }",
@@ -45,9 +46,31 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
         footer = page.locator(".ljfooter").bounding_box()
         assert top <= logo["y"] <= top + 5, logo
         assert footer["y"] + footer["height"] <= height - bottom + 1, footer
+        paper = page.locator(".notebook").bounding_box()
+        desk = page.locator("#desk").bounding_box()
+        assert 0.39 <= paper["height"] / desk["height"] <= 0.41
+        assert page.locator("#ticker").inner_text() == ""
         note = page.locator("#notescroll")
         assert note.evaluate("el => { el.scrollTop = el.scrollHeight; return el.scrollTop > 0; }")
         assert page.locator(".chlogo").bounding_box()["y"] == logo["y"]
     page.locator("#callBtn").tap()
     page.locator("#decide.on").wait_for()
+    page.locator("#dB").tap()
+    for _ in range(80):
+        screen = page.locator(".screen.on").last
+        screen.wait_for()
+        name = screen.get_attribute("id")
+        if name == "dash":
+            break
+        if name == "moment":
+            page.locator("#mA").tap()
+        elif name in ("caw", "gazS"):
+            screen.tap(position={"x": 20, "y": 68})
+        page.wait_for_timeout(150)
+    page.locator("#dash.on #nextBtn:visible").wait_for()
+    assert page.locator("#slotL .slab").text_content() == "RESULT", page.locator("#desk").inner_text()
+    assert page.locator("#ticker").inner_text() == ""
+    page.locator("#nextBtn").tap()
+    page.wait_for_function("document.querySelector('#stWeek').textContent.trim() === '02'")
+    assert page.locator("#ticker").inner_text() == ""
     browser.close()

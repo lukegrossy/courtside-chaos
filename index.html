@@ -112,18 +112,23 @@
     width:min(94vw,480px,55dvh);
     height:calc(100% - 6px);max-height:min(207vw,1056px);
     container-type:inline-size;display:grid;grid-template-columns:minmax(0,1fr);
-    grid-template-rows:auto auto auto minmax(0,1fr) auto auto auto;
+    grid-template-rows:53fr 63fr 407fr minmax(0,562fr) 149fr 91fr 78fr;
+    align-items:stretch;
     font:bold 15px/1.2 'Courier New',monospace;color:var(--ink);}
-  .chlogo,.ljfooter{display:block;width:100%;height:auto;}
+  .desk > *{min-height:0;min-width:0;}
+  .chlogo,.ljfooter{display:block;width:100%;height:100%;object-fit:contain;}
+  .chlogo{width:45%;justify-self:center;padding:1px 0;}
   .desk .paint,.desk .card{background-repeat:no-repeat;background-size:100% 100%;}
-  .calendar{background-image:url('assets/ui/desk/calendar.webp');height:9.9cqw;grid-template-columns:repeat(3,1fr);}
-  .economy{background-image:url('assets/ui/desk/stats.webp');height:14.7cqw;grid-template-columns:26% 24% 23% 27%;}
+  .calendar{background-image:url('assets/ui/desk/calendar.webp');grid-template-columns:repeat(3,1fr);}
+  .economy{background-image:url('assets/ui/desk/stats-clean.webp');grid-template-columns:26% 24% 22% 28%;align-items:center;}
   .deskbar{display:grid;text-align:center;align-items:end;}
-  .deskbar .lab,.callcard .txt{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
+  .calendar .lab,.callcard .txt{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
   .deskbar .v{display:block;font-size:4.4cqw;line-height:1.1;}
   .calendar .v{padding-bottom:1.35cqw;font-size:3.85cqw;}
-  .economy .v{padding-bottom:2.6cqw;}
-  #portwin{height:63.8cqw;overflow:hidden;}
+  .deskbar.economy{align-items:center;}
+  .economy .lab{display:block;font:bold 2.85cqw/1.1 Georgia,serif;}
+  .economy .v{margin-top:.55cqw;}
+  #portwin{overflow:hidden;}
   #portrait{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 18%;}
   .notebook{background-image:url('assets/ui/desk/notebook.webp');min-height:0;display:flex;flex-direction:column;
     padding:3.7cqw 5.8cqw 5.4cqw 9.8cqw;}
@@ -137,20 +142,23 @@
   .notescroll p:last-child{margin-bottom:0;}
   .notearrow{position:absolute;right:0;bottom:-2.2cqw;color:#923322;font-size:3.6cqw;pointer-events:none;}
   .scrolled-end .notearrow{visibility:hidden;}
-  .slips{height:23.5cqw;display:grid;grid-template-columns:48% 52%;padding-block:.45cqw;}
+  .slips{display:grid;grid-template-columns:48% 52%;padding-block:.45cqw;}
   .slot{background-image:url('assets/ui/desk/fixture.webp');display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:1.1cqw;padding:2.2cqw 2.6cqw 0;text-align:center;}
+    align-items:center;justify-content:center;gap:1.1cqw;padding:1cqw 2cqw 0;min-width:0;min-height:0;text-align:center;}
   .slot>*{transform:rotate(-2deg);}
   .slab{font:bold 3.25cqw Georgia,serif;}
   .sv1{font-size:4.1cqw;line-height:1.05;}
   .sv1.tiny{font-size:3.3cqw;}
   .sv1.stamp{font-size:6.8cqw;}
   .stamp.win{color:var(--green);} .stamp.loss{color:var(--red);}
+  .ticker:empty{display:none;}
   .ticker{font:bold 2.85cqw/1.05 Georgia,serif;}
   .desk .card{width:100%;height:100%;padding:0;border:0;cursor:pointer;background-color:transparent;}
   .desk .callcard{background-image:url('assets/ui/desk/call.webp');}
-  .desk .nextcard{background-image:url('assets/ui/desk/next.webp');font:bold 3.8cqw/1 'Courier New',monospace;color:#882f21;}
-  .nextcard .txt{display:block;transform:rotate(-3deg);padding:3.5cqw 3.6cqw 0;}
+  .desk .nextcard{position:relative;background-image:url('assets/ui/desk/next.webp');font:bold 3.8cqw/1 'Courier New',monospace;color:#882f21;}
+  .nextcard .txt{position:absolute;inset:29% 7% 18%;display:grid;place-content:center;
+    font:bold 4.9cqw/1 Georgia,serif;transform:rotate(-3deg);}
+  .nextcard .txt.long{font-size:3.1cqw;}
   .desk .card:active{filter:brightness(.88);}
   /* ---- decision screen ---- */
   .dart{position:absolute; left:0; top:0; width:853px; height:1844px;}
@@ -465,7 +473,7 @@ posthog.init('phc_tQTiDWWVCnoE8dnKSqUfugPuBTtf9rK2o5ZPBJ4ruhxB',{
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-desk-4';
+window.__BUILD__ = 'season1-desk-5';
 window.__ccTrack = function(name, props){
   try{
     if(!window.posthog || typeof window.posthog.capture!=='function') return;
@@ -647,7 +655,7 @@ window.addEventListener('unhandledrejection', function(e){
     <!-- DASHBOARD -->
     <div class="screen" id="dash">
       <div class="desk" id="desk">
-        <img class="chlogo" alt="Courtside Chaos" src="assets/ui/desk/header.webp">
+        <img class="chlogo" alt="Courtside Chaos" src="assets/ui/desk/wordmark.webp">
         <div class="deskbar calendar paint">
           <div class="hcell h1"><span class="lab">SEASON</span><span class="v blk" id="stSeason">1</span></div>
         <div class="hcell h2"><span class="lab">WEEK</span><span class="v blk" id="stWeek">01</span></div>
@@ -3648,18 +3656,12 @@ window.addEventListener('unhandledrejection', function(e){
     return null;
   }
 
-  function ordinal(n){ return n+(n===1?'ST':n===2?'ND':n===3?'RD':'TH'); }
   function seasonYear(){ return 1983 + S.season; }
   function placeNow(){
     var g=S.wins+S.losses;
     if(!g) return 7;
     var pct=S.wins/g;
     return pct>=0.72?1 : pct>=0.60?2 : pct>=0.50?3 : pct>=0.42?4 : pct>=0.33?5 : pct>=0.22?6 : 7;
-  }
-  function divisionPlace(noRecord){
-    var g=S.wins+S.losses;
-    if(!g) return 'SEASON OPENS';
-    return ordinal(placeNow())+' IN THE NORTHERN DIVISION' + (noRecord ? '' : ' \u2022 '+S.wins+'-'+S.losses);
   }
   function updateBlotter(){
     if(phase==='recap'||phase==='over') return; /* terminal screens own the ticker */
@@ -3696,21 +3698,16 @@ window.addEventListener('unhandledrejection', function(e){
       if(txt.length>=15)      foeEl.className='sv1 tiny';
       else if(txt.length>=11) foeEl.className='sv1 mid';
     }
-    /* RECORD now lives in bar 1 (#stRecord), refreshed in the main render pass.
-       venue + standing move to the ticker, where there's actual room */
-    var tick;
-    if(inOffseason){
-      tick = S.stage==='postseason_awards' ? 'LEAGUE AWARDS NIGHT \u2022 TWO WINNERS' : 'OFF-SEASON \u2022 THE ESTATE';
-    } else if(current && current.playoff){
-      tick='NORTH COUNTRY PLAYOFFS \u2022 '+(current.playoff==='semi'?'SEMIFINAL':'TIMBER CUP FINAL');
-    } else {
-      tick=((current&&current.rest)?'DARK WEEK AT THE SHACK':(S.venue==='HOME'?'HOME NIGHT':'ON THE ROAD'))+'  \u2022  '+divisionPlace(true);
-    }
-    document.getElementById('ticker').textContent=(!inOffseason && S.week===1 && !S.wins && !S.losses && S.venue==='HOME') ? 'Home night · Season opens' : tick;
+    var caption='';
+    if(inOffseason) caption=S.stage==='postseason_awards' ? 'LEAGUE AWARDS NIGHT' : 'THE ESTATE';
+    else if(current && current.playoff) caption=current.playoff==='semi' ? 'SEMIFINAL' : 'TIMBER CUP FINAL';
+    document.getElementById('ticker').textContent=caption;
   }
 
   function setNextBtn(label, sub){
-    el.next.querySelector('.txt').textContent=label;
+    var stamp=el.next.querySelector('.txt');
+    stamp.textContent=label;
+    stamp.classList.toggle('long',label.length>12);
     /* subtext removed from the NEXT WEEK card for clarity; sub arg ignored */
   }
   function properFoe(f){
