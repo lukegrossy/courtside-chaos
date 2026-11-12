@@ -65,7 +65,16 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
                 saw_doorway = True
             assert pic["y"] >= 59, pic
             assert pic["y"] + pic["height"] <= name.bounding_box()["y"] + 1, pic
-        cutaway.tap(position={"x": 12, "y": 60})
+        if intro_pages == expected_pages and not board_pages and speaker == "SAWDUST SAM":
+            page.emulate_media(reduced_motion="no-preference")
+            cutaway.tap(position={"x": 12, "y": 60})
+            page.wait_for_timeout(780)
+            assert page.locator("#caw").evaluate("el => getComputedStyle(el).opacity") == "0"
+            cutaway.wait_for()
+            page.locator("#cawPort.show[src$='office-chalkboard.webp']").wait_for()
+            page.emulate_media(reduced_motion="reduce")
+        else:
+            cutaway.tap(position={"x": 12, "y": 60})
         page.wait_for_timeout(100)
     page.locator("#dash.on").wait_for()
     assert any("CASH" in text and "MORALE" in text for text in board_pages)
