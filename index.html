@@ -102,140 +102,59 @@
     opacity:0; transition:opacity 2.2s ease .5s;}
   #quote.on .q{opacity:1;}
 
-  /* ---- DASHBOARD (v8 — 3-divider card deleted; its space relocated to a
-     plain-black logo gap after the notch; SWR and CMBC swap cards) ----
-     Every position below is measured off the shipped asset, not estimated:
-       logo gap (plain black) y   83-155   (no card texture)
-       blank card (S/W/R)      y  155-211   no baked dividers, 3 even cells
-       4-cell card (economy)   y  227-315   dividers x 236 / 428 / 600
-       portrait opening         y  332-824   x 37-813
-       notepad paper             y  829-1488  red margin rule x 92-95
-       footer cards                y 1503-1655  centered pair, x 108-389 / 415-745
-     If the frame art changes again, re-measure before touching these.   */
-  #dash .window{position:absolute; left:39px; top:334px; width:772px; height:488px; overflow:hidden; z-index:3;
-    box-shadow: inset 0 0 0 2px rgba(0,0,0,.45), inset 0 0 14px 6px rgba(0,0,0,.4);}
-  #dash .window img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 18%;
-    transition:opacity .25s;}
-  #dash .frame{position:absolute; left:0; top:0; width:853px; height:1844px; z-index:2; pointer-events:none;}
-  #dash .ui{position:absolute; left:0; top:0; width:853px; height:1844px; z-index:4;}
-  #dash .ui > *{position:absolute;}
 
-  .blk{font-family:"Arial Black","Helvetica Neue",Impact,sans-serif; font-weight:900; color:var(--ink); line-height:1;}
-  .lab{font-weight:800; color:#4a4234; letter-spacing:1px; font-size:19px; line-height:1;}
-  /* ---- LOGO (y83-155, 72px plain black gap after the notch, no card texture) ---- */
-  .chlogo{left:50%; top:84px; width:360px; height:auto; margin-left:-180px; z-index:5;}
-  /* ---- BLANK CARD (y155-211, 56px, no baked dividers) ----
-     Season / Week / Record, evenly split into 3, with a thin CSS divider
-     between cells since the card art itself has no dividers here. */
-  .hcell{display:flex; flex-direction:column; align-items:center; gap:4px; top:159px;}
-  .hcell .lab{font-size:16px; line-height:1; letter-spacing:1.5px;}
-  .hcell .v{font-family:"Courier New",monospace; font-weight:700; font-size:31px; line-height:1;
-    text-shadow:0 1px 0 rgba(255,250,235,.35);}
-  .h1{left:39px;width:258px;}
-  .h2{left:297px;width:258px; border-left:1px solid rgba(60,45,30,.35);}
-  .h3{left:555px;width:258px; border-left:1px solid rgba(60,45,30,.35);}
-  /* ---- 4-EQUAL-CELL CARD (y227-315, 88px, painted dividers x236/428/600) ----
-     Cash / Morale / Buzz / Cred, one per painted cell. */
-  .cell{display:flex; flex-direction:column; align-items:center; gap:6px; top:239px;}
-  .cell .lab{font-family:"Courier New",monospace; font-size:24px; letter-spacing:1.5px;}
-  .cell .v{font-family:"Courier New",monospace; font-weight:700; font-size:33px; line-height:1;
-    text-shadow:0 1px 0 rgba(255,250,235,.35);}
-  .s1{left:39px;width:197px;} .s2{left:236px;width:192px;}
-  .s3{left:428px;width:172px;} .s4{left:600px;width:213px;}
-  .noteh{left:105px; top:858px; font-family:"Courier New",monospace; font-weight:700;
-    color:var(--red); font-size:30px; letter-spacing:1px;
-    text-decoration:underline; text-underline-offset:6px;}
-  .notewrap{left:105px; top:916px; width:671px; height:552px;}
-  .notescroll{position:absolute; inset:0; overflow-y:auto; touch-action:pan-y;
-    scrollbar-width:none; padding:6px 18px 8px 4px;
-    font-family:"Courier New",monospace; font-weight:700;
-    color:var(--ink); font-size:32px; line-height:44px;}
+  /* Dashboard panels use individual regions of the original painted desk frame.
+     Only the notebook flexes when the available safe height changes. */
+  .desk{--desk-art:url('assets/ui/frame.webp');position:absolute;
+    inset:var(--desk-top,84px) 28px var(--desk-bottom,22px);display:grid;
+    grid-template-rows:54px 74px 492px minmax(0,1fr) 170px 110px 92px;gap:6px;
+    font:700 28px/1.2 'Courier New',monospace;color:var(--ink);}
+  .desk .paint{background-image:var(--desk-art);background-repeat:no-repeat;}
+  .chlogo,.ljfooter{justify-self:center;align-self:center;max-width:100%;object-fit:contain;}
+  .chlogo{width:360px;height:54px;image-rendering:pixelated;}
+  .ljfooter{width:750px;height:90px;}
+  .deskbar{display:grid;align-items:center;text-align:center;padding:6px 12px;}
+  .calendar{grid-template-columns:repeat(3,1fr);}
+  .economy{grid-template-columns:197fr 192fr 172fr 213fr;}
+  .deskbar .lab,.deskbar .v{display:block;line-height:1.1;}
+  .deskbar .lab{font:bold 22px/1.15 Georgia,serif;letter-spacing:1px;}
+  .calendar .v{font-size:32px;}
+  .calendar>div+div{border-left:1px solid #725b40;}
+  .economy .v{font-size:33px;margin-top:4px;letter-spacing:-.5px;}
+  #portwin{position:relative;overflow:hidden;padding:5px 6px;}
+  #portrait{width:100%;height:100%;object-fit:cover;object-position:50% 18%;}
+  .notebook{min-height:0;display:flex;flex-direction:column;padding:28px 38px 24px 72px;}
+  .noteh,.slab{color:#842e21;text-decoration:underline;text-underline-offset:5px;}
+  .noteh{font-size:30px;margin-bottom:22px;}
+  .notewrap{position:relative;flex:1;min-height:0;}
+  .notescroll{height:100%;overflow-y:auto;touch-action:pan-y;scrollbar-width:none;
+    font-size:31px;line-height:1.38;color:#1a140f;padding-right:14px;}
   .notescroll::-webkit-scrollbar{display:none;}
-  .notescroll p{margin:0 0 44px;}
-  .notescroll p:last-child{margin-bottom:8px;}
-  .notefade{position:absolute; left:2px; right:2px; bottom:0; height:44px; pointer-events:none;
-    background:linear-gradient(to bottom, rgba(188,156,116,0), rgba(188,156,116,.95));
-    transition:opacity .25s;}
-  .notearrow{position:absolute; right:2px; bottom:-2px; color:var(--red); font-size:24px;
-    pointer-events:none; animation:bob 1.6s ease-in-out infinite; transition:opacity .25s;}
-  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
-  .scrolled-end .notefade,.scrolled-end .notearrow{opacity:0;}
-  .card{top:1358px; display:flex; flex-direction:column; align-items:center; text-align:center;}
-  .card .L{font-family:"Arial Black",sans-serif; font-weight:900; color:var(--red);
-    font-size:27px; line-height:30px;}
-  .card .txt{margin-top:24px; font-family:"Courier New",monospace; font-weight:700;
-    color:var(--ink); font-size:28px; line-height:34px;}
-  .card .sub{margin-top:9px; font-family:"Courier New",monospace; font-style:italic; font-weight:700;
-    color:var(--sub); font-size:20px; line-height:25px;}
-  .ca{left:56px;width:214px; transform:rotate(-2.44deg);}
-  .cb{left:312px;width:219px; transform:rotate(0.3deg);}
-  .cc{left:574px;width:221px; transform:rotate(1.45deg);}
-  .card{cursor:pointer;}
-  .card:active{filter:brightness(.92);}
-  /* Item 1: the centre card is the primary action. It gets the same small-
-     heading pattern as the side slots (a third tier they didn't have before),
-     plus a soft warm-toned lift so it reads as raised off the desk without
-     any modern glow/gradient/rounded-button treatment. */
-  .nextcard, .callcard{left:426px; width:307px; top:1525px; height:110px; padding:0 8px;
-    justify-content:center; background:none;
-    box-shadow:0 7px 16px rgba(20,13,7,.4), 0 2px 4px rgba(20,13,7,.28);
-    transform:rotate(-0.4deg) translateY(-2px);
-    transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;}
-  .nextcard .hd, .callcard .hd{font-family:"Arial Black",sans-serif; font-size:18px;
-    letter-spacing:1.5px; color:var(--red); line-height:1;}
-  .nextcard .txt{display:block; width:100%; box-sizing:border-box;
-    font-size:30px; line-height:1.2; text-align:center; color:var(--red);
-    font-weight:800; border:3px solid var(--red); border-radius:4px; padding:12px 6px;}
-  /* callcard lost its subtext (redundant + made the card busy) — the action text
-     itself now reads as a stamped button: bordered box, bigger, bolder, nothing
-     else on the card competing for attention. NEXT WEEK now matches it. */
-  .callcard .txt{display:block; width:100%; box-sizing:border-box;
-    font-size:30px; line-height:1.2; text-align:center; color:var(--red);
-    font-weight:800; border:3px solid var(--red); border-radius:4px; padding:12px 6px;}
-  .nextcard:active, .callcard:active{
-    transform:rotate(-0.4deg) translateY(0px);
-    box-shadow:0 2px 6px rgba(20,13,7,.3);
-    filter:brightness(.95);}
-  @media (hover:hover){
-    .nextcard:hover, .callcard:hover{
-      box-shadow:0 9px 18px rgba(20,13,7,.44), 0 2px 5px rgba(20,13,7,.3);}
-  }
-  .slot{position:absolute; top:1525px; height:110px; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; text-align:center; gap:6px; padding:0 2px;}
-  .slotL{left:116px; width:259px; transform:rotate(-1.6deg);}
-  .slot .slab{font-family:"Arial Black",sans-serif; font-size:19px; letter-spacing:1px;
-    color:var(--red); border-bottom:2px solid var(--red); padding-bottom:4px;}
-  .slot .sv1{font-family:"Courier New",monospace; font-weight:700; color:var(--ink);
-    font-size:32px; line-height:36px; white-space:nowrap;}
-  /* Long place names ("SAULT STE. MARIE") need a step down to stay on the card */
-  .slotL .sv1.mid{font-size:26px; line-height:30px;}
-  .slotL .sv1.tiny{font-size:22px; line-height:26px;}
-  /* Post-game result stamp: a big inked W (win) or L (loss) on the card,
-     tilted like a rubber stamp rather than typed. */
-  .slotL .sv1.stamp{font-family:"Arial Black",sans-serif; font-weight:900;
-    font-size:64px; line-height:64px; letter-spacing:0;
-    transform:rotate(-8deg); display:inline-block;
-    text-shadow:0 1px 0 rgba(255,250,235,.25);}
-  .slotL .sv1.stamp.win{color:#3f7d34;}
-  .slotL .sv1.stamp.loss{color:#9a3826;}
-  .slot .sv2{display:none;}
-  /* Bottom band: these used to stop at y1740, leaving 104px of empty stage
-     under them. Harmless when the frame was smaller and the top inset was
-     large, but once the frame grew the gap scaled up with it and the screen
-     read as pushed-up with daylight beneath.
-     Anchored by `bottom` rather than `top`: ljfooter is height:auto on an
-     image whose rendered height varies with the asset, so a top offset
-     silently depends on that height and clips the banner if it's taller
-     than assumed. Anchoring to the stage floor is correct at any height. */
-  /* bottom:123px places the ticker centred in the gap between the button
-     cards (which end 186px above the stage floor) and the top of the
-     LUMBERJACK STORY banner (82px above it). Derived from a device
-     screenshot rather than guessed \u2014 the banner is a height:auto image
-     that doesn't load headlessly, so its extent can't be measured here. */
-  .ticker{position:absolute; left:60px; right:60px; bottom:123px; text-align:center;
-    font-family:"Courier New",monospace; font-weight:700; color:#b3a288;
-    font-size:21px; letter-spacing:1px;}
-  .ljfooter{left:76px; bottom:26px; top:auto; width:700px; height:auto; z-index:5;}
+  .notescroll p{margin:0 0 1.35em;}
+  .notescroll p:last-child{margin-bottom:4px;}
+  .notearrow{position:absolute;right:0;bottom:-8px;color:#923322;font-size:23px;pointer-events:none;}
+  .scrolled-end .notearrow{visibility:hidden;}
+  .slips{display:grid;grid-template-columns:1fr 1.05fr;gap:8px;}
+  .slot,.actionSlip{display:flex;align-items:center;justify-content:center;min-width:0;}
+  .slot{flex-direction:column;text-align:center;padding:10px 18px 12px;gap:5px;}
+  .slot>*{transform:rotate(-2deg);}
+  .slab{font:bold 23px Georgia,serif;}
+  .sv1{font-size:30px;line-height:1.1;}
+  .sv1.tiny{font-size:25px;}
+  .sv1.stamp{font-size:48px;}
+  .stamp.win{color:var(--green);} .stamp.loss{color:var(--red);}
+  .ticker{font-size:20px;line-height:1.1;}
+  .desk .card{font:bold 30px/1.12 'Courier New',monospace;cursor:pointer;color:#872f20;
+    background:transparent;border:0;padding:18px 20px 8px;width:100%;height:100%;}
+  .desk .card .txt{display:block;border:3px solid currentColor;outline:1px solid currentColor;
+    outline-offset:-6px;transform:rotate(-1.6deg);padding:12px 3px;}
+  .desk .card:active .txt{transform:rotate(-1.6deg) translateY(2px);}
+  .calendar.paint{background-size:107.026% 2526.027%;background-position:50.000% 8.187%;}
+  .economy.paint{background-size:107.026% 1723.364%;background-position:50.000% 12.550%;}
+  .window.paint{background-size:107.431% 364.427%;background-position:49.153% 24.215%;}
+  .notebook.paint{background-size:107.026% 274.814%;background-position:50.000% 70.418%;}
+  .slot.paint{background-size:296.181% 1145.342%;background-position:18.407% 89.067%;}
+  .actionSlip.paint{background-size:251.622% 1145.342%;background-position:79.961% 89.067%;}
   /* ---- decision screen ---- */
   .dart{position:absolute; left:0; top:0; width:853px; height:1844px;}
   /* POLISH PASS 2: decision and in-game moment titles now share one visual
@@ -549,7 +468,7 @@ posthog.init('phc_tQTiDWWVCnoE8dnKSqUfugPuBTtf9rK2o5ZPBJ4ruhxB',{
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-pass-7';
+window.__BUILD__ = 'season1-desk-1';
 window.__ccTrack = function(name, props){
   try{
     if(!window.posthog || typeof window.posthog.capture!=='function') return;
@@ -727,36 +646,39 @@ window.addEventListener('unhandledrejection', function(e){
 
     <!-- DASHBOARD -->
     <div class="screen" id="dash">
-      <div class="window" id="portwin"><img alt="" id="portrait" src="assets/ui/sandra-base.webp"></div>
-      <img class="frame" id="dashFrame" alt="" src="assets/ui/frame.webp">
-      <div class="ui">
-        <!-- LOGO (y83-155, plain black gap, no card texture) -->
+      <div class="desk" id="desk">
         <img class="chlogo" alt="Courtside Chaos" src="assets/ui/courtside-header.png">
-        <!-- BLANK CARD (y155-211): Season / Week / Record, no baked dividers -->
-        <div class="hcell h1"><span class="lab">SEASON</span><span class="v blk" id="stSeason">1</span></div>
+        <div class="deskbar calendar paint">
+          <div class="hcell h1"><span class="lab">SEASON</span><span class="v blk" id="stSeason">1</span></div>
         <div class="hcell h2"><span class="lab">WEEK</span><span class="v blk" id="stWeek">01</span></div>
         <div class="hcell h3"><span class="lab">RECORD</span><span class="v blk" id="stRecord">0-0</span></div>
-        <!-- 4-EQUAL-CELL CARD (y227-315, dividers x236/428/600): economy -->
-        <div class="cell s1" role="group" aria-label="Cash on hand"><span class="lab" aria-hidden="true">CASH</span><span class="v blk green" id="stCash" aria-live="polite">$40,000</span></div>
+        </div>
+        <div class="window paint" id="portwin"><img alt="" id="portrait" src="assets/ui/sandra-base.webp"></div>
+        <section class="notebook paint" aria-labelledby="noteh">
+          <div class="noteh" id="noteh">DAY ONE</div>
+          <div class="notewrap" id="notewrap">
+            <div class="notescroll" id="notescroll" tabindex="0"></div>
+            <div class="notearrow" aria-hidden="true">&#9660;</div>
+          </div>
+        </section>
+        <div class="slips">
+          <div class="slot slotL paint" id="slotL">
+            <span class="slab">NEXT GAME</span>
+            <span class="sv1" id="slFoe"></span>
+            <span class="ticker" id="ticker"></span>
+          </div>
+          <div class="actionSlip paint">
+            <button type="button" class="card callcard" id="callBtn"><span class="txt">MAKE THE CALL &#9654;</span></button>
+            <button type="button" class="card nextcard" id="nextBtn" style="display:none"><span class="txt">NEXT WEEK &#9654;</span></button>
+          </div>
+        </div>
+        <div class="deskbar economy paint">
+          <div class="cell s1" role="group" aria-label="Cash on hand"><span class="lab" aria-hidden="true">CASH</span><span class="v blk green" id="stCash" aria-live="polite">$40,000</span></div>
         <div class="cell s2" role="group" aria-label="Team morale, percent. Wins games."><span class="lab" aria-hidden="true">MORALE</span><span class="v blk green" id="stMorale" aria-live="polite">72%</span></div>
         <div class="cell s3" role="group" aria-label="Buzz, percent. Fills seats."><span class="lab" aria-hidden="true">BUZZ</span><span class="v blk amber" id="stBuzz" aria-live="polite">48%</span></div>
         <div class="cell s4" role="group" aria-label="Credibility, percent. Opens doors."><span class="lab" aria-hidden="true">CRED</span><span class="v blk blue" id="stCred" aria-live="polite">36%</span></div>
-        <div class="noteh" id="noteh">DAY ONE</div>
-        <div class="notewrap" id="notewrap">
-          <div class="notescroll" id="notescroll"><p>Monday morning. The actual first day, if we're not counting yesterday — which I'm not, since most of it was you meeting people through a folder.</p><p>Straight to business, then. Tiny worked the Open Mic downtown last night, and about thirty of his forty minutes were an impression of you. I'd call it unflattering. The room disagreed. Loudly.</p><p>So... what's the first order of business?</p></div>
-          <div class="notefade"></div>
-          <div class="notearrow">&#9660;</div>
         </div>
-        <div class="slot slotL" id="slotL">
-          <span class="slab">THIS WEEK</span>
-          <span class="sv1" id="slFoe">vs FARGO</span>
-          <span class="sv2" id="slVenue">HOME NIGHT</span></div>
-        <div class="card callcard" id="callBtn">
-          <span class="txt">MAKE THE CALL &#9654;</span></div>
-        <div class="ticker" id="ticker">NORTHERN DIVISION &bull; SEASON OPENS</div>
-        <img class="ljfooter" alt="A Lumberjack Story" src="assets/ui/lumberjack-footer.png">
-        <div class="card nextcard" id="nextBtn" style="display:none;">
-          <span class="txt">NEXT WEEK &#9654;</span></div>
+        <img class="ljfooter" alt="The Lumberjack Story" src="assets/ui/lumberjack-footer.png">
       </div>
     </div>
 
@@ -792,10 +714,10 @@ window.addEventListener('unhandledrejection', function(e){
      same build then rendered at two different sizes depending on load
      timing. Re-reading each fit is cheap: applyFit is rAF-throttled and
      bails on sub-perceptible changes before doing any layout work. */
-  function safeInsetTop(){
+  function safeInset(edge){
     var probe=document.createElement('div');
     probe.style.cssText='position:fixed;top:0;left:0;width:1px;'
-      + 'height:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none;';
+      + 'height:env(safe-area-inset-'+edge+',0px);visibility:hidden;pointer-events:none;';
     document.body.appendChild(probe);
     var v=probe.getBoundingClientRect().height || 0;
     probe.parentNode.removeChild(probe);
@@ -809,11 +731,17 @@ window.addEventListener('unhandledrejection', function(e){
   var lastScale=0, fitQueued=false;
   function applyFit(){
     fitQueued=false;
-    var H=window.innerHeight, inset=safeInsetTop(), k=TOP_UI/STAGE_H;
+    var H=window.innerHeight, inset=safeInset('top'), k=TOP_UI/STAGE_H;
     var pad=Math.max(0, Math.min(inset, (inset - k*H)/(1-k)));
     var availW=Math.min(480, window.innerWidth);   /* cap is for desktop; 430 clipped a 16 Pro Max */
     var availH=H-pad;
     var scale=Math.min(availW/STAGE_W, availH/STAGE_H);
+    // The desk stays inside the visible safe area, including on short devices.
+    var stageTop=(H+pad-STAGE_H*scale)/2;
+    var stageBottom=H-stageTop-STAGE_H*scale;
+    var root=document.documentElement.style;
+    root.setProperty('--desk-top',Math.max(12,(inset-stageTop)/scale+8)+'px');
+    root.setProperty('--desk-bottom',Math.max(12,(safeInset('bottom')-stageBottom)/scale+6)+'px');
     if(Math.abs(scale-lastScale) < 0.0025) return;       /* below perceptible; don't feed the loop */
     lastScale=scale;
     document.body.style.paddingTop=pad+'px';
@@ -864,7 +792,7 @@ window.addEventListener('unhandledrejection', function(e){
       dbg.textContent =
         'innerH='+window.innerHeight+' innerW='+window.innerWidth
         +' vv='+(window.visualViewport?Math.round(window.visualViewport.height):'-')
-        +' | inset='+safeInsetTop().toFixed(1)+' pad='+(parseFloat(document.body.style.paddingTop)||0).toFixed(1)
+        +' | inset='+safeInset('top').toFixed(1)+' pad='+(parseFloat(document.body.style.paddingTop)||0).toFixed(1)
         +' scale='+lastScale.toFixed(4)
         +' | phone top='+ph.top.toFixed(1)+' bot='+ph.bottom.toFixed(1)+' h='+ph.height.toFixed(1)
         +' w='+ph.width.toFixed(1)
@@ -1391,11 +1319,12 @@ window.addEventListener('unhandledrejection', function(e){
       sceneAudioGen++;
       seqArtToken++;
       caw.classList.toggle('introProfile',!!step.profile);
-      caw.classList.toggle('courtReveal',step.scene==='intro_court');
+      var arrivalFilm=step.scene==='intro_court' || step.scene==='welcome_boss';
+      caw.classList.toggle('courtReveal',arrivalFilm);
       cawVid.controls=false;
       cawVid.removeAttribute('poster');
-      cawVid.muted=step.scene!=='intro_court';
-      cawVid.loop=step.scene!=='intro_court';
+      cawVid.muted=!arrivalFilm;
+      cawVid.loop=!arrivalFilm;
       var door=document.getElementById('introDoor');
       door.hidden=!step.doorway;
       if(step.doorway){door.play().catch(function(){});}else{door.pause();}
@@ -1463,9 +1392,10 @@ window.addEventListener('unhandledrejection', function(e){
         paintCard(step.who, cawPort, cawPlac, function(){ return tok===portToken; });
         return;
       }
-      if(step.scene==='intro_court'){
-        cawVid.src='assets/cutscenes/intro_court.mp4';
-        cawVid.poster='assets/cutscenes/intro_court.webp';
+      if(arrivalFilm){
+        cawVid.src='assets/cutscenes/'+step.scene+'.mp4';
+        if(step.scene==='intro_court') cawVid.poster='assets/cutscenes/intro_court.webp';
+        if(step.scene==='welcome_boss') cawVid.onended=advance;
         cawVid.classList.add('show');
         cawVid.play().catch(function(){
           if(!caw.classList.contains('courtReveal')) return;
@@ -1541,6 +1471,7 @@ window.addEventListener('unhandledrejection', function(e){
          shut instead of trusting listener removal to win the race. */
       if(finished) return;
       if(cawVid.controls && arguments[0] && arguments[0].target===cawVid) return;
+      if(i>=0 && steps[i].scene==='welcome_boss'){ cawVid.onended=null; cawVid.pause(); }
       i++;
       if(i>=steps.length){
         finished=true;
@@ -1560,7 +1491,7 @@ window.addEventListener('unhandledrejection', function(e){
       } else {
         var prev=screenFor(steps[i-1]), next=screenFor(step);
         prev.removeEventListener('click',advance);
-        if(step.scene==='intro_court' && prev===next){
+        if((step.scene==='intro_court' || step.scene==='welcome_boss') && prev===next){
           show(step); /* Start audible playback inside the player's tap on iOS. */
           next.addEventListener('click',advance);
         }else if(prev===next){
@@ -2233,7 +2164,13 @@ window.addEventListener('unhandledrejection', function(e){
 
   { id:'tiny_openmic', venue:'home',  title:'DAY ONE', mood:'base',
     setup:[
-      "Monday morning. The actual first day, if we're not counting yesterday \u2014 which I'm not, since most of it was you meeting people through a folder.",
+      "Morning, boss. I hope you saw the welcome sign. Sam was out there all night in the snow trying to get the thing to stay up.",
+      "Four numbers run this franchise. You’ll find them on your desk every Monday.",
+      "CASH is cash. Gate money in, payroll out.",
+      "MORALE wins games. It’s the only thing that does.",
+      "BUZZ fills seats. If half the town’s talking about the Lumberjacks by lunchtime, we’ll feel it at the gate tonight.",
+      "And CRED. That’s what the league thinks of you. It decides our cut on the road and whose calls come in.",
+      "Let it slip far enough and the phone stops ringing. Trouble is, you’ll never know who was going to call.",
       "Straight to business, then. Tiny worked the Open Mic downtown last night, and about thirty of his forty minutes were an impression of you. I'd call it unflattering. The room disagreed. Loudly.",
       "So... what's the first order of business?"],
     choices:[
@@ -3395,15 +3332,15 @@ window.addEventListener('unhandledrejection', function(e){
 
   function fmtCash(v){ return (v<0?'-$':'$') + Math.abs(v).toLocaleString('en-US'); }
   function clamp(v){ return Math.max(0, Math.min(99, v)); }
-  var dashFrame=document.getElementById('dashFrame'), officeFrameApplied=false,
+  var desk=document.getElementById('desk'), officeFrameApplied=false,
       officeFrameProbeStarted=false, officeFrameUnavailable=false;
   function applyOfficeLook(){
-    if(!dashFrame || !S.flags || !S.flags.officeRenovated || officeFrameApplied
+    if(!desk || !S.flags || !S.flags.officeRenovated || officeFrameApplied
        || officeFrameProbeStarted || officeFrameUnavailable) return;
     officeFrameProbeStarted=true;
     var p=new Image();
     p.onload=function(){
-      dashFrame.src='assets/ui/frame-renovated.webp';
+      desk.style.setProperty('--desk-art',"url('assets/ui/frame-renovated.webp')");
       officeFrameApplied=true; officeFrameProbeStarted=false;
     };
     /* The upgraded frame is optional until the art is locked. One miss is
@@ -3736,7 +3673,6 @@ window.addEventListener('unhandledrejection', function(e){
       slabEl.textContent='OFF-SEASON';
       foeEl.textContent='NO GAME';
       foeEl.style.transform=''; foeEl.className='sv1 mid';
-      document.getElementById('slVenue').textContent='';
     /* Post-game: the lower-left card shows a big W or L stamp instead of the
        matchup, until the next week begins. */
     } else if(S.showResultStamp){
@@ -3744,12 +3680,10 @@ window.addEventListener('unhandledrejection', function(e){
       foeEl.textContent = S.lastWon ? 'W' : 'L';
       foeEl.className = 'sv1 stamp ' + (S.lastWon ? 'win' : 'loss');
       foeEl.style.transform='';
-      document.getElementById('slVenue').textContent='';
     } else if(current && current.rest){
       slabEl.textContent='REST WEEK';
       foeEl.textContent='NO GAME';
       foeEl.style.transform=''; foeEl.className='sv1 mid';
-      document.getElementById('slVenue').textContent='';
     } else {
       slabEl.textContent='NEXT GAME';
       /* The rebuilt tab is 259px wide, so most names now fit in full \u2014 only the
@@ -3762,7 +3696,6 @@ window.addEventListener('unhandledrejection', function(e){
       foeEl.style.transform=''; foeEl.className='sv1';
       if(txt.length>=15)      foeEl.className='sv1 tiny';
       else if(txt.length>=11) foeEl.className='sv1 mid';
-      document.getElementById('slVenue').textContent='';
     }
     /* RECORD now lives in bar 1 (#stRecord), refreshed in the main render pass.
        venue + standing move to the ticker, where there's actual room */
@@ -3774,7 +3707,7 @@ window.addEventListener('unhandledrejection', function(e){
     } else {
       tick=((current&&current.rest)?'DARK WEEK AT THE SHACK':(S.venue==='HOME'?'HOME NIGHT':'ON THE ROAD'))+'  \u2022  '+divisionPlace(true);
     }
-    document.getElementById('ticker').textContent=tick;
+    document.getElementById('ticker').textContent=(!inOffseason && S.week===1 && !S.wins && !S.losses && S.venue==='HOME') ? 'Home night · Season opens' : tick;
   }
 
   function setNextBtn(label, sub){
@@ -5212,12 +5145,9 @@ window.addEventListener('unhandledrejection', function(e){
     castCard('tiny'),
     castCard('leo'),
     castCard('import'),
-    {kind:'text', scene:'intro_numbers',
-     text:"\u201CFour numbers run this franchise. Top of the desk, every Monday.\n\nCASH is cash. Gate money in, payroll out.\n\nMORALE wins games. It's the only thing that does.\n\nBUZZ fills seats. It won't win you a single basket \u2014 but seats are the money.\u201D"},
-    {kind:'text', scene:'intro_cred',
-     text:"\u201CAnd CRED. That's what the league thinks of you.\n\nIt's our cut on the road, and it's whose calls come in at all. Low enough and the phone stops ringing, and you won't know what you missed.\n\nBuzz fills the building tonight. Cred is whether anybody returns your call in five years.\u201D"},
     {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
-     text:"\u201CYour first briefing is Monday morning. Don't be late.\n\nThe last owner was late.\u201D\n\nShe does not elaborate."}
+     text:"\u201CYour first briefing is Monday morning. Don't be late.\n\nThe last owner was late.\u201D\n\nShe does not elaborate."},
+    {kind:'text', scene:'welcome_boss', artOnly:true}
   ];
 
   /* ---------- SANDRA'S FILING CABINET ---------- */
@@ -5432,7 +5362,7 @@ window.addEventListener('unhandledrejection', function(e){
     /* The opening sequence plays on the coldest cache the game ever sees, and
        a video that misses probeArt's window auto-skips silently \u2014 which is
        exactly how the blizzard scene went missing. Warm these too. */
-    ['intro_arrival','intro_court','intro_numbers','intro_cred','hotdish_team','hotdish_team_fail'].forEach(preloadArt);
+    ['intro_arrival','intro_court','hotdish_team','hotdish_team_fail'].forEach(preloadArt);
     /* Crowd variations for the home tip-off \u2014 same cold-load reasoning as
        the video preloads above: a fetch+decode that only starts when the
        sound is actually needed would race the moment it's meant to land in. */
