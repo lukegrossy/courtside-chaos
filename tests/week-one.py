@@ -11,6 +11,7 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
     Thread(target=server.serve_forever, daemon=True).start()
     browser = pw.webkit.launch()
     page = browser.new_page(**pw.devices["iPhone 13"], reduced_motion="reduce")
+    page.on("pageerror", lambda err: print("Game error:", err, flush=True))
     page.goto(f"http://127.0.0.1:{server.server_port}", wait_until="domcontentloaded")
     page.locator("#startbtn").tap()
     for screen in ("cut", "quote"):
@@ -66,7 +67,8 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
         elif name in ("caw", "gazS"):
             screen.tap(position={"x": 20, "y": 68})
         page.wait_for_timeout(150)
-    assert page.locator("#dash.on #slotL .slab").inner_text() == "RESULT"
+    page.locator("#dash.on #nextBtn:visible").wait_for()
+    assert page.locator("#slotL .slab").text_content() == "RESULT", page.locator("#desk").inner_text()
     assert page.locator("#ticker").inner_text() == ""
     page.locator("#nextBtn").tap()
     page.wait_for_function("document.querySelector('#stWeek').textContent.trim() === '02'")
