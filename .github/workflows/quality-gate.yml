@@ -148,5 +148,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: week-one-desk
-          path: /tmp/week-one-desk.png
+          path: |
+            /tmp/week-one-desk.png
+            /tmp/postgame-slips.png
           retention-days: 3
