@@ -495,7 +495,7 @@ posthog.init('phc_tQTiDWWVCnoE8dnKSqUfugPuBTtf9rK2o5ZPBJ4ruhxB',{
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-desk-11';
+window.__BUILD__ = 'season1-desk-12';
 window.__ccTrack = function(name, props){
   try{
     if(!window.posthog || typeof window.posthog.capture!=='function') return;
@@ -683,7 +683,7 @@ window.addEventListener('unhandledrejection', function(e){
         <div class="hcell h2"><span class="lab">WEEK</span><span class="v blk" id="stWeek">01</span></div>
         <div class="hcell h3"><span class="lab">RECORD</span><span class="v blk" id="stRecord">0-0</span></div>
         </div>
-        <div class="window paint" id="portwin"><img alt="" id="portrait" src="assets/ui/desk/office.webp"></div>
+        <div class="window paint" id="portwin"><img alt="" id="portrait" src="assets/portraits/sandra/season-one/base.webp"></div>
         <section class="notebook paint" aria-labelledby="noteh">
           <div class="noteh" id="noteh">DAY ONE</div>
           <div class="notewrap" id="notewrap">
@@ -1151,12 +1151,13 @@ window.addEventListener('unhandledrejection', function(e){
        is still preferable to a visibly wrong emotion lingering for a second. */
     portrait.style.opacity = 0;
     (function tryNext(){
+      if(myToken !== portraitFadeToken) return;
       if(i>=PORTRAIT_EXTS.length){
         if(m!=='base') setPortrait(who,'base',true);
         else applyPortrait(BASE_SRC, myToken);
         return;
       }
-      var url='assets/portraits/'+who+'/'+m+'.'+PORTRAIT_EXTS[i++];
+      var url=(who==='sandra'?'assets/portraits/sandra/season-one/':'assets/portraits/'+who+'/')+m+'.'+PORTRAIT_EXTS[i++];
       var probe=new Image();
       probe.onload=function(){ applyPortrait(url, myToken); };
       probe.onerror=tryNext;
@@ -1165,7 +1166,6 @@ window.addEventListener('unhandledrejection', function(e){
   }
   function applyPortrait(url, token){
     if(token !== portraitFadeToken) return;
-    if(url==='assets/portraits/sandra/base.webp') url='assets/ui/desk/office.webp';
     if(portrait.getAttribute('src')===url){ portrait.style.opacity=''; return; }
     /* The probe above has decoded the image already, so assigning it here is a
        cache hit. Swap while invisible and fade the correct face back in. */
@@ -1225,7 +1225,7 @@ window.addEventListener('unhandledrejection', function(e){
     var i=0;
     (function tryNext(){
       if(i>=PORTRAIT_EXTS.length){ cb(who==='sandra'?BASE_SRC:null); return; }
-      var url='assets/portraits/'+who+'/base.'+PORTRAIT_EXTS[i++], p=new Image();
+      var url=(who==='sandra'?'assets/portraits/sandra/season-one/':'assets/portraits/'+who+'/')+'base.'+PORTRAIT_EXTS[i++], p=new Image();
       p.onload=function(){ cb(url); };
       p.onerror=tryNext;
       p.src=url;
@@ -2200,7 +2200,7 @@ window.addEventListener('unhandledrejection', function(e){
      desk, gaz, scene?, flag?/needs?}                            */
   var STORY = [
 
-  { id:'tiny_openmic', venue:'home',  title:'DAY ONE', mood:'base',
+  { id:'tiny_openmic', venue:'home',  title:'DAY ONE', mood:'base', portraitMood:'monday',
     setup:[
       "Morning, boss. I hope you saw the welcome sign. Sam was out there all night in the snow trying to get the thing to stay up.",
       "Four numbers run this franchise. You’ll find them on your desk every Monday.",
@@ -2860,7 +2860,7 @@ window.addEventListener('unhandledrejection', function(e){
         desk:"Bowling: denied. The responsible call, which is a category of call that wins no friends. Ricky has filed the shoes away in his memory alongside other grievances, where they will age, and ferment, and return. They always return.",
         gaz:"AREA TEAM DECLINES BOWLING; RENTED SHOES RETURNED UNUSED", news:"Offered a bowling excursion during a thaw delay, the Lumberjacks declined and remained at the gymnasium. A player described the wait as the least fun associated with a dry pair of socks in recent memory. The rented shoes were returned unused.", mood:'dry' } ] },
 
-  { id:'sam_stowaway', venue:'road', title:'THE STOWAWAY', mood:'dry', portraitMood:'sandra_playoff_road', once:true, special:'samtunnel',
+  { id:'sam_stowaway', venue:'road', title:'THE STOWAWAY', mood:'dry', portraitMood:'sandra-road', once:true, special:'samtunnel',
     setup:[
       "The equipment manager opened the uniform trunk at the away arena and found Sawdust Sam folded into it like a deck chair. Fully suited. Holding a thermos. He had been in there since we left, which is four hours, and nobody heard a thing, which he indicates was the point.",
       "Mascots do not travel. There's no budget line for it, no visiting credential, and the home club has its own \u2014 a Muskie \u2014 who I am told takes the role seriously, in a way that was described to me over the phone as 'territorial,' by a man who then declined to elaborate.",
@@ -3861,7 +3861,7 @@ window.addEventListener('unhandledrejection', function(e){
     var gazL='SEASON ENDS ONE GAME SHORT; GROCERY STORE BRACES';
     var newsL="The Lumberjacks' season ended in the North Country semifinal against "+pf+". Fans have begun preparing expressions of sympathy for deployment at the grocery store, the bank, and the gas station. The team is understood to prefer that they wouldn't.";
     var st={ playoff:'semi', title:'THE SEMIFINAL', mood:'alarmed',
-      venue: home?'home':'road', foes:[foe], when:'game', gamePhase:'PREGAME', scene:'playoff',
+      venue: home?'home':'road', portraitMood:home?'sandra_home_arena':'sandra_playoff_road', foes:[foe], when:'game', gamePhase:'PREGAME', scene:'playoff',
       setup:[
         "Well. We're in. The North Country Playoffs \u2014 single elimination, winner plays for the Timber Cup \u2014 and I have ironed my good blouse, which I'd like entered in the record as the only public display of emotion I intend to make.",
         (home ? pf+" in the semifinal, at the Shack. So the building gets a say. Lately the building has had plenty to say."
@@ -4025,7 +4025,7 @@ window.addEventListener('unhandledrejection', function(e){
     if(current.grace){
       setPortrait('grace', 'base');
     } else {
-      setPortrait('sandra', current.portraitMood||current.mood||'base');
+      setPortrait('sandra', current.portraitMood||(current.venue==='road'?'sandra-road':current.when==='game'?'sandra-stadium':current.mood)||'base');
     }
     setNote(current.setup);
     /* THE PHONE THAT NOBODY ANSWERS: a rare, unscripted background detail \u2014
@@ -5179,7 +5179,7 @@ window.addEventListener('unhandledrejection', function(e){
     castCard('tiny'),
     castCard('leo'),
     castCard('import'),
-    {kind:'card', who:'sandra', profile:true, portrait:'assets/portraits/sandra/office-door.webp', name:'SANDRA', meta:'Secretary',
+    {kind:'card', who:'sandra', profile:true, portrait:'assets/portraits/sandra/season-one/office-door-neutral.webp', name:'SANDRA', meta:'Secretary',
      text:"\u201CYour first briefing is Monday morning. Don't be late.\n\nThe last owner was late.\u201D\n\nShe does not elaborate."},
     {kind:'text', scene:'welcome_boss', artOnly:true}
   ];
@@ -5400,11 +5400,11 @@ window.addEventListener('unhandledrejection', function(e){
     /* Dashboard portrait swaps were showing the PREVIOUS emotion until the
        new file finished downloading \u2014 read as a glitch. Warming every mood
        up front makes each swap a cache hit, so it changes in one frame. */
-    ['base','dry','alarmed','pleased','tired','grim','holiday','sandra_gasstation','sandra_forbidden','sandra_awards','sandra_home_arena','sandra_blizzard','sandra_playoff_road'].forEach(function(m){
+    ['base','monday','sandra-road','sandra-stadium','dry','alarmed','pleased','tired','grim','holiday','sandra_gasstation','sandra_forbidden','sandra_awards','sandra_home_arena','sandra_blizzard','sandra_playoff_road'].forEach(function(m){
       var i=0;
       (function tryNext(){
         if(i>=PORTRAIT_EXTS.length) return;
-        var url='assets/portraits/sandra/'+m+'.'+PORTRAIT_EXTS[i++];
+        var url='assets/portraits/sandra/season-one/'+m+'.'+PORTRAIT_EXTS[i++];
         var p=new Image();
         p.onerror=tryNext;
         p.src=url;
