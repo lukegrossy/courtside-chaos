@@ -31,7 +31,7 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
         cutaway.tap(position={"x": 12, "y": 60})
         page.wait_for_timeout(100)
     page.locator("#dash.on").wait_for()
-    for width, height, top, bottom in [(393, 852, 59, 34), (375, 667, 20, 0), (393, 650, 0, 0), (430, 932, 62, 34)]:
+    for width, height, top, bottom in [(393, 852, 59, 34), (375, 667, 20, 0), (393, 650, 0, 0), (430, 932, 62, 34), (393, 748, 59, 34), (393, 852, 59, 34)]:
         page.set_viewport_size({"width": width, "height": height})
         page.locator("#dash").evaluate(
             "(el, [t,b]) => { el.style.setProperty('--safe-top',t+'px'); el.style.setProperty('--safe-bottom',b+'px'); }",
@@ -44,7 +44,7 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
         )
         logo = page.locator(".chlogo").bounding_box()
         footer = page.locator(".ljfooter").bounding_box()
-        assert top <= logo["y"] <= top + 5, logo
+        assert top + 19 <= logo["y"] <= top + 21, logo
         assert footer["y"] + footer["height"] <= height - bottom + 1, footer
         paper = page.locator(".notebook").bounding_box()
         desk = page.locator("#desk").bounding_box()
@@ -52,7 +52,8 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
         assert page.locator("#ticker").inner_text() == ""
         note = page.locator("#notescroll")
         note.evaluate("el => el.scrollTop = 0")
-        assert abs(desk["width"] / desk["height"] - 638 / 1406) < 0.002
+        assert abs(desk["width"] - width * 0.94) < 1
+        assert abs(footer["y"] + footer["height"] - (height - bottom - 3)) < 2
         cash = note.locator(".opening-note p").nth(2).bounding_box()
         body = note.bounding_box()
         assert cash["y"] + cash["height"] <= body["y"] + body["height"] + 1
