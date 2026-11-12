@@ -25,15 +25,25 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
     page.wait_for_selector("#caw.on.introProfile #introDoor:visible", timeout=4000)
     profiles = set()
     cast_order = ["HANK WILLIS", "RICKY MALONE", "TINY MCGEE", "LEO G. ROSS", "THE ROOKIE", "SAWDUST SAM"]
+    expected_pages = [speaker for speaker in cast_order for _ in range(2)]
     intro_pages = []
+    saw_doorway = False
+    saw_monday = False
     board_pages = []
     for _ in range(55):
         if page.locator("#dash.on").count():
             break
         if page.locator("#cawVid.show[src$='welcome_boss.mp4']").count():
+            assert saw_monday
             cutaway.tap(position={"x": 12, "y": 60})
             page.locator("#dash.on").wait_for()
             break
+        if page.locator("#caw.titleCard.on").count():
+            assert saw_doorway
+            title = page.locator("#cawTxt")
+            assert title.is_visible()
+            assert title.text_content() == "MONDAY MORNING\nDAY 1", repr(title.text_content())
+            saw_monday = True
         if page.locator("#caw.introProfile.cardmode.on").count():
             pic = page.locator("#cawCard").bounding_box()
             name = page.locator("#cawName")
@@ -43,8 +53,11 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
                 intro_pages.append(speaker)
             if page.locator("#cawPort.show[src$='office-chalkboard.webp']").count():
                 page.locator("#cawPort").evaluate("img => img.decode()")
-                assert intro_pages == cast_order, intro_pages
+                assert intro_pages == expected_pages, intro_pages
                 board_pages.append(page.locator("#cawTxt").inner_text())
+            if page.locator("#cawPort.show[src$='office-door-neutral.webp']").count():
+                assert len(board_pages) == 2
+                saw_doorway = True
             assert pic["y"] >= 59, pic
             assert pic["y"] + pic["height"] <= name.bounding_box()["y"] + 1, pic
         cutaway.tap(position={"x": 12, "y": 60})
@@ -52,7 +65,7 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
     page.locator("#dash.on").wait_for()
     assert any("CASH" in text and "MORALE" in text for text in board_pages)
     assert any("BUZZ" in text and "CRED" in text for text in board_pages)
-    assert intro_pages == cast_order, intro_pages
+    assert intro_pages == expected_pages, intro_pages
     assert {"HANK WILLIS", "SANDRA"} <= profiles, profiles
     for width, height, top, bottom in [(393, 852, 59, 34), (375, 667, 20, 0), (393, 650, 0, 0), (430, 932, 62, 34), (393, 748, 59, 34), (393, 852, 59, 34)]:
         page.set_viewport_size({"width": width, "height": height})
