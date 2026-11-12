@@ -103,60 +103,54 @@
   #quote.on .q{opacity:1;}
 
 
-  /* Dashboard panels use individual regions of the original painted desk frame.
-     Only the notebook flexes when the available safe height changes. */
-  .desk{--desk-art:url('assets/ui/frame.webp');position:absolute;
-    inset:var(--desk-top,84px) 28px var(--desk-bottom,22px);display:grid;
-    grid-template-rows:65px 74px 492px minmax(0,1fr) 104px 102px 100px 90px;gap:6px;
-    font:700 28px/1.2 'Courier New',monospace;color:var(--ink);}
-  .desk .paint{background-image:var(--desk-art);background-repeat:no-repeat;}
-  .chlogo,.ljfooter{justify-self:center;align-self:center;max-width:100%;object-fit:contain;}
-  .chlogo{width:380px;height:65px;image-rendering:pixelated;}
-  .ljfooter{width:750px;height:90px;}
-  .deskbar{display:grid;align-items:center;text-align:center;padding:6px 12px;}
-  .calendar{grid-template-columns:repeat(3,1fr);}
-  .economy{grid-template-columns:197fr 192fr 172fr 213fr;}
-  .deskbar .lab,.deskbar .v{display:block;line-height:1.1;}
-  .deskbar .lab{font:bold 22px/1.15 Georgia,serif;letter-spacing:1px;}
-  .calendar .v{font-size:32px;}
-  .calendar>div+div{border-left:1px solid #725b40;}
-  .economy .v{font-size:33px;margin-top:4px;letter-spacing:-.5px;}
-  #portwin{position:relative;overflow:hidden;padding:5px 6px;}
-  #portrait{width:100%;height:100%;object-fit:cover;object-position:50% 18%;}
-  .notebook{min-height:0;display:flex;flex-direction:column;padding:28px 38px 24px 72px;}
-  .noteh,.slab{color:#842e21;text-decoration:underline;text-underline-offset:5px;}
-  .noteh{font-size:30px;margin-bottom:22px;}
+  /* A native-size desk keeps the painted lettering sharp on high-density phones. */
+  #dash{position:fixed;inset:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);
+    display:grid;place-items:center;padding:3px 0;background:#000;}
+  #dash:not(.on){visibility:hidden;}
+  .phone:has(#mgOverlay.on) ~ #dash{visibility:hidden;}
+  .desk{width:min(94vw,480px,55dvh);height:min(100%,207vw,1056px);
+    container-type:inline-size;display:grid;
+    font:bold 15px/1.2 'Courier New',monospace;color:var(--ink);}
+  /* Grid tracks use fractions of desk width, even when the notebook contracts. */
+  .desk{grid-template-rows:auto auto auto minmax(0,1fr) auto auto auto;}
+  .chlogo,.ljfooter{display:block;width:100%;height:auto;}
+  .desk .paint,.desk .card{background-repeat:no-repeat;background-size:100% 100%;}
+  .calendar{background-image:url('assets/ui/desk/calendar.webp');height:9.9cqw;grid-template-columns:repeat(3,1fr);}
+  .economy{background-image:url('assets/ui/desk/stats.webp');height:14.7cqw;grid-template-columns:26% 24% 23% 27%;}
+  .deskbar{display:grid;text-align:center;align-items:end;}
+  .deskbar .lab,.callcard .txt{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
+  .deskbar .v{display:block;font-size:4.4cqw;line-height:1.1;}
+  .calendar .v{padding-bottom:1.35cqw;font-size:3.85cqw;}
+  .economy .v{padding-bottom:2.6cqw;}
+  #portwin{height:63.8cqw;overflow:hidden;}
+  #portrait{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 18%;}
+  .notebook{background-image:url('assets/ui/desk/notebook.webp');min-height:0;display:flex;flex-direction:column;
+    padding:3.7cqw 5.8cqw 5.4cqw 9.8cqw;}
+  .noteh,.slab{color:#842e21;text-decoration:underline;text-underline-offset:.55cqw;}
+  .noteh{font-size:3.65cqw;line-height:1.15;margin-bottom:4.4cqw;}
   .notewrap{position:relative;flex:1;min-height:0;}
-  .notescroll{height:100%;overflow-y:auto;touch-action:pan-y;scrollbar-width:none;
-    font-size:31px;line-height:1.38;color:#1a140f;padding-right:14px;}
+  .notescroll{height:100%;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;
+    scrollbar-width:none;font-size:3.95cqw;line-height:1.38;color:#23170e;}
   .notescroll::-webkit-scrollbar{display:none;}
-  .notescroll p{margin:0 0 1.35em;}
-  .notescroll p:last-child{margin-bottom:4px;}
-  .notearrow{position:absolute;right:0;bottom:-8px;color:#923322;font-size:23px;pointer-events:none;}
+  .notescroll p{margin:0 0 1.45em;}
+  .notescroll p:last-child{margin-bottom:0;}
+  .notearrow{position:absolute;right:0;bottom:-2.2cqw;color:#923322;font-size:3.6cqw;pointer-events:none;}
   .scrolled-end .notearrow{visibility:hidden;}
-  .slot,.actionSlip{display:flex;align-items:center;justify-content:center;min-width:0;}
-  .actionSlip{justify-self:center;width:68%;}
-  .slot{display:grid;grid-template-columns:auto 1fr;align-content:center;
-    column-gap:24px;row-gap:3px;padding:8px 50px;text-align:left;}
-  .slot .slab{grid-row:span 2;}
-  .slot .ticker{grid-column:2;}
-  .slab{font:bold 23px Georgia,serif;}
-  .sv1{font-size:30px;line-height:1.1;}
-  .sv1.tiny{font-size:25px;}
-  .sv1.stamp{font-size:48px;}
+  .slips{height:23.5cqw;display:grid;grid-template-columns:48% 52%;padding-block:.45cqw;}
+  .slot{background-image:url('assets/ui/desk/fixture.webp');display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:1.1cqw;padding:2.2cqw 2.6cqw 0;text-align:center;}
+  .slot>*{transform:rotate(-2deg);}
+  .slab{font:bold 3.25cqw Georgia,serif;}
+  .sv1{font-size:4.1cqw;line-height:1.05;}
+  .sv1.tiny{font-size:3.3cqw;}
+  .sv1.stamp{font-size:6.8cqw;}
   .stamp.win{color:var(--green);} .stamp.loss{color:var(--red);}
-  .ticker{font-size:20px;line-height:1.1;}
-  .desk .card{font:bold 30px/1.12 'Courier New',monospace;cursor:pointer;color:#872f20;
-    background:transparent;border:0;padding:10px 24px;width:100%;height:100%;}
-  .desk .card .txt{display:block;border:3px solid currentColor;outline:1px solid currentColor;
-    outline-offset:-6px;transform:rotate(-1.6deg);padding:12px 3px;}
-  .desk .card:active .txt{transform:rotate(-1.6deg) translateY(2px);}
-  .calendar.paint{background-size:107.026% 2526.027%;background-position:50.000% 8.187%;}
-  .economy.paint{background-size:107.026% 1723.364%;background-position:50.000% 12.550%;}
-  .window.paint{background-size:107.431% 364.427%;background-position:49.153% 24.215%;}
-  .notebook.paint{background-size:107.026% 274.814%;background-position:50.000% 70.418%;}
-  .slot.paint{background-size:296.181% 1145.342%;background-position:18.407% 89.067%;}
-  .actionSlip.paint{background-size:251.622% 1145.342%;background-position:79.961% 89.067%;}
+  .ticker{font:bold 2.85cqw/1.05 Georgia,serif;}
+  .desk .card{width:100%;height:100%;padding:0;border:0;cursor:pointer;background-color:transparent;}
+  .desk .callcard{background-image:url('assets/ui/desk/call.webp');}
+  .desk .nextcard{background-image:url('assets/ui/desk/next.webp');font:bold 3.8cqw/1 'Courier New',monospace;color:#882f21;}
+  .nextcard .txt{display:block;transform:rotate(-3deg);padding:3.5cqw 3.6cqw 0;}
+  .desk .card:active{filter:brightness(.88);}
   /* ---- decision screen ---- */
   .dart{position:absolute; left:0; top:0; width:853px; height:1844px;}
   /* POLISH PASS 2: decision and in-game moment titles now share one visual
@@ -470,7 +464,7 @@ posthog.init('phc_tQTiDWWVCnoE8dnKSqUfugPuBTtf9rK2o5ZPBJ4ruhxB',{
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-desk-2';
+window.__BUILD__ = 'season1-desk-3';
 window.__ccTrack = function(name, props){
   try{
     if(!window.posthog || typeof window.posthog.capture!=='function') return;
@@ -646,16 +640,19 @@ window.addEventListener('unhandledrejection', function(e){
       <div class="mcard m2" id="mB"><span class="txt"></span><span class="sub"></span></div>
     </div>
 
+
+  </div>
+</div>
     <!-- DASHBOARD -->
     <div class="screen" id="dash">
       <div class="desk" id="desk">
-        <img class="chlogo" alt="Courtside Chaos" src="assets/ui/courtside-header.png">
+        <img class="chlogo" alt="Courtside Chaos" src="assets/ui/desk/header.webp">
         <div class="deskbar calendar paint">
           <div class="hcell h1"><span class="lab">SEASON</span><span class="v blk" id="stSeason">1</span></div>
         <div class="hcell h2"><span class="lab">WEEK</span><span class="v blk" id="stWeek">01</span></div>
         <div class="hcell h3"><span class="lab">RECORD</span><span class="v blk" id="stRecord">0-0</span></div>
         </div>
-        <div class="window paint" id="portwin"><img alt="" id="portrait" src="assets/ui/sandra-base.webp"></div>
+        <div class="window paint" id="portwin"><img alt="" id="portrait" src="assets/ui/desk/office.webp"></div>
         <section class="notebook paint" aria-labelledby="noteh">
           <div class="noteh" id="noteh">DAY ONE</div>
           <div class="notewrap" id="notewrap">
@@ -663,9 +660,16 @@ window.addEventListener('unhandledrejection', function(e){
             <div class="notearrow" aria-hidden="true">&#9660;</div>
           </div>
         </section>
+        <div class="slips">
+        <div class="slot slotL paint" id="slotL">
+          <span class="slab">NEXT GAME</span>
+          <span class="sv1" id="slFoe"></span>
+          <span class="ticker" id="ticker"></span>
+        </div>
         <div class="actionSlip paint">
           <button type="button" class="card callcard" id="callBtn"><span class="txt">MAKE THE CALL &#9654;</span></button>
           <button type="button" class="card nextcard" id="nextBtn" style="display:none"><span class="txt">NEXT WEEK &#9654;</span></button>
+        </div>
         </div>
         <div class="deskbar economy paint">
           <div class="cell s1" role="group" aria-label="Cash on hand"><span class="lab" aria-hidden="true">CASH</span><span class="v blk green" id="stCash" aria-live="polite">$40,000</span></div>
@@ -673,17 +677,10 @@ window.addEventListener('unhandledrejection', function(e){
         <div class="cell s3" role="group" aria-label="Buzz, percent. Fills seats."><span class="lab" aria-hidden="true">BUZZ</span><span class="v blk amber" id="stBuzz" aria-live="polite">48%</span></div>
         <div class="cell s4" role="group" aria-label="Credibility, percent. Opens doors."><span class="lab" aria-hidden="true">CRED</span><span class="v blk blue" id="stCred" aria-live="polite">36%</span></div>
         </div>
-        <div class="slot slotL paint" id="slotL">
-          <span class="slab">NEXT GAME</span>
-          <span class="sv1" id="slFoe"></span>
-          <span class="ticker" id="ticker"></span>
-        </div>
-        <img class="ljfooter" alt="The Lumberjack Story" src="assets/ui/lumberjack-footer.png">
+        <img class="ljfooter" alt="The Lumberjack Story" src="assets/ui/desk/footer.webp">
       </div>
     </div>
 
-  </div>
-</div>
 <script>
 (function(){
   var phone=document.querySelector('.phone'), stage=document.getElementById('stage');
@@ -736,12 +733,6 @@ window.addEventListener('unhandledrejection', function(e){
     var availW=Math.min(480, window.innerWidth);   /* cap is for desktop; 430 clipped a 16 Pro Max */
     var availH=H-pad;
     var scale=Math.min(availW/STAGE_W, availH/STAGE_H);
-    // The desk stays inside the visible safe area, including on short devices.
-    var stageTop=(H+pad-STAGE_H*scale)/2;
-    var stageBottom=H-stageTop-STAGE_H*scale;
-    var root=document.documentElement.style;
-    root.setProperty('--desk-top',Math.max(12,(inset-stageTop)/scale+8)+'px');
-    root.setProperty('--desk-bottom',Math.max(12,(safeInset('bottom')-stageBottom)/scale+6)+'px');
     if(Math.abs(scale-lastScale) < 0.0025) return;       /* below perceptible; don't feed the loop */
     lastScale=scale;
     document.body.style.paddingTop=pad+'px';
@@ -1066,7 +1057,7 @@ window.addEventListener('unhandledrejection', function(e){
       })();
     },{passive:true});
   }
-  dragScroll(sc);
+
   dragScroll(document.getElementById('foTxt'));
 })();
 </script>
@@ -1140,6 +1131,7 @@ window.addEventListener('unhandledrejection', function(e){
   }
   function applyPortrait(url, token){
     if(token !== portraitFadeToken) return;
+    if(url==='assets/portraits/sandra/base.webp') url='assets/ui/desk/office.webp';
     if(portrait.getAttribute('src')===url){ portrait.style.opacity=''; return; }
     /* The probe above has decoded the image already, so assigning it here is a
        cache hit. Swap while invisible and fade the correct face back in. */
@@ -1387,6 +1379,12 @@ window.addEventListener('unhandledrejection', function(e){
           cawPlac.classList.add('hide');
           return;
         }
+        if(step.portrait){
+          cawPort.src=step.portrait;
+          cawPort.classList.add('show'); cawPlac.classList.add('hide');
+          cawPort.dataset.profile='';
+          return;
+        }
         if(step.profile && cawPort.dataset.profile===step.who && cawPort.classList.contains('show')) return;
         cawPort.dataset.profile=step.profile ? step.who : '';
         paintCard(step.who, cawPort, cawPlac, function(){ return tok===portToken; });
@@ -1394,7 +1392,7 @@ window.addEventListener('unhandledrejection', function(e){
       }
       if(arrivalFilm){
         cawVid.src='assets/cutscenes/'+step.scene+'.mp4';
-        if(step.scene==='intro_court') cawVid.poster='assets/cutscenes/intro_court.webp';
+        cawVid.poster='assets/cutscenes/'+step.scene+'.webp';
         if(step.scene==='welcome_boss') cawVid.onended=advance;
         cawVid.classList.add('show');
         cawVid.play().catch(function(){
@@ -5131,7 +5129,7 @@ window.addEventListener('unhandledrejection', function(e){
 
   /* ---------- WEEK ZERO: ARRIVAL ---------- */
   var INTRO_STEPS=[
-    {kind:'text', scene:'intro_arrival',
+    {kind:'text', scene:'shack',
      text:"WINTER, 1984.\n\nYou bought a basketball team.\n\nNobody up here has asked why. Not the bank, not the league, not the fella who sold it to you \u2014 who shook your hand with both of his, which you have since had time to think about."},
     {kind:'card', doorway:true, who:'sandra', name:'SANDRA', meta:'Secretary',
      text:"She's at the door before you are, holding a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CI keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those. I'll let you pick which.\u201D"},
@@ -5145,7 +5143,7 @@ window.addEventListener('unhandledrejection', function(e){
     castCard('tiny'),
     castCard('leo'),
     castCard('import'),
-    {kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
+    {kind:'card', who:'sandra', profile:true, portrait:'assets/portraits/sandra/monday.webp', name:'SANDRA', meta:'Secretary',
      text:"\u201CYour first briefing is Monday morning. Don't be late.\n\nThe last owner was late.\u201D\n\nShe does not elaborate."},
     {kind:'text', scene:'welcome_boss', artOnly:true}
   ];
@@ -5362,7 +5360,7 @@ window.addEventListener('unhandledrejection', function(e){
     /* The opening sequence plays on the coldest cache the game ever sees, and
        a video that misses probeArt's window auto-skips silently \u2014 which is
        exactly how the blizzard scene went missing. Warm these too. */
-    ['intro_arrival','intro_court','hotdish_team','hotdish_team_fail'].forEach(preloadArt);
+    preloadImage('shack');
     /* Crowd variations for the home tip-off \u2014 same cold-load reasoning as
        the video preloads above: a fetch+decode that only starts when the
        sound is actually needed would race the moment it's meant to land in. */
