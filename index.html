@@ -1427,7 +1427,13 @@ window.addEventListener('unhandledrejection', function(e){
       if(arrivalFilm){
         cawVid.src='assets/cutscenes/'+step.scene+'.mp4';
         cawVid.poster='assets/cutscenes/'+step.scene+'.webp';
-        if(step.scene==='welcome_boss') cawVid.onended=advance;
+        if(step.scene==='welcome_boss'){
+          cawVid.onended=function(){
+            cawVid.onended=advance;
+            cawVid.currentTime=0;
+            cawVid.play().catch(function(){ cawVid.controls=true; });
+          };
+        }
         cawVid.classList.add('show');
         cawVid.play().catch(function(){
           if(!caw.classList.contains('courtReveal')) return;
@@ -5173,7 +5179,7 @@ window.addEventListener('unhandledrejection', function(e){
     castCard('tiny'),
     castCard('leo'),
     castCard('import'),
-    {kind:'card', who:'sandra', profile:true, portrait:'assets/portraits/sandra/monday.webp', name:'SANDRA', meta:'Secretary',
+    {kind:'card', who:'sandra', profile:true, portrait:'assets/portraits/sandra/office-door.webp', name:'SANDRA', meta:'Secretary',
      text:"\u201CYour first briefing is Monday morning. Don't be late.\n\nThe last owner was late.\u201D\n\nShe does not elaborate."},
     {kind:'text', scene:'welcome_boss', artOnly:true}
   ];
