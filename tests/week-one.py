@@ -40,7 +40,9 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
             break
         if page.locator("#caw.titleCard.on").count():
             assert saw_doorway
-            assert page.locator("#cawTxt").inner_text().splitlines() == ["MONDAY MORNING", "DAY 1"]
+            title = page.locator("#cawTxt")
+            assert title.is_visible()
+            assert title.text_content() == "MONDAY MORNING\nDAY 1", repr(title.text_content())
             saw_monday = True
         if page.locator("#caw.introProfile.cardmode.on").count():
             pic = page.locator("#cawCard").bounding_box()
