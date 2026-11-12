@@ -24,6 +24,7 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
     cutaway.tap()
     page.wait_for_selector("#caw.on.introProfile #introDoor:visible", timeout=4000)
     profiles = set()
+    board_pages = []
     for _ in range(55):
         if page.locator("#dash.on").count():
             break
@@ -35,11 +36,16 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
             pic = page.locator("#cawCard").bounding_box()
             name = page.locator("#cawName")
             profiles.add(name.inner_text().upper())
+            if page.locator("#cawPort.show[src$='office-chalkboard.webp']").count():
+                page.locator("#cawPort").evaluate("img => img.decode()")
+                board_pages.append(page.locator("#cawTxt").inner_text())
             assert pic["y"] >= 59, pic
             assert pic["y"] + pic["height"] <= name.bounding_box()["y"] + 1, pic
         cutaway.tap(position={"x": 12, "y": 60})
         page.wait_for_timeout(100)
     page.locator("#dash.on").wait_for()
+    assert any("CASH" in text and "MORALE" in text for text in board_pages)
+    assert any("BUZZ" in text and "CRED" in text for text in board_pages)
     assert {"HANK WILLIS", "SANDRA"} <= profiles, profiles
     for width, height, top, bottom in [(393, 852, 59, 34), (375, 667, 20, 0), (393, 650, 0, 0), (430, 932, 62, 34), (393, 748, 59, 34), (393, 852, 59, 34)]:
         page.set_viewport_size({"width": width, "height": height})
@@ -67,14 +73,18 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
         note.evaluate("el => el.scrollTop = 0")
         assert abs(desk["width"] - width * 0.94) < 1
         assert abs(footer["y"] + footer["height"] - (height - bottom - 3)) < 2
-        cash = note.locator(".opening-note p").nth(2).bounding_box()
+        paragraphs = note.locator(".opening-note p")
+        assert paragraphs.count() == 3
+        assert "Tiny" in paragraphs.nth(1).inner_text()
+        assert "CASH" not in note.inner_text()
+        tiny = paragraphs.nth(1).bounding_box()
         body = note.bounding_box()
         if height >= 820:
-            assert cash["y"] + cash["height"] <= body["y"] + body["height"] + 1
+            assert tiny["y"] < body["y"] + body["height"]
         if width == 393 and height == 852:
             page.locator("#portrait").evaluate("img => img.decode()")
             page.locator("#desk").screenshot(path="/tmp/week-one-desk.png", scale="device")
-        assert note.evaluate("el => { el.scrollTop = el.scrollHeight; return el.scrollTop > 0; }")
+        assert note.evaluate("el => { el.scrollTop = el.scrollHeight; return el.scrollHeight - el.clientHeight - el.scrollTop <= 1; }")
         assert page.locator(".chlogo").bounding_box()["y"] == logo["y"]
     page.locator("#callBtn").tap()
     page.locator("#decide.on").wait_for()
