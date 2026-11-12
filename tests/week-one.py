@@ -24,6 +24,8 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
     cutaway.tap()
     page.wait_for_selector("#caw.on.introProfile #introDoor:visible", timeout=4000)
     profiles = set()
+    cast_order = ["HANK WILLIS", "RICKY MALONE", "TINY MCGEE", "LEO G. ROSS", "THE ROOKIE", "SAWDUST SAM"]
+    intro_pages = []
     board_pages = []
     for _ in range(55):
         if page.locator("#dash.on").count():
@@ -35,9 +37,13 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
         if page.locator("#caw.introProfile.cardmode.on").count():
             pic = page.locator("#cawCard").bounding_box()
             name = page.locator("#cawName")
-            profiles.add(name.inner_text().upper())
+            speaker = name.inner_text().upper()
+            profiles.add(speaker)
+            if speaker in cast_order:
+                intro_pages.append(speaker)
             if page.locator("#cawPort.show[src$='office-chalkboard.webp']").count():
                 page.locator("#cawPort").evaluate("img => img.decode()")
+                assert intro_pages == cast_order, intro_pages
                 board_pages.append(page.locator("#cawTxt").inner_text())
             assert pic["y"] >= 59, pic
             assert pic["y"] + pic["height"] <= name.bounding_box()["y"] + 1, pic
@@ -46,6 +52,7 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
     page.locator("#dash.on").wait_for()
     assert any("CASH" in text and "MORALE" in text for text in board_pages)
     assert any("BUZZ" in text and "CRED" in text for text in board_pages)
+    assert intro_pages == cast_order, intro_pages
     assert {"HANK WILLIS", "SANDRA"} <= profiles, profiles
     for width, height, top, bottom in [(393, 852, 59, 34), (375, 667, 20, 0), (393, 650, 0, 0), (430, 932, 62, 34), (393, 748, 59, 34), (393, 852, 59, 34)]:
         page.set_viewport_size({"width": width, "height": height})
