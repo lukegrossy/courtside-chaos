@@ -1,0 +1,48 @@
+"""Verify the arrival sequence and safe-area desk layout in mobile WebKit."""
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from threading import Thread
+from playwright.sync_api import sync_playwright
+
+root = Path(__file__).resolve().parents[1]
+handler = partial(SimpleHTTPRequestHandler, directory=root)
+with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright() as pw:
+    Thread(target=server.serve_forever, daemon=True).start()
+    browser = pw.webkit.launch()
+    page = browser.new_page(**pw.devices["iPhone 13"], reduced_motion="reduce")
+    page.goto(f"http://127.0.0.1:{server.server_port}", wait_until="domcontentloaded")
+    page.locator("#startbtn").tap()
+    for screen in ("cut", "quote"):
+        page.locator(f"#{screen}.on").tap()
+    cutaway = page.locator("#caw.on")
+    cutaway.wait_for()
+    assert "WINTER, 1984" in page.locator("#cawTxt").inner_text()
+    cutaway.tap()
+    page.wait_for_selector("#caw.on.introProfile #introDoor:visible", timeout=4000)
+    for _ in range(55):
+        if page.locator("#dash.on").count():
+            break
+        if page.locator("#cawVid.show[src$='welcome_boss.mp4']").count():
+            cutaway.tap(position={"x": 12, "y": 60})
+            page.locator("#dash.on").wait_for()
+            break
+        cutaway.tap(position={"x": 12, "y": 60})
+        page.wait_for_timeout(100)
+    page.locator("#dash.on").wait_for()
+    for width, height, top, bottom in [(393, 852, 59, 34), (375, 667, 20, 0), (430, 932, 62, 34)]:
+        page.set_viewport_size({"width": width, "height": height})
+        page.locator("#dash").evaluate(
+            "(el, [t,b]) => { el.style.setProperty('--safe-top',t+'px'); el.style.setProperty('--safe-bottom',b+'px'); }",
+            [top, bottom],
+        )
+        logo = page.locator(".chlogo").bounding_box()
+        footer = page.locator(".ljfooter").bounding_box()
+        assert top <= logo["y"] <= top + 5, logo
+        assert footer["y"] + footer["height"] <= height - bottom + 1, footer
+        note = page.locator("#notescroll")
+        assert note.evaluate("el => { el.scrollTop = el.scrollHeight; return el.scrollTop > 0; }")
+        assert page.locator(".chlogo").bounding_box()["y"] == logo["y"]
+    page.locator("#callBtn").tap()
+    page.locator("#decide.on").wait_for()
+    browser.close()

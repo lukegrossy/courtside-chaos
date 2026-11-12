@@ -133,3 +133,14 @@ jobs:
               sys.exit(1)
 
           print("Minigame references:", ", ".join(sorted(names)) or "none")
+
+  mobile-opening:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          python -m venv /tmp/cc-webkit
+          /tmp/cc-webkit/bin/pip install playwright==1.56.0
+          /tmp/cc-webkit/bin/playwright install --with-deps webkit
+          /tmp/cc-webkit/bin/python tests/week-one.py
