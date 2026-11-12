@@ -175,8 +175,11 @@
   .desk .card{width:100%;height:100%;padding:0;border:0;cursor:pointer;background-color:transparent;}
   .desk .callcard{background-image:url('assets/ui/desk/call.webp');}
   .desk .nextcard{position:relative;background-image:url('assets/ui/desk/next.webp');font:bold 3.8cqw/1 'Courier New',monospace;color:#882f21;}
-  .nextcard .txt{position:absolute;inset:29% 7% 18%;display:grid;place-content:center;
-    font:bold 4.9cqw/1 Georgia,serif;transform:rotate(-3deg);}
+  .nextcard .txt{position:absolute;inset:29% 7% 18%;display:flex;align-items:center;justify-content:center;gap:.32em;
+    font:900 4.7cqw/1 'Courier New',monospace;letter-spacing:.015em;
+    text-shadow:.025em 0 currentColor;transform:rotate(-3deg);}
+  .nextcard .txt::after{content:'';flex:none;width:0;height:0;border-block:.23em solid transparent;
+    border-left:.38em solid currentColor;}
   .nextcard .txt.long{font-size:3.1cqw;}
   .desk .card:active{filter:brightness(.88);}
   /* ---- decision screen ---- */
@@ -492,7 +495,7 @@ posthog.init('phc_tQTiDWWVCnoE8dnKSqUfugPuBTtf9rK2o5ZPBJ4ruhxB',{
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-desk-10';
+window.__BUILD__ = 'season1-desk-11';
 window.__ccTrack = function(name, props){
   try{
     if(!window.posthog || typeof window.posthog.capture!=='function') return;
@@ -696,7 +699,7 @@ window.addEventListener('unhandledrejection', function(e){
         </div>
         <div class="actionSlip paint">
           <button type="button" class="card callcard" id="callBtn"><span class="txt">MAKE THE CALL &#9654;</span></button>
-          <button type="button" class="card nextcard" id="nextBtn" style="display:none"><span class="txt">NEXT WEEK &#9654;</span></button>
+          <button type="button" class="card nextcard" id="nextBtn" style="display:none"><span class="txt">NEXT WEEK</span></button>
         </div>
         </div>
         <div class="deskbar economy paint">
@@ -3736,7 +3739,7 @@ window.addEventListener('unhandledrejection', function(e){
   function setNextBtn(label, sub){
     var stamp=el.next.querySelector('.txt');
     stamp.textContent=label;
-    stamp.classList.toggle('long',label.length>12);
+    stamp.classList.toggle('long',label.length>10);
     /* subtext removed from the NEXT WEEK card for clarity; sub arg ignored */
   }
   function properFoe(f){
@@ -4308,7 +4311,7 @@ window.addEventListener('unhandledrejection', function(e){
         setPortrait('sandra', ch.mood||'base');
         setNote([ch.desk], 'ledger');
         pendingRoute='awards';
-        setNextBtn('LEAGUE AWARDS NIGHT ▶','Dress code, apparently.');
+        setNextBtn('LEAGUE AWARDS NIGHT','Dress code, apparently.');
         el.next.style.display=''; el.call.style.display='none';
         render(); saveGame();
       }, decideS);
@@ -4337,7 +4340,7 @@ window.addEventListener('unhandledrejection', function(e){
         setPortrait(current.grace?'grace':'sandra', current.grace?(ch.mood||'base'):(ch.mood||current.mood||'base'));
         el.noteh.textContent='FROM '+(current.grace?"GRACE'S":"SANDRA'S")+' DESK';
         pendingRoute='week';
-        setNextBtn('NEXT WEEK \u25B6','');
+        setNextBtn('NEXT WEEK','');
         el.next.style.display='';
         phase='outcome';
         render(); saveGame();
@@ -4735,20 +4738,20 @@ window.addEventListener('unhandledrejection', function(e){
           pendingRoute='week';
           if(S.debtWeeks>=3){
             pendingRoute='bankrupt';
-            setNextBtn('THE BANK \u25B6', "Gerald's here at nine.");
+            setNextBtn('THE BANK', "Gerald's here at nine.");
           } else if(isPO && current.playoff==='semi'){
-            if(won){ pendingRoute='final'; setNextBtn('TIMBER CUP FINAL \u25B6','One more.'); }
-            else { S.playoffResult='semiL'; pendingRoute='recap'; setNextBtn('SEASON RECAP \u25B6','Close the book right.'); }
+            if(won){ pendingRoute='final'; setNextBtn('TIMBER CUP FINAL','One more.'); }
+            else { S.playoffResult='semiL'; pendingRoute='recap'; setNextBtn('SEASON RECAP','Close the book right.'); }
           } else if(isPO && current.playoff==='final'){
             S.playoffResult = won?'champ':'finalL';
             pendingRoute='recap';
-            setNextBtn('SEASON RECAP \u25B6', won?'Bring the Cup.':'Close the book right.');
+            setNextBtn('SEASON RECAP', won?'Bring the Cup.':'Close the book right.');
           } else if(S.season===1 && S.stage==='regular' && S.week>=SEASON1_WEEKS){
             pendingRoute='regular_end';
-            if(placeNow()<=4) setNextBtn('NORTH COUNTRY PLAYOFFS \u25B6','The bracket is set.');
-            else setNextBtn('SEASON RECAP \u25B6','Eighteen weeks. Close the book right.');
+            if(placeNow()<=4) setNextBtn('NORTH COUNTRY PLAYOFFS','The bracket is set.');
+            else setNextBtn('SEASON RECAP','Eighteen weeks. Close the book right.');
           } else {
-            setNextBtn('NEXT WEEK \u25B6', won ? "Winner's coffee tastes the same. Drink it anyway." : "Sandra says: shake it off.");
+            setNextBtn('NEXT WEEK', won ? "Winner's coffee tastes the same. Drink it anyway." : "Sandra says: shake it off.");
           }
           el.next.style.display='';
           render(); saveGame();
@@ -4871,7 +4874,7 @@ window.addEventListener('unhandledrejection', function(e){
     el.call.style.display='none';
     S.lastState = clubState();
     pendingRoute=(S.season===1?'estate':'season1_complete');
-    setNextBtn(S.season===1?'THE OFF-SEASON \u25B6':'SEASON COMPLETE \u25B6','Monday arrived.');
+    setNextBtn(S.season===1?'THE OFF-SEASON':'SEASON COMPLETE','Monday arrived.');
     el.next.style.display='';
     render();
     document.getElementById('ticker').textContent='SEASON '+S.season+' \u2022 COMPLETE';
@@ -4961,7 +4964,7 @@ window.addEventListener('unhandledrejection', function(e){
         "By dessert, Sam still has the head on. The rookie's trophy is sitting beside a bread roll. Hank is on glass six. Ricky is not looking at the MVP trophy across the room with considerable concentration.",
         "The ballroom staff have started stacking chairs around us. Nobody at our table has noticed."
       ],'ledger');
-      setNextBtn('SEASON COMPLETE \u25B6','Close the book.');
+      setNextBtn('SEASON COMPLETE','Close the book.');
       el.next.style.display=''; el.call.style.display='none';
       document.getElementById('ticker').textContent='LEAGUE AWARDS NIGHT \u2022 TWO WINNERS';
       render(); saveGame();
@@ -4991,7 +4994,7 @@ window.addEventListener('unhandledrejection', function(e){
     setPortrait('sandra','grim');
     setNote(paras, 'ledger');
     el.call.style.display='none';
-    setNextBtn('START OVER \u25B6','From the top.');
+    setNextBtn('START OVER','From the top.');
     el.next.style.display='';
     render();
     document.getElementById('ticker').textContent=tickerTxt;
@@ -5292,7 +5295,7 @@ window.addEventListener('unhandledrejection', function(e){
           setNote([S.flags.premiumArena
             ? "The work is underway. Arvid's money is doing exactly what he asked it to do."
             : "The contractor says the work is complete. I've learned to ask follow-up questions when that firm uses that word."], 'ledger');
-          setNextBtn('LEAGUE AWARDS NIGHT ▶','Dress code, apparently.');
+          setNextBtn('LEAGUE AWARDS NIGHT','Dress code, apparently.');
           el.next.style.display=''; el.call.style.display='none'; render();
         } else beginPostseasonEstate();
         return true;
@@ -5308,7 +5311,7 @@ window.addEventListener('unhandledrejection', function(e){
           "By dessert, Sam still has the head on. The rookie's trophy is sitting beside a bread roll. Hank is on glass six. Ricky is not looking at the MVP trophy across the room with considerable concentration.",
           "The ballroom staff have started stacking chairs around us. Nobody at our table has noticed."
         ],'ledger');
-        setNextBtn('SEASON COMPLETE ▶',"Close the book.");
+        setNextBtn('SEASON COMPLETE',"Close the book.");
         el.next.style.display=''; el.call.style.display='none'; render();
         return true;
       }

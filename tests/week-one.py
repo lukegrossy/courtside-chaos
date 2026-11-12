@@ -93,6 +93,8 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
     page.locator("#dash.on #nextBtn:visible").wait_for()
     assert page.locator("#slotL .slab").text_content() == "RESULT", page.locator("#desk").inner_text()
     assert page.locator("#ticker").inner_text() == ""
+    assert page.locator("#nextBtn .txt").text_content() == "NEXT WEEK", page.locator("#nextBtn").inner_html()
+    page.locator(".slips").screenshot(path="/tmp/postgame-slips.png", scale="device")
     page.locator("#nextBtn").tap()
     page.wait_for_function("document.querySelector('#stWeek').textContent.trim() === '02'")
     assert page.locator("#ticker").inner_text() == ""
