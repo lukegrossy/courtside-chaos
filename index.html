@@ -495,7 +495,7 @@ posthog.init('phc_tQTiDWWVCnoE8dnKSqUfugPuBTtf9rK2o5ZPBJ4ruhxB',{
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-desk-13';
+window.__BUILD__ = 'season1-desk-14';
 window.__ccTrack = function(name, props){
   try{
     if(!window.posthog || typeof window.posthog.capture!=='function') return;
@@ -5158,6 +5158,9 @@ window.addEventListener('unhandledrejection', function(e){
   }
 
   /* ---------- WEEK ZERO: ARRIVAL ---------- */
+  function tourCard(who, text){
+    return Object.assign(castCard(who), {profile:true, text:text});
+  }
   var INTRO_STEPS=[
     {kind:'text',
      text:"WINTER, 1984.\n\nYou bought a basketball team.\n\nNobody up here has asked why. Not the bank, not the league, not the fella who sold it to you \u2014 who shook your hand with both of his, which you have since had time to think about."},
@@ -5165,18 +5168,16 @@ window.addEventListener('unhandledrejection', function(e){
      text:"She's at the door before you are, holding a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CI keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those. I'll let you pick which.\u201D"},
     {kind:'text', scene:'intro_court',
      text:"The tour takes eleven minutes.\n\nThe arena smells like woodsmoke and old rubber. The lights over the court need a full minute to come up, and she waits through it without comment, because that's just the minute. There's a longer list of things like that \u2014 things the previous owner appeared to negotiate around instead of fix. She doesn't itemize it now."},
+    tourCard('hank', "“Coach Willis wins basketball games. Every third quarter he disappears into the men’s room. I’ve timed how long he’s gone. Knowing the number has not once helped me.”"),
+    tourCard('ricky', "“Our best player. He’ll tell you. Hasn’t spoken to the bus driver in two seasons. Neither of ’em remembers why. I do. I’m not saying. They’ve built something.”"),
+    tourCard('tiny', "“Did forty minutes downtown last night. Thirty were about you. You haven’t met him yet. He’s already got your walk.”"),
+    tourCard('leo', "“Forty-nine years old. Still starts. He was thirty-four the year I started here. That was nine years ago. You can do that sum yourself.”"),
+    tourCard('import', "“Eighteen. Professional since thirteen, according to his paperwork. I looked up his country in the office atlas. Then I bought a better atlas. I’d like my money back.”"),
+    tourCard('sam', "“The reason why our first aid kit is out of bandages. He has never once been cleared to perform. He has never once not performed.”"),
     {kind:'card', who:'sandra', profile:true, portrait:'assets/cutscenes/office-chalkboard.webp', name:'SANDRA', meta:'The office',
      text:"“Four numbers run this franchise. You’ll find them on your desk every Monday.\n\nCASH is cash. Gate money in, payroll out.\n\nMORALE wins games. It’s the only thing that does.”"},
     {kind:'card', who:'sandra', profile:true, portrait:'assets/cutscenes/office-chalkboard.webp', name:'SANDRA', meta:'The office',
      text:"“BUZZ fills seats. Get the town talking and we’ll feel it at the gate.\n\nCRED is what the league thinks of you. It decides our cut on the road.\n\nIt also decides who calls. Let it slip and the phone gets very quiet.”"},
-    {kind:'text',
-     text:"\u201CRight. The people.\n\nYou'll meet all of 'em whether you plan to or not \u2014 better we do it here, where nobody's bleeding and I control the order.\u201D\n\nShe starts with the mascot."},
-    castCard('sam'),
-    castCard('hank'),
-    castCard('ricky'),
-    castCard('tiny'),
-    castCard('leo'),
-    castCard('import'),
     {kind:'card', who:'sandra', profile:true, portrait:'assets/portraits/sandra/season-one/office-door-neutral.webp', name:'SANDRA', meta:'Secretary',
      text:"\u201CYour first briefing is Monday morning. Don't be late.\n\nThe last owner was late.\u201D\n\nShe does not elaborate."},
     {kind:'text', scene:'welcome_boss', artOnly:true}
@@ -5445,7 +5446,7 @@ window.addEventListener('unhandledrejection', function(e){
     S.met={ sandra:true, hank:true, ricky:true, tiny:true, leo:true, import:true, sam:true };
     var arrival=[];
     INTRO_STEPS.forEach(function(step){
-      if(step.kind==='card' && (step.doorway || step.who!=='sandra')){
+      if(step.doorway){
         step.text.split('\n\n').forEach(function(paragraph){
           arrival.push(Object.assign({},step,{profile:true,text:paragraph}));
         });
