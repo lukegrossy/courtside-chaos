@@ -495,7 +495,7 @@ posthog.init('phc_tQTiDWWVCnoE8dnKSqUfugPuBTtf9rK2o5ZPBJ4ruhxB',{
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-desk-11';
+window.__BUILD__ = 'season1-desk-12';
 window.__ccTrack = function(name, props){
   try{
     if(!window.posthog || typeof window.posthog.capture!=='function') return;
@@ -596,7 +596,7 @@ window.addEventListener('unhandledrejection', function(e){
       <div class="cawreadband"></div>
       <div class="cawlabel">FINAL</div>
       <div class="pcard cawcard" id="cawCard">
-        <video id="introDoor" hidden muted loop playsinline preload="none" poster="assets/cutscenes/intro_door.webp" src="assets/cutscenes/intro_door.mp4"></video>
+        <video id="introDoor" hidden muted loop playsinline preload="none" poster="assets/cutscenes/intro_door.webp?v=12" src="assets/cutscenes/intro_door.mp4?v=12"></video>
         <img class="pimg" id="cawPort" alt="">
         <div class="pplac" id="cawPlac"><span>FILE PHOTO</span><span>PENDING</span></div>
       </div>
