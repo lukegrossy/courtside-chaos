@@ -96,10 +96,12 @@
   #snowc{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2;}
 
   /* QUOTE */
-  #quote .q{position:absolute; left:70px; right:70px; top:44%; text-align:center;
-    font-family:Georgia,"Times New Roman",serif; font-style:italic;
-    color:var(--cream); font-size:56px; line-height:1.35;
-    opacity:0; transition:opacity 2.2s ease .5s;}
+  #quote .q,.introNarration .cawtxt{
+    position:absolute;left:90px;right:90px;top:50%;transform:translateY(-50%);text-align:center;
+    font:italic 38px/54px Georgia,"Times New Roman",serif;color:var(--cream);
+    letter-spacing:normal;text-shadow:none;white-space:pre-line;
+  }
+  #quote .q{opacity:0;transition:opacity 2.2s ease .5s;}
   #quote.on .q{opacity:1;}
 
 
@@ -473,7 +475,7 @@
   .introProfile .cawmeta{top:55%;letter-spacing:0;font-weight:400}
   .introProfile.cardmode .cawtxt{top:60%}
   .titleCard .cawshade,.titleCard .cawreadband{display:none}
-  .titleCard .cawtxt{font-style:normal;letter-spacing:4px;line-height:1.65;text-shadow:none}
+  .caw.introNarration .cawtxt{color:var(--cream);text-shadow:none}
   @keyframes welcomeFade{from{opacity:1}to{opacity:0}}
   @media (prefers-reduced-motion:no-preference){
     .bannerArrival::after{content:"";position:absolute;inset:0;background:#000;pointer-events:none;z-index:5;animation:welcomeFade .65s ease-out forwards}
@@ -501,7 +503,7 @@ posthog.init('phc_tQTiDWWVCnoE8dnKSqUfugPuBTtf9rK2o5ZPBJ4ruhxB',{
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-desk-15';
+window.__BUILD__ = 'season1-desk-16';
 window.__ccTrack = function(name, props){
   try{
     if(!window.posthog || typeof window.posthog.capture!=='function') return;
@@ -1322,16 +1324,16 @@ window.addEventListener('unhandledrejection', function(e){
     }
     setTimeout(function(){ if(!settled) tryImage(); },1400);
   }
-  function fadeScreens(from,to,cb){
+  function fadeScreens(from,to,cb,blackHoldMs){
     from.classList.remove('on');
-    setTimeout(function(){ to.classList.add('on'); if(cb)cb(); }, (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 0 : 700);
+    setTimeout(function(){ to.classList.add('on'); if(cb)cb(); }, (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 0 : 700 + (blackHoldMs || 0));
   }
   /* steps: {kind:'text',text,scene?} | {kind:'score',line} | {kind:'gazette',head}
      runSequence(steps, endScreen, done, startScreen):
        startScreen: screen we fade FROM (default dash)
        endScreen:   if given, fade to it and call done; if null with done, done() decides;
                     default: fade back to dash then done                              */
-  function runSequence(steps, endScreen, done, startScreen){
+  function runSequence(steps, endScreen, done, startScreen, isTour){
     /* Text never sits over cutscene art: any step carrying both text and a
        scene is split into a clean text screen followed by the art full-bleed
        on its own (tap to continue past each). Art-only steps whose asset is
@@ -1350,8 +1352,9 @@ window.addEventListener('unhandledrejection', function(e){
          late must not start under the next scene. */
       sceneAudioGen++;
       seqArtToken++;
+      caw.classList.toggle('introNarration',isTour && step.kind==='text' && !step.artOnly);
       caw.classList.toggle('titleCard',!!step.titleCard);
-      caw.classList.toggle('bannerArrival',step.scene==='welcome_boss');
+      caw.classList.toggle('bannerArrival',step.scene==='welcome_boss' || step.scene==='intro_court');
       caw.classList.toggle('introProfile',!!step.profile);
       var arrivalFilm=step.scene==='intro_court' || step.scene==='welcome_boss';
       caw.classList.toggle('courtReveal',arrivalFilm);
@@ -1537,12 +1540,16 @@ window.addEventListener('unhandledrejection', function(e){
       } else {
         var prev=screenFor(steps[i-1]), next=screenFor(step);
         prev.removeEventListener('click',advance);
-        if(step.fadeThroughBlack && prev===next){
+        var previous=steps[i-1];
+        var enteringFilm=step.scene==='intro_court' || step.scene==='welcome_boss';
+        var tourChange=isTour && !enteringFilm && (previous.kind!==step.kind ||
+          previous.artOnly || (previous.portrait!==step.portrait && (previous.portrait || step.portrait)));
+        if((step.fadeThroughBlack || tourChange) && prev===next){
           fadeScreens(prev,next,function(){
             show(step);
             next.addEventListener('click',advance);
-          });
-        }else if((step.scene==='intro_court' || step.scene==='welcome_boss') && prev===next){
+          }, 300);
+        }else if(enteringFilm && prev===next){
           show(step); /* Start audible playback inside the player's tap on iOS. */
           next.addEventListener('click',advance);
         }else if(prev===next){
@@ -5180,11 +5187,12 @@ window.addEventListener('unhandledrejection', function(e){
   }
   var INTRO_STEPS=[
     {kind:'text',
-     text:"WINTER, 1984.\n\nYou bought a basketball team.\n\nNobody up here has asked why. Not the bank, not the league, not the fella who sold it to you \u2014 who shook your hand with both of his, which you have since had time to think about."},
+     text:"Winter, 1984.\n\nYou bought a basketball team.\n\nNobody up here has asked why. Not the bank, not the league, not the fella who sold it to you \u2014 who shook your hand with both of his, which you have since had time to think about."},
     {kind:'card', doorway:true, who:'sandra', name:'SANDRA', meta:'Secretary',
      text:"She's at the door before you are, holding a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CI keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those. I'll let you pick which.\u201D"},
     {kind:'text', scene:'intro_court',
-     text:"The tour takes eleven minutes.\n\nThe arena smells like woodsmoke and old rubber. The lights over the court need a full minute to come up, and she waits through it without comment, because that's just the minute. There's a longer list of things like that \u2014 things the previous owner appeared to negotiate around instead of fix. She doesn't itemize it now."},
+     text:"The tour takes eleven minutes.\n\nThe arena smells like woodsmoke and old rubber. The lights over the court need a full minute to come up, and she waits through it without comment. There's a longer list of things like that \u2014 things the previous owner appeared to negotiate around instead of fix. She doesn't itemize it now."},
+    {kind:'text', text:'“Right. The people. Here’s what you need to know.”'},
     ...tourPages('hank',2),
     ...tourPages('ricky',1),
     ...tourPages('tiny',1),
@@ -5197,7 +5205,7 @@ window.addEventListener('unhandledrejection', function(e){
      text:"“BUZZ fills seats. Get the town talking and we’ll feel it at the gate.\n\nCRED is what the league thinks of you. It decides our cut on the road.\n\nIt also decides who calls. Let it slip and the phone gets very quiet.”"},
     {kind:'card', who:'sandra', profile:true, fadeThroughBlack:true, portrait:'assets/portraits/sandra/season-one/office-door-neutral.webp', name:'SANDRA', meta:'Secretary',
      text:"\u201CYour first briefing is Monday morning. Don't be late.\n\nThe last owner was late.\u201D\n\nShe does not elaborate."},
-    {kind:'text', titleCard:true, fadeThroughBlack:true, text:'MONDAY MORNING\nDAY 1'},
+    {kind:'text', titleCard:true, fadeThroughBlack:true, text:'Monday morning\nDay 1'},
     {kind:'text', scene:'welcome_boss', artOnly:true}
   ];
 
@@ -5470,7 +5478,7 @@ window.addEventListener('unhandledrejection', function(e){
         });
       }else arrival.push(step);
     });
-    runSequence(arrival, dash, null, fromScreen);
+    runSequence(arrival, dash, null, fromScreen, true);
   };
 })();
 

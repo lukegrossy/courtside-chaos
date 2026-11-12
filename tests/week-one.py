@@ -20,13 +20,14 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
         page.locator(f"#{screen}.on").tap()
     cutaway = page.locator("#caw.on")
     cutaway.wait_for()
-    assert "WINTER, 1984" in page.locator("#cawTxt").inner_text()
+    assert "Winter, 1984" in page.locator("#cawTxt").inner_text()
     cutaway.tap()
     page.wait_for_selector("#caw.on.introProfile #introDoor:visible", timeout=4000)
     profiles = set()
     cast_order = ["HANK WILLIS", "RICKY MALONE", "TINY MCGEE", "LEO G. ROSS", "THE ROOKIE", "SAWDUST SAM"]
     expected_pages = [speaker for speaker in cast_order for _ in range(2)]
     intro_pages = []
+    saw_people = False
     saw_doorway = False
     saw_monday = False
     board_pages = []
@@ -38,11 +39,14 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
             cutaway.tap(position={"x": 12, "y": 60})
             page.locator("#dash.on").wait_for()
             break
+        if "Right. The people." in page.locator("#cawTxt").inner_text():
+            assert not intro_pages
+            saw_people = True
         if page.locator("#caw.titleCard.on").count():
             assert saw_doorway
             title = page.locator("#cawTxt")
             assert title.is_visible()
-            assert title.text_content() == "MONDAY MORNING\nDAY 1", repr(title.text_content())
+            assert title.text_content() == "Monday morning\nDay 1", repr(title.text_content())
             saw_monday = True
         if page.locator("#caw.introProfile.cardmode.on").count():
             pic = page.locator("#cawCard").bounding_box()
@@ -50,6 +54,7 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
             speaker = name.inner_text().upper()
             profiles.add(speaker)
             if speaker in cast_order:
+                assert saw_people
                 intro_pages.append(speaker)
             if page.locator("#cawPort.show[src$='office-chalkboard.webp']").count():
                 page.locator("#cawPort").evaluate("img => img.decode()")
@@ -60,7 +65,16 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
                 saw_doorway = True
             assert pic["y"] >= 59, pic
             assert pic["y"] + pic["height"] <= name.bounding_box()["y"] + 1, pic
-        cutaway.tap(position={"x": 12, "y": 60})
+        if intro_pages == expected_pages and not board_pages and speaker == "SAWDUST SAM":
+            page.emulate_media(reduced_motion="no-preference")
+            cutaway.tap(position={"x": 12, "y": 60})
+            page.wait_for_timeout(780)
+            assert page.locator("#caw").evaluate("el => getComputedStyle(el).opacity") == "0"
+            cutaway.wait_for()
+            page.locator("#cawPort.show[src$='office-chalkboard.webp']").wait_for()
+            page.emulate_media(reduced_motion="reduce")
+        else:
+            cutaway.tap(position={"x": 12, "y": 60})
         page.wait_for_timeout(100)
     page.locator("#dash.on").wait_for()
     assert any("CASH" in text and "MORALE" in text for text in board_pages)
