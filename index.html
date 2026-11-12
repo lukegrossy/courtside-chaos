@@ -105,12 +105,12 @@
 
   /* A native-size desk keeps the painted lettering sharp on high-density phones. */
   #dash{--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);
-    position:fixed;inset:0;background:#000;overflow:hidden;}
+    position:fixed;inset:var(--safe-top) 0 var(--safe-bottom);background:#000;overflow:clip;}
   #dash:not(.on){visibility:hidden;}
   .phone:has(#mgOverlay.on) ~ #dash{visibility:hidden;}
-  .desk{position:absolute;top:calc(var(--safe-top) + 3px);left:0;right:0;margin-inline:auto;
+  .desk{position:absolute;top:3px;left:0;right:0;margin-inline:auto;
     width:min(94vw,480px,55dvh);
-    height:min(calc(100dvh - var(--safe-top) - var(--safe-bottom) - 6px),207vw,1056px);
+    height:calc(100% - 6px);max-height:min(207vw,1056px);
     container-type:inline-size;display:grid;grid-template-columns:minmax(0,1fr);
     grid-template-rows:auto auto auto minmax(0,1fr) auto auto auto;
     font:bold 15px/1.2 'Courier New',monospace;color:var(--ink);}

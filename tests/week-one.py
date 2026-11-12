@@ -36,6 +36,11 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
             "(el, [t,b]) => { el.style.setProperty('--safe-top',t+'px'); el.style.setProperty('--safe-bottom',b+'px'); }",
             [top, bottom],
         )
+        print(page.locator("#dash").evaluate("el => [el.style.cssText, getComputedStyle(el).top, el.getBoundingClientRect().toJSON(), window.innerHeight, window.scrollY]"), flush=True)
+        page.wait_for_function(
+            "([top, bottom]) => { const r = document.querySelector('#dash').getBoundingClientRect(); return Math.abs(r.top - top) < 1 && Math.abs(innerHeight - r.bottom - bottom) < 1; }",
+            arg=[top, bottom], timeout=5000,
+        )
         logo = page.locator(".chlogo").bounding_box()
         footer = page.locator(".ljfooter").bounding_box()
         assert top <= logo["y"] <= top + 5, logo
