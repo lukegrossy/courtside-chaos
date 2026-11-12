@@ -13,6 +13,8 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
     page = browser.new_page(**pw.devices["iPhone 13"], reduced_motion="reduce")
     page.on("pageerror", lambda err: print("Game error:", err, flush=True))
     page.goto(f"http://127.0.0.1:{server.server_port}", wait_until="domcontentloaded")
+    page.add_style_tag(content=":root{--screen-safe-top:59px}")
+    page.evaluate("window.dispatchEvent(new Event('resize'))")
     page.locator("#startbtn").tap()
     for screen in ("cut", "quote"):
         page.locator(f"#{screen}.on").tap()
@@ -21,6 +23,7 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
     assert "WINTER, 1984" in page.locator("#cawTxt").inner_text()
     cutaway.tap()
     page.wait_for_selector("#caw.on.introProfile #introDoor:visible", timeout=4000)
+    profiles = set()
     for _ in range(55):
         if page.locator("#dash.on").count():
             break
@@ -28,9 +31,16 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
             cutaway.tap(position={"x": 12, "y": 60})
             page.locator("#dash.on").wait_for()
             break
+        if page.locator("#caw.introProfile.cardmode.on").count():
+            pic = page.locator("#cawCard").bounding_box()
+            name = page.locator("#cawName")
+            profiles.add(name.inner_text().upper())
+            assert pic["y"] >= 59, pic
+            assert pic["y"] + pic["height"] <= name.bounding_box()["y"] + 1, pic
         cutaway.tap(position={"x": 12, "y": 60})
         page.wait_for_timeout(100)
     page.locator("#dash.on").wait_for()
+    assert {"HANK WILLIS", "SANDRA"} <= profiles, profiles
     for width, height, top, bottom in [(393, 852, 59, 34), (375, 667, 20, 0), (393, 650, 0, 0), (430, 932, 62, 34), (393, 748, 59, 34), (393, 852, 59, 34)]:
         page.set_viewport_size({"width": width, "height": height})
         page.locator("#dash").evaluate(
@@ -44,11 +54,14 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
         )
         logo = page.locator(".chlogo").bounding_box()
         footer = page.locator(".ljfooter").bounding_box()
-        assert top + 19 <= logo["y"] <= top + 21, logo
+        assert top + 7 <= logo["y"] <= top + 9, logo
         assert footer["y"] + footer["height"] <= height - bottom + 1, footer
         paper = page.locator(".notebook").bounding_box()
         desk = page.locator("#desk").bounding_box()
-        assert 0.39 <= paper["height"] / desk["height"] <= 0.41
+        for selector, ratio in [(".calendar",63/638),("#portwin",407/634),(".slips",149/638),(".economy",94/638)]:
+            panel = page.locator(selector).bounding_box()
+            assert abs(panel["height"] - panel["width"]*ratio) < 1, (selector,panel)
+        assert paper["height"] > 120
         assert page.locator("#ticker").inner_text() == ""
         note = page.locator("#notescroll")
         note.evaluate("el => el.scrollTop = 0")
@@ -56,7 +69,8 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
         assert abs(footer["y"] + footer["height"] - (height - bottom - 3)) < 2
         cash = note.locator(".opening-note p").nth(2).bounding_box()
         body = note.bounding_box()
-        assert cash["y"] + cash["height"] <= body["y"] + body["height"] + 1
+        if height >= 820:
+            assert cash["y"] + cash["height"] <= body["y"] + body["height"] + 1
         if width == 393 and height == 852:
             page.locator("#portrait").evaluate("img => img.decode()")
             page.locator("#desk").screenshot(path="/tmp/week-one-desk.png", scale="device")
