@@ -136,13 +136,16 @@
   .desk .economy{aspect-ratio:638/94;background-size:100% 1495.74468%;background-position:center 94.05488%;}
   .desk .ljfooter{aspect-ratio:638/78;background-size:100% 1802.56410%;background-position:center 100.00000%;}
   .calendar{grid-template-columns:repeat(3,1fr);}
-  .economy{grid-template-columns:26% 24% 22% 28%;}
+  /* The 638 × 94 plate has dividers at x=168, 321 and 462.
+     Centre values inside the paper edges and below the painted labels. */
+  .deskbar.economy{grid-template-columns:156fr 153fr 141fr 164fr;
+    padding:5.016cqw 1.881cqw 2.508cqw;align-items:center;}
   .desk .card{background-repeat:no-repeat;background-size:100% 100%;}
   .deskbar{display:grid;text-align:center;align-items:end;}
   .deskbar .lab,.callcard .txt{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
   .deskbar .v{display:block;font-size:4.4cqw;line-height:1.1;}
   .calendar .v{padding-bottom:1.35cqw;font-size:3.85cqw;}
-  .economy .v{padding-bottom:2.5cqw;font-size:4.25cqw;font-weight:900;}
+  .economy .v{font-size:4.25cqw;font-weight:900;}
   #portwin{overflow:hidden;}
   #portrait{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 18%;}
   .notebook{min-height:0;display:flex;flex-direction:column;
@@ -489,7 +492,7 @@ posthog.init('phc_tQTiDWWVCnoE8dnKSqUfugPuBTtf9rK2o5ZPBJ4ruhxB',{
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-desk-9';
+window.__BUILD__ = 'season1-desk-10';
 window.__ccTrack = function(name, props){
   try{
     if(!window.posthog || typeof window.posthog.capture!=='function') return;
