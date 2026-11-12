@@ -108,11 +108,17 @@
     position:fixed;inset:var(--safe-top) 0 var(--safe-bottom);background:#000;overflow:clip;container-type:size;}
   #dash:not(.on){visibility:hidden;}
   .phone:has(#mgOverlay.on) ~ #dash{visibility:hidden;}
-  /* One 638 × 1406 painted desk. All interactive regions use its coordinates. */
-  .desk{position:absolute;top:3px;left:0;right:0;margin-inline:auto;
-    width:min(90.5vw,calc((100cqh - 6px) * .45376956),480px);aspect-ratio:638/1406;
+  /* Reserve a solid strip above the masthead. Size portrait desks from the
+     available width even when the browser reports a shorter launch viewport. */
+  #dash{--header-gap:20px;}
+  #dash::before{content:"";position:fixed;inset:0 0 auto;height:calc(var(--safe-top) + var(--header-gap));
+    background:#000;pointer-events:none;}
+
+  .desk{position:absolute;top:var(--header-gap);left:0;right:0;margin-inline:auto;
+    width:min(94cqw,480px);height:min(calc(100cqh - var(--header-gap) - 3px),1058px);
     background:url('assets/ui/desk/day-one-desk.webp') center / 100% 100% no-repeat;
-    container-type:inline-size;font:bold 15px/1.2 'Courier New',monospace;color:var(--ink);}
+    container-type:size;font:bold 15px/1.2 'Courier New',monospace;color:var(--ink);}
+  @media (orientation:landscape){.desk{width:min(94cqw,calc((100cqh - var(--header-gap) - 3px) * .45376956),480px);}}
   .desk > *{position:absolute;min-width:0;min-height:0;}
   .chlogo{object-fit:contain;padding:0 27.5%;}
   .chlogo{left:0.0000%;top:0.0000%;width:100.0000%;height:3.7696%;}
@@ -138,7 +144,7 @@
   .noteh{font-size:3.65cqw;line-height:1.15;margin-bottom:4.4cqw;}
   .notewrap{position:relative;flex:1;min-height:0;}
   .notescroll{height:100%;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;
-    scrollbar-width:none;font-size:3.95cqw;line-height:1.38;color:#23170e;}
+    scrollbar-width:none;font-size:min(3.95cqw,1.86cqh);line-height:1.38;color:#23170e;}
   .notescroll::-webkit-scrollbar{display:none;}
   .notescroll p{margin:0 0 1.45em;}
   .opening-note{min-height:100%;}
@@ -476,7 +482,7 @@ posthog.init('phc_tQTiDWWVCnoE8dnKSqUfugPuBTtf9rK2o5ZPBJ4ruhxB',{
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-desk-7';
+window.__BUILD__ = 'season1-desk-8';
 window.__ccTrack = function(name, props){
   try{
     if(!window.posthog || typeof window.posthog.capture!=='function') return;
@@ -745,7 +751,7 @@ window.addEventListener('unhandledrejection', function(e){
     var availW=Math.min(480, window.innerWidth);   /* cap is for desktop; 430 clipped a 16 Pro Max */
     var availH=H-pad;
     var scale=Math.min(availW/STAGE_W, availH/STAGE_H);
-    if(Math.abs(scale-lastScale) < 0.0025) return;       /* below perceptible; don't feed the loop */
+    if(Math.abs(scale-lastScale) < 0.00001 && document.body.style.paddingTop===pad+'px') return;
     lastScale=scale;
     document.body.style.paddingTop=pad+'px';
     /* Depth of the notch measured in STAGE units, for screens whose own art
