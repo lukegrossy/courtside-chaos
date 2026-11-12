@@ -51,6 +51,14 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
         assert 0.39 <= paper["height"] / desk["height"] <= 0.41
         assert page.locator("#ticker").inner_text() == ""
         note = page.locator("#notescroll")
+        note.evaluate("el => el.scrollTop = 0")
+        assert abs(desk["width"] / desk["height"] - 638 / 1406) < 0.002
+        cash = note.locator(".opening-note p").nth(2).bounding_box()
+        body = note.bounding_box()
+        assert cash["y"] + cash["height"] <= body["y"] + body["height"] + 1
+        if width == 393 and height == 852:
+            page.locator("#portrait").evaluate("img => img.decode()")
+            page.locator("#desk").screenshot(path="/tmp/week-one-desk.png", scale="device")
         assert note.evaluate("el => { el.scrollTop = el.scrollHeight; return el.scrollTop > 0; }")
         assert page.locator(".chlogo").bounding_box()["y"] == logo["y"]
     page.locator("#callBtn").tap()

@@ -105,33 +105,35 @@
 
   /* A native-size desk keeps the painted lettering sharp on high-density phones. */
   #dash{--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);
-    position:fixed;inset:var(--safe-top) 0 var(--safe-bottom);background:#000;overflow:clip;}
+    position:fixed;inset:var(--safe-top) 0 var(--safe-bottom);background:#000;overflow:clip;container-type:size;}
   #dash:not(.on){visibility:hidden;}
   .phone:has(#mgOverlay.on) ~ #dash{visibility:hidden;}
+  /* One 638 × 1406 painted desk. All interactive regions use its coordinates. */
   .desk{position:absolute;top:3px;left:0;right:0;margin-inline:auto;
-    width:min(94vw,480px,55dvh);
-    height:calc(100% - 6px);max-height:min(207vw,1056px);
-    container-type:inline-size;display:grid;grid-template-columns:minmax(0,1fr);
-    grid-template-rows:53fr 63fr 407fr minmax(0,562fr) 149fr 91fr 78fr;
-    align-items:stretch;
-    font:bold 15px/1.2 'Courier New',monospace;color:var(--ink);}
-  .desk > *{min-height:0;min-width:0;}
-  .chlogo,.ljfooter{display:block;width:100%;height:100%;object-fit:contain;}
-  .chlogo{width:45%;justify-self:center;padding:1px 0;}
-  .desk .paint,.desk .card{background-repeat:no-repeat;background-size:100% 100%;}
-  .calendar{background-image:url('assets/ui/desk/calendar.webp');grid-template-columns:repeat(3,1fr);}
-  .economy{background-image:url('assets/ui/desk/stats-clean.webp');grid-template-columns:26% 24% 22% 28%;align-items:center;}
+    width:min(90.5vw,calc((100cqh - 6px) * .45376956),480px);aspect-ratio:638/1406;
+    background:url('assets/ui/desk/day-one-desk.webp') center / 100% 100% no-repeat;
+    container-type:inline-size;font:bold 15px/1.2 'Courier New',monospace;color:var(--ink);}
+  .desk > *{position:absolute;min-width:0;min-height:0;}
+  .chlogo{object-fit:contain;padding:0 27.5%;}
+  .chlogo{left:0.0000%;top:0.0000%;width:100.0000%;height:3.7696%;}
+  .calendar{left:0.0000%;top:3.7696%;width:100.0000%;height:4.4808%;}
+  #portwin{left:0.3135%;top:8.2504%;width:99.3730%;height:28.9474%;}
+  .notebook{left:0.0000%;top:37.1977%;width:100.0000%;height:39.9716%;}
+  .slips{left:0.0000%;top:77.1693%;width:100.0000%;height:10.3129%;}
+  .economy{left:0.0000%;top:87.7667%;width:100.0000%;height:6.4723%;}
+  .ljfooter{left:0.0000%;top:94.4523%;width:100.0000%;height:5.5477%;}
+  .calendar{grid-template-columns:repeat(3,1fr);}
+  .economy{grid-template-columns:26% 24% 22% 28%;}
+  .desk .card{background-repeat:no-repeat;background-size:100% 100%;}
   .deskbar{display:grid;text-align:center;align-items:end;}
-  .calendar .lab,.callcard .txt{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
+  .deskbar .lab,.callcard .txt{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
   .deskbar .v{display:block;font-size:4.4cqw;line-height:1.1;}
   .calendar .v{padding-bottom:1.35cqw;font-size:3.85cqw;}
-  .deskbar.economy{align-items:center;}
-  .economy .lab{display:block;font:bold 2.85cqw/1.1 Georgia,serif;}
-  .economy .v{margin-top:.55cqw;}
+  .economy .v{padding-bottom:2.5cqw;font-size:4.25cqw;font-weight:900;}
   #portwin{overflow:hidden;}
   #portrait{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 18%;}
-  .notebook{background-image:url('assets/ui/desk/notebook.webp');min-height:0;display:flex;flex-direction:column;
-    padding:3.7cqw 5.8cqw 5.4cqw 9.8cqw;}
+  .notebook{min-height:0;display:flex;flex-direction:column;
+    padding:3.7cqw 8.2cqw 5.4cqw 9.8cqw;}
   .noteh,.slab{color:#842e21;text-decoration:underline;text-underline-offset:.55cqw;}
   .noteh{font-size:3.65cqw;line-height:1.15;margin-bottom:4.4cqw;}
   .notewrap{position:relative;flex:1;min-height:0;}
@@ -139,11 +141,12 @@
     scrollbar-width:none;font-size:3.95cqw;line-height:1.38;color:#23170e;}
   .notescroll::-webkit-scrollbar{display:none;}
   .notescroll p{margin:0 0 1.45em;}
+  .opening-note{min-height:100%;}
   .notescroll p:last-child{margin-bottom:0;}
   .notearrow{position:absolute;right:0;bottom:-2.2cqw;color:#923322;font-size:3.6cqw;pointer-events:none;}
   .scrolled-end .notearrow{visibility:hidden;}
-  .slips{display:grid;grid-template-columns:48% 52%;padding-block:.45cqw;}
-  .slot{background-image:url('assets/ui/desk/fixture.webp');display:flex;flex-direction:column;
+  .slips{display:grid;grid-template-columns:48% 52%;}
+  .slot{display:flex;flex-direction:column;
     align-items:center;justify-content:center;gap:1.1cqw;padding:1cqw 2cqw 0;min-width:0;min-height:0;text-align:center;}
   .slot>*{transform:rotate(-2deg);}
   .slab{font:bold 3.25cqw Georgia,serif;}
@@ -473,7 +476,7 @@ posthog.init('phc_tQTiDWWVCnoE8dnKSqUfugPuBTtf9rK2o5ZPBJ4ruhxB',{
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-desk-5';
+window.__BUILD__ = 'season1-desk-6';
 window.__ccTrack = function(name, props){
   try{
     if(!window.posthog || typeof window.posthog.capture!=='function') return;
@@ -655,7 +658,7 @@ window.addEventListener('unhandledrejection', function(e){
     <!-- DASHBOARD -->
     <div class="screen" id="dash">
       <div class="desk" id="desk">
-        <img class="chlogo" alt="Courtside Chaos" src="assets/ui/desk/wordmark.webp">
+        <img class="chlogo" alt="Courtside Chaos" src="assets/ui/desk/masthead.svg">
         <div class="deskbar calendar paint">
           <div class="hcell h1"><span class="lab">SEASON</span><span class="v blk" id="stSeason">1</span></div>
         <div class="hcell h2"><span class="lab">WEEK</span><span class="v blk" id="stWeek">01</span></div>
@@ -686,7 +689,7 @@ window.addEventListener('unhandledrejection', function(e){
         <div class="cell s3" role="group" aria-label="Buzz, percent. Fills seats."><span class="lab" aria-hidden="true">BUZZ</span><span class="v blk amber" id="stBuzz" aria-live="polite">48%</span></div>
         <div class="cell s4" role="group" aria-label="Credibility, percent. Opens doors."><span class="lab" aria-hidden="true">CRED</span><span class="v blk blue" id="stCred" aria-live="polite">36%</span></div>
         </div>
-        <img class="ljfooter" alt="The Lumberjack Story" src="assets/ui/desk/footer.webp">
+        <div class="ljfooter" role="img" aria-label="The Lumberjack Story"></div>
       </div>
     </div>
 
@@ -3374,7 +3377,14 @@ window.addEventListener('unhandledrejection', function(e){
     updateBlotter();   /* footer RECORD stays in lockstep */
   }
   function setNote(paras, kind){
-    el.scroll.innerHTML = paras.map(function(p){ return '<p>'+p+'</p>'; }).join('');
+    var paragraphs=paras.map(function(p){ return '<p>'+p+'</p>'; });
+    if(current && current.id==='tiny_openmic' && paras===current.setup){
+      var opening=document.createElement('div');
+      opening.className='opening-note';
+      opening.innerHTML=paragraphs.splice(0,3).join('');
+      el.scroll.replaceChildren(opening);
+      el.scroll.insertAdjacentHTML('beforeend',paragraphs.join(''));
+    } else el.scroll.innerHTML=paragraphs.join('');
     el.scroll.scrollTop = 0;
     el.wrap.classList.remove('scrolled-end');
     checkScroll();

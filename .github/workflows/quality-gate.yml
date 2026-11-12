@@ -144,3 +144,9 @@ jobs:
           /tmp/cc-webkit/bin/pip install playwright==1.56.0
           /tmp/cc-webkit/bin/playwright install --with-deps webkit
           /tmp/cc-webkit/bin/python tests/week-one.py
+      - name: Save Day One render
+        uses: actions/upload-artifact@v4
+        with:
+          name: week-one-desk
+          path: /tmp/week-one-desk.png
+          retention-days: 3
