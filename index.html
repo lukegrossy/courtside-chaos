@@ -495,7 +495,7 @@ posthog.init('phc_tQTiDWWVCnoE8dnKSqUfugPuBTtf9rK2o5ZPBJ4ruhxB',{
    This runs before everything else so it catches boot-time throws too, and
    prints the real details to the console AND paints them on screen, since
    reading a phone console mid-play isn't practical. */
-window.__BUILD__ = 'season1-desk-12';
+window.__BUILD__ = 'season1-desk-13';
 window.__ccTrack = function(name, props){
   try{
     if(!window.posthog || typeof window.posthog.capture!=='function') return;
@@ -2203,12 +2203,6 @@ window.addEventListener('unhandledrejection', function(e){
   { id:'tiny_openmic', venue:'home',  title:'DAY ONE', mood:'base', portraitMood:'monday',
     setup:[
       "Morning, boss. I hope you saw the welcome sign. Sam was out there all night in the snow trying to get the thing to stay up.",
-      "Four numbers run this franchise. You’ll find them on your desk every Monday.",
-      "CASH is cash. Gate money in, payroll out.",
-      "MORALE wins games. It’s the only thing that does.",
-      "BUZZ fills seats. If half the town’s talking about the Lumberjacks by lunchtime, we’ll feel it at the gate tonight.",
-      "And CRED. That’s what the league thinks of you. It decides our cut on the road and whose calls come in.",
-      "Let it slip far enough and the phone stops ringing. Trouble is, you’ll never know who was going to call.",
       "Straight to business, then. Tiny worked the Open Mic downtown last night, and about thirty of his forty minutes were an impression of you. I'd call it unflattering. The room disagreed. Loudly.",
       "So... what's the first order of business?"],
     choices:[
@@ -5171,6 +5165,10 @@ window.addEventListener('unhandledrejection', function(e){
      text:"She's at the door before you are, holding a clipboard and the expression of a woman who has outlasted four owners.\n\n\u201CI keep the books, the schedule, and most of the chaos. You'll want to stay on the right side of at least two of those. I'll let you pick which.\u201D"},
     {kind:'text', scene:'intro_court',
      text:"The tour takes eleven minutes.\n\nThe arena smells like woodsmoke and old rubber. The lights over the court need a full minute to come up, and she waits through it without comment, because that's just the minute. There's a longer list of things like that \u2014 things the previous owner appeared to negotiate around instead of fix. She doesn't itemize it now."},
+    {kind:'card', who:'sandra', profile:true, portrait:'assets/cutscenes/office-chalkboard.webp', name:'SANDRA', meta:'The office',
+     text:"“Four numbers run this franchise. You’ll find them on your desk every Monday.\n\nCASH is cash. Gate money in, payroll out.\n\nMORALE wins games. It’s the only thing that does.”"},
+    {kind:'card', who:'sandra', profile:true, portrait:'assets/cutscenes/office-chalkboard.webp', name:'SANDRA', meta:'The office',
+     text:"“BUZZ fills seats. Get the town talking and we’ll feel it at the gate.\n\nCRED is what the league thinks of you. It decides our cut on the road.\n\nIt also decides who calls. Let it slip and the phone gets very quiet.”"},
     {kind:'text',
      text:"\u201CRight. The people.\n\nYou'll meet all of 'em whether you plan to or not \u2014 better we do it here, where nobody's bleeding and I control the order.\u201D\n\nShe starts with the mascot."},
     castCard('sam'),
