@@ -167,6 +167,7 @@ class StoryWeeks(unittest.TestCase):
         # the uninterrupted return to Sandra if post-decision resume regresses.
         finished = page.evaluate("localStorage.getItem('courtside_save')")
         postgame = fields.all_text_contents()
+        self.shot("grace-postgame")
         page.locator("#nextBtn").tap()
         # Week 6 may introduce a supporting character before returning to the desk.
         if page.locator("#caw.on").count():
