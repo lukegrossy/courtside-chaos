@@ -143,12 +143,18 @@ jobs:
           python -m venv /tmp/cc-webkit
           /tmp/cc-webkit/bin/pip install playwright==1.56.0
           /tmp/cc-webkit/bin/playwright install --with-deps webkit
-          /tmp/cc-webkit/bin/python tests/week-one.py
-      - name: Save Day One render
+      - name: Test opening and dashboard
+        run: /tmp/cc-webkit/bin/python tests/week-one.py
+      - name: Test Possum and Grace
+        if: success() || failure()
+        run: /tmp/cc-webkit/bin/python tests/story-weeks.py
+      - name: Save mobile WebKit screenshots
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: week-one-desk
+          name: courtside-mobile-webkit
           path: |
             /tmp/week-one-desk.png
             /tmp/postgame-slips.png
+            /tmp/courtside-story-weeks/*.png
           retention-days: 3

@@ -11,6 +11,8 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
     Thread(target=server.serve_forever, daemon=True).start()
     browser = pw.webkit.launch()
     page = browser.new_page(**pw.devices["iPhone 13"], reduced_motion="reduce")
+    page.route("**/*", lambda route: route.continue_() if route.request.url.startswith(
+        f"http://127.0.0.1:{server.server_port}/") else route.abort())
     page.on("pageerror", lambda err: print("Game error:", err, flush=True))
     page.goto(f"http://127.0.0.1:{server.server_port}", wait_until="domcontentloaded")
     page.add_style_tag(content=":root{--screen-safe-top:59px}")
@@ -68,8 +70,11 @@ with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server, sync_playwright()
         if intro_pages == expected_pages and not board_pages and speaker == "SAWDUST SAM":
             page.emulate_media(reduced_motion="no-preference")
             cutaway.tap(position={"x": 12, "y": 60})
-            page.wait_for_timeout(780)
-            assert page.locator("#caw").evaluate("el => getComputedStyle(el).opacity") == "0"
+            page.wait_for_function(
+                """() => { const screen = document.querySelector('#caw');
+                return !screen.classList.contains('on') && getComputedStyle(screen).opacity === '0'; }""",
+                timeout=2000,
+            )
             cutaway.wait_for()
             page.locator("#cawPort.show[src$='office-chalkboard.webp']").wait_for()
             page.emulate_media(reduced_motion="reduce")
