@@ -467,6 +467,12 @@
       scroll-behavior:auto !important;
     }
   }
+  .handover .cawcard{top:40px;height:850px;width:100%;}
+  .handover .pimg,.handover #departureFilm{object-fit:contain;border:0;box-shadow:none;}
+  #departureFilm{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
+  .handover .cawname{top:905px;}
+  .handover .cawmeta{top:965px;}
+  .handover.cardmode .cawtxt{top:1030px;}
   #introDoor{width:100%;height:100%;object-fit:cover}
   .introProfile .cawcard{top:var(--profile-top,0px);left:0;width:100%;height:calc(51% - var(--profile-top,0px));transform:none;mask-image:linear-gradient(#000 88%,transparent)}
   .introProfile .pimg{border:0;box-shadow:none;image-rendering:auto;object-position:50% 0%}
@@ -604,6 +610,7 @@ window.addEventListener('unhandledrejection', function(e){
       <div class="cawreadband"></div>
       <div class="cawlabel">FINAL</div>
       <div class="pcard cawcard" id="cawCard">
+        <video id="departureFilm" hidden muted loop playsinline preload="none"></video>
         <video id="introDoor" hidden muted loop playsinline preload="none" poster="assets/cutscenes/intro_door.webp" src="assets/cutscenes/intro_door.mp4"></video>
         <img class="pimg" id="cawPort" alt="">
         <div class="pplac" id="cawPlac"><span>FILE PHOTO</span><span>PENDING</span></div>
@@ -1150,6 +1157,7 @@ window.addEventListener('unhandledrejection', function(e){
   var portraitFadeToken = 0;
   function setPortrait(who, mood, noOverride){
     var m = mood||'base', i=0;
+    if(who==='grace' && !noOverride && current && current.id==='grace_1') m='owner-office';
     /* HOLIDAY HARD OVERRIDE: for her first week back from the week off, Sandra
        is in the shirt no matter what the week throws at her. */
     if(who==='sandra' && !noOverride && S && S.flags && S.flags.sandraHoliday) m='holiday';
@@ -1213,7 +1221,8 @@ window.addEventListener('unhandledrejection', function(e){
     cawTxt.style.fontSize=CAWTXT_BASE_SIZE+'px';
     cawTxt.style.lineHeight=CAWTXT_BASE_LH+'px';
     var size=CAWTXT_BASE_SIZE;
-    while(cawTxt.scrollHeight > CAWTXT_CAP && size > 22){
+    var cap=caw.classList.contains('handover') ? 640 : CAWTXT_CAP;
+    while(cawTxt.scrollHeight > cap && size > 22){
       size -= 2;
       cawTxt.style.fontSize=size+'px';
       cawTxt.style.lineHeight=Math.round(size*54/38)+'px';
@@ -1362,6 +1371,17 @@ window.addEventListener('unhandledrejection', function(e){
       cawVid.removeAttribute('poster');
       cawVid.muted=!arrivalFilm;
       cawVid.loop=!arrivalFilm;
+      caw.classList.toggle('handover',!!step.handover);
+      var film=document.getElementById('departureFilm');
+      film.hidden=true;
+      film.pause();
+      if(step.departure && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+        if(!film.getAttribute('src')) film.src='assets/cutscenes/sandra_departure.mp4';
+        film.poster=step.portrait;
+        film.hidden=false;
+        film.onerror=function(){film.hidden=true;};
+        film.play().catch(function(){film.hidden=true;});
+      }
       var door=document.getElementById('introDoor');
       door.hidden=!step.doorway;
       if(step.doorway){door.play().catch(function(){});}else{door.pause();}
@@ -4012,9 +4032,14 @@ window.addEventListener('unhandledrejection', function(e){
     }
     if(current && current.grace && !S.met['grace']){
       S.met['grace']=true;
-      var handoff={kind:'card', who:'sandra', name:'SANDRA', meta:'Secretary',
-        text:"\u201CThat's me, then \u2014 out the door for real this time. Grace is at this desk. She held it before I did, retired, allegedly, and she will tell you so herself, at length, with citations.\n\nBe civil. She keeps her own ledger, and hers has no eraser.\n\nSee you in a week.\u201D"};
+      var handoff={kind:'card', handover:true, departure:true, portrait:'assets/cutscenes/sandra_departure.webp', who:'sandra', name:'SANDRA', meta:'Secretary',
+        text:"\u201CThat's me, then \u2014 out the door for real this time. Grace is covering for me. She held the job before I did, retired, allegedly, and she will tell you so herself, at length, with citations.\n\nBe civil. She keeps her own ledger, and hers has no eraser.\n\nSee you in a week.\u201D"};
       var gcc=castCard('grace');
+      if(gcc){
+        gcc.handover=true;
+        gcc.fadeThroughBlack=true;
+        gcc.portrait='assets/cutscenes/grace_owner_office.webp';
+      }
       var steps=gcc ? [handoff, gcc] : [handoff];
       runSequence(steps, dash, function(){ presentWeekBody(); }, dash);
       return;
@@ -5132,7 +5157,7 @@ window.addEventListener('unhandledrejection', function(e){
         "Guilt-trips area business owners by name, from his seat, at volume. It works every single time. I've stopped questioning it and started scheduling around it."
       ]},
     { who:'grace', tab:'GRACE', thick:'\u25AE\u25AE', name:'GRACE', meta:'Secretary, Retired \u2014 Filling In',
-      intro:"\u201CI held this desk for seventeen years before Sandra had it, and I'll hold it for one week now, which should be enough time to see what's become of the place.\n\nI've been told to be civil. I'm always civil. Civility and honesty are not in conflict \u2014 they simply take turns.\n\nSit anywhere. Not that chair.\u201D",
+      intro:"\u201CI did this job for seventeen years before Sandra took over, and I'll do it for one week now, which should be enough time to see what's become of the place.\n\nI've been told to be civil. I'm always civil. Civility and honesty are not in conflict \u2014 they simply take turns.\n\nI've put your things in Sandra's office. You'll be working there this week.\n\nSit anywhere. Not that chair.\u201D",
       file:[
         "GRACE. Held this desk before I did. Retired, allegedly. Fills in when I'm away, which is rare, and getting rarer, and you can read that however you like.",
         "Righteous. Usually correct, which is what makes the righteous part so hard to argue with. Keeps her own ledger. Hers has no eraser.",

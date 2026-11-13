@@ -310,3 +310,7 @@ Highest-priority gaps include:
 - unused/duplicate portrait assets
 
 Fix visual debt by improving the master asset or the integration — not by adding one-off CSS hacks around it.
+
+## Owner’s office
+
+Use `assets/cutscenes/grace_owner_office.webp` as the room reference. The blinds and plant sit on the left, the team photo hangs behind the desk, and the grey filing cabinet stands on the right. Grace takes this office during Sandra’s week off. The owner works from Sandra’s office for that week.
